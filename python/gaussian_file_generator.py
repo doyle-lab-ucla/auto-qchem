@@ -1,66 +1,100 @@
-from config import *
+from python.enumerators import *
+from python.util import *
+
+logger = logging.getLogger(__name__)
+
 
 class gaussian_file_generator():
     """generator of gaussian input files"""
 
-    def __init__(self, has_heavy, workflow, directory):
-        """configure workflow and basis set to be used"""
+    def __init__(self, molecule):
+        """configure for this molecule"""
 
-        self.has_heavy = has_heavy
-        self.workflow = workflow
-        self.directory = directory
+        self.directory = f"{config['gaussian']['work_dir']}/{molecule.fs_name}"
+        self.molecule = molecule
 
-        if self.has_heavy:
-            self.basis_set = config.generic_set
+        if self.molecule.heavy_elements:
+            self.basis_set = config['gaussian']['generic_basis_set']
         else:
-            self.basis_set = config.light_set
+            self.basis_set = config['gaussian']['light_basis_set']
 
-    def generate_file(self, name, resource_block, coords_block,
+    def create_gaussian_files(self, workflow=gaussian_workflows.equilibrium):
+        """write gaussian files for each conformation with defined options"""
+
+        # prepare directory for gaussian files
+        cleanup_directory_files(self.directory, types=["gjf"])
+        os.makedirs(self.directory, exist_ok=True)
+
+        # resources configuration
+        n_processors = min(config['gaussian']['max_processors'],
+                           self.molecule.mol.NumAtoms() // config['gaussian']['atoms_per_processor'])
+        RAM = n_processors * config['gaussian']['ram_per_processor']
+        resource_block = f"%nprocshared={n_processors}\n%Mem={RAM}GB\n"
+
+        logger.info(f"Generating Gaussian input files for {self.molecule.mol.NumConformers()} conformations.")
+
+        for conf_id in range(self.molecule.mol.NumConformers()):
+            # set conformer
+            conf_name = f"{self.molecule.name}_conf_{conf_id}"
+            fs_conf_name = f"{self.molecule.fs_name}_conf_{conf_id}"
+
+            # coordinates block
+            geom_np_array = self.molecule.get_initial_geometry(conf_id).astype(str).values
+            coords_block = "\n".join(map(" ".join, geom_np_array))
+
+            # create the gaussian input file
+            self.__generate_file(workflow,
+                                 conf_name,
+                                 fs_conf_name,
+                                 resource_block,
+                                 coords_block,
+                                 self.molecule.light_elements,
+                                 self.molecule.heavy_elements,
+                                 self.molecule.mol.GetTotalCharge(),
+                                 self.molecule.mol.GetTotalSpinMultiplicity())
+
+
+    def __generate_file(self, workflow, name, fs_name, resource_block, coords_block,
                       light_elements, heavy_elements, charge, multiplicity):
 
-        if self.has_heavy:
+        if self.molecule.heavy_elements:
             heavy_block = ""
-            heavy_block += "\n" + " ".join(light_elements + ["0"]) + "\n"
-            heavy_block += f"{config.light_set}\n****"
-            heavy_block += "\n" + " ".join(heavy_elements + ["0"]) + "\n"
-            heavy_block += f"{config.heavy_set}\n****\n"
-            heavy_block += "\n" + " ".join(heavy_elements + ["0"]) + "\n"
-            heavy_block += f"{config.heavy_set}\n"
+            heavy_block += f"{' '.join(light_elements + ['0'])}\n"
+            heavy_block += f"{config['gaussian']['light_basis_set']}\n****\n"
+            heavy_block += f"{' '.join(heavy_elements + ['0'])}\n"
+            heavy_block += f"{config['gaussian']['heavy_basis_set']}\n****\n"
+            heavy_block += f"\n"
+            heavy_block += f"{' '.join(heavy_elements + ['0'])}\n"
+            heavy_block += f"{config['gaussian']['heavy_basis_set']}\n"
 
         output = ""
-        output += resource_block
-        output += f"%Chk={name}_1.chk\n"
 
-        # geoemtry optimization
-        output += f"# {self.workflow.value['opt'](self.basis_set)}\n\n"
-        output += f"{name}\n\n"
-        output += f"{charge} {multiplicity}\n"
-        output += coords_block
+        # loop through the tasks in the workflow and create input file
+        for i, task in enumerate(workflow.value):
 
-        # add heavy block
-        if self.has_heavy:
-            output += heavy_block
+            if i == 0:  # first task is special, coordinates follow
+                output += resource_block
+                output += f"%Chk={fs_name}_{i}.chk\n"
+                output += f"# {task['route'](self.basis_set)}\n\n"
+                output += f"{name}\n\n"
+                output += f"{charge} {multiplicity}\n"
+                output += f"{coords_block.strip()}\n"
+                output += f"\n"
+            else:
+                output += "\n--Link1--\n"
+                output += resource_block
+                output += f"%Oldchk={fs_name}_{i - 1}.chk\n"
+                output += f"%Chk={fs_name}_{i}.chk\n"
+                output += f"# {task['route'](self.basis_set)}\n"
+                output += f"\n"
 
-        # frequency calculation
-        output += "\n\n\n--Link--1\n"
-        output += resource_block
-        output += f"%Oldchk={name}_1.chk\n"
-        output += f"%Chk={name}_2.chk\n"
-        output += f"# {self.workflow.value['freq'](self.basis_set)}\n"
-
-        if self.has_heavy:
-            output += heavy_block
-
-        # time_dependent calculation (only for equilibrium workflow)
-        if 'td' in self.workflow.value:
-            output += "\n\n\n--Link--1\n"
-            output += resource_block
-            output += f"%Oldchk={name}_2.chk\n"
-            output += f"%Chk={name}_3.chk\n"
-            output += f"{self.workflow.value['td'](self.basis_set)}\n"
-
-            if self.has_heavy:
+            if self.molecule.heavy_elements:
                 output += heavy_block
 
-        with open(f"{self.directory}/{name}.gjf", "w") as file:
+        output += f"\n\n"
+
+        file_path = f"{self.directory}/{fs_name}.gjf"
+        with open(file_path, "w") as file:
             file.write(output)
+
+        logger.info(f"Generated a Gaussian input file in {file_path}")
