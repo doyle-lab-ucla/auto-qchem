@@ -2,7 +2,6 @@ import logging
 
 import pandas as pd
 from openbabel import pybel
-import rdkit.Chem
 
 from python.enumerators import *
 
@@ -32,8 +31,7 @@ def OBMol_to_string(mol, format):
 def OBMol_to_geom_df(mol):
     """extract geometry dataframe from OBMol"""
 
-    pt = rdkit.Chem.GetPeriodicTable()
-    array = [[pt.GetElementSymbol(a.GetAtomicNum()),
+    array = [[pybel.ob.GetSymbol(a.GetAtomicNum()),
               a.GetIsotope(), a.x(), a.y(), a.z()] for a in pybel.ob.OBMolAtomIter(mol)]
     df = pd.DataFrame(array, columns=['Atom', 'Isotope'] + list('XYZ'))
     df['Atom'] = df['Atom'] + df['Isotope'].astype(str).where(df['Isotope'] > 0, '')

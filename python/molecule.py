@@ -92,11 +92,10 @@ class molecule(object):
     def __get_light_and_heavy_elements(self):
         """group elements into light and heavy for this molecule"""
 
-        pt = rdkit.Chem.GetPeriodicTable()
         max_light_z = config['gaussian']['max_light_atomic_number']
         atomic_nums = set(atom.GetAtomicNum() for atom in pybel.ob.OBMolAtomIter(self.mol))
-        self.light_elements = [pt.GetElementSymbol(n) for n in atomic_nums if n <= max_light_z]
-        self.heavy_elements = [pt.GetElementSymbol(n) for n in atomic_nums if n > max_light_z]
+        self.light_elements = [pybel.ob.GetSymbol(n) for n in atomic_nums if n <= max_light_z]
+        self.heavy_elements = [pybel.ob.GetSymbol(n) for n in atomic_nums if n > max_light_z]
 
     def __adjust_geometries(self, min_dist):
         """adjust geometries such that the minimum separation
