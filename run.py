@@ -1,5 +1,5 @@
-from python.molecule import molecule
-from python.slurm_manager import *
+from autoqchem.molecule import molecule
+from autoqchem.slurm_manager import *
 
 logging.basicConfig(level=logging.INFO)
 

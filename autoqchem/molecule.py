@@ -4,9 +4,9 @@ from scipy.spatial.distance import cdist
 import numpy as np
 import rdkit.Chem
 
-from python.gaussian_file_generator import *
-from python.util import *
-from python.conversions import *
+from autoqchem.gaussian_file_generator import *
+from autoqchem.util import *
+from autoqchem.openbabel_conversions import *
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +22,7 @@ class molecule(object):
 
         # get canonical smiles of this molecule
         self.name = OBMol_to_string(self.mol, "can")
-        logger.info(f"Canonical smiles of this molecule is {self.name}")
+        logger.info(f"Initializing molecule with canonical smiles: {self.name}")
 
         # reload the molecule using its canonical smiles
         self.mol = input_to_OBMol(self.name, input_types.string, input_formats.canonical)
@@ -38,9 +38,10 @@ class molecule(object):
         self.__generate_geometry(config['babel']['gen3D_option'])
         self.__generate_conformers(config['babel']['num_conformers'])
 
-        # extra steps for molecules with multiple fragments
+        # find central atoms
         self.__find_central_atoms()
 
+        # extra steps for molecules with multiple fragments
         if len(self.centers) == 2:
             logger.info(f"Molecule has 2 non-bonded fragments")
             # adjust distance between fragments (in-case it's not enough already)
@@ -49,7 +50,6 @@ class molecule(object):
             message = f"Molecule has {len(self.centers)} non-bonded fragments. Only up to 2 are supported"
             logger.error(message)
             raise Exception(message)
-
 
     def __generate_geometry(self, option):
         """generate initial geometry using get3D option"""
@@ -77,7 +77,6 @@ class molecule(object):
             lambda frag: frag.sub(frag.mean()).pow(2).sum(1).idxmin()
         ).values
 
-
     def __generate_conformers(self, num_conformers):
         """generate conformations with GA algorithm"""
 
@@ -87,7 +86,6 @@ class molecule(object):
         confSearch.GetConformers(self.mol)
 
         logger.info(f"Conformer Search generated {self.mol.NumConformers()} conformations of {self.name} molecule")
-
 
     def __get_light_and_heavy_elements(self):
         """group elements into light and heavy for this molecule"""
@@ -107,14 +105,14 @@ class molecule(object):
 
             geom['Fragment'] = geom.index.map(self.fragments_dict)
             geom = geom.set_index(['Fragment', 'Atom'])
-            v = geom.iloc[self.centers].diff().dropna().values # separate along the center-center axis
+            v = geom.iloc[self.centers].diff().dropna().values  # separate along the center-center axis
             v = v / np.linalg.norm(v)
 
             init_mdist = cdist(geom.loc[0], geom.loc[1]).min()
             counter = 0
             mdist = init_mdist
             while mdist < min_dist:
-                geom.loc[1] = geom.loc[1].values + 0.1*v
+                geom.loc[1] = geom.loc[1].values + 0.1 * v
                 mdist = cdist(geom.loc[0], geom.loc[1]).min()
                 counter += 1
 
@@ -128,7 +126,6 @@ class molecule(object):
                 pos = geom.iloc[atom.GetIdx() - 1]
                 atom.SetVector(pos.X, pos.Y, pos.Z)
 
-
     def get_initial_geometry(self, conformer_num=0) -> pd.DataFrame:
         """get coordinates dataframe for a given conformer"""
 
@@ -139,3 +136,13 @@ class molecule(object):
 
         self.mol.SetConformer(conformer_num)
         return OBMol_to_geom_df(self.mol)
+
+    def draw(self, conformer_num=0) -> pybel.Molecule:
+        """draw molecule"""
+
+        if conformer_num >= self.mol.NumConformers():
+            logger.error(f"Conformer number: {conformer_num} does not exist. The molecule"
+                         f" has {self.mol.NumConformers()} available.")
+            return
+        self.mol.SetConformer(conformer_num)
+        return pybel.Molecule(self.mol)

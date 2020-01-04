@@ -3,12 +3,13 @@ import logging
 import pandas as pd
 from openbabel import pybel
 
-from python.enumerators import *
+from autoqchem.enumerators import *
 
 logger = logging.getLogger(__name__)
 conv = pybel.ob.OBConversion()
 
-def input_to_OBMol(input, input_type, input_format):
+
+def input_to_OBMol(input, input_type, input_format) -> pybel.ob.OBMol:
     """create OBMol from input (type and format as supported in the enumerators)"""
 
     mol = pybel.ob.OBMol()
@@ -21,14 +22,15 @@ def input_to_OBMol(input, input_type, input_format):
 
     return mol
 
-def OBMol_to_string(mol, format):
+
+def OBMol_to_string(mol, format) -> str:
     """from OBMol to a string format"""
 
     conv.SetOutFormat(format)
     return conv.WriteString(mol).strip()
 
 
-def OBMol_to_geom_df(mol):
+def OBMol_to_geom_df(mol) -> pd.DataFrame:
     """extract geometry dataframe from OBMol"""
 
     array = [[pybel.ob.GetSymbol(a.GetAtomicNum()),
@@ -37,6 +39,3 @@ def OBMol_to_geom_df(mol):
     df['Atom'] = df['Atom'] + df['Isotope'].astype(str).where(df['Isotope'] > 0, '')
     df = df.drop('Isotope', axis=1)
     return df
-
-
-

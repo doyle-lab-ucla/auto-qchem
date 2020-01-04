@@ -1,5 +1,5 @@
-from python.enumerators import *
-from python.util import *
+from autoqchem.enumerators import *
+from autoqchem.util import *
 
 logger = logging.getLogger(__name__)
 
@@ -53,9 +53,8 @@ class gaussian_file_generator():
                                  self.molecule.mol.GetTotalCharge(),
                                  self.molecule.mol.GetTotalSpinMultiplicity())
 
-
     def __generate_file(self, workflow, name, fs_name, resource_block, coords_block,
-                      light_elements, heavy_elements, charge, multiplicity):
+                        light_elements, heavy_elements, charge, multiplicity):
 
         if self.molecule.heavy_elements:
             heavy_block = ""
