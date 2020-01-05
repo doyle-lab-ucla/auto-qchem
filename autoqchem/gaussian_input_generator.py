@@ -1,10 +1,10 @@
-from autoqchem.enumerators import *
-from autoqchem.util import *
+from autoqchem.helper_classes import *
+from autoqchem.helper_functions import *
 
 logger = logging.getLogger(__name__)
 
 
-class gaussian_file_generator():
+class gaussian_input_generator(object):
     """generator of gaussian input files"""
 
     def __init__(self, molecule):
@@ -28,8 +28,8 @@ class gaussian_file_generator():
         # resources configuration
         n_processors = min(config['gaussian']['max_processors'],
                            self.molecule.mol.NumAtoms() // config['gaussian']['atoms_per_processor'])
-        RAM = n_processors * config['gaussian']['ram_per_processor']
-        resource_block = f"%nprocshared={n_processors}\n%Mem={RAM}GB\n"
+        ram = n_processors * config['gaussian']['ram_per_processor']
+        resource_block = f"%nprocshared={n_processors}\n%Mem={ram}GB\n"
 
         logger.info(f"Generating Gaussian input files for {self.molecule.mol.NumConformers()} conformations.")
 
@@ -56,8 +56,8 @@ class gaussian_file_generator():
     def __generate_file(self, workflow, name, fs_name, resource_block, coords_block,
                         light_elements, heavy_elements, charge, multiplicity):
 
+        heavy_block = ""
         if self.molecule.heavy_elements:
-            heavy_block = ""
             heavy_block += f"{' '.join(light_elements + ['0'])}\n"
             heavy_block += f"{config['gaussian']['light_basis_set']}\n****\n"
             heavy_block += f"{' '.join(heavy_elements + ['0'])}\n"

@@ -1,11 +1,8 @@
-import logging
-
 import pandas as pd
 from openbabel import pybel
 
-from autoqchem.enumerators import *
+from autoqchem.helper_classes import *
 
-logger = logging.getLogger(__name__)
 conv = pybel.ob.OBConversion()
 
 

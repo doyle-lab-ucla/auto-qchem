@@ -1,12 +1,12 @@
-import re
 import glob
 import pickle
+import re
 from dataclasses import dataclass
 
 import pandas as pd
 
-from autoqchem.gaussian_file_generator import *
-from autoqchem.util import *
+from autoqchem.gaussian_input_generator import *
+from autoqchem.helper_functions import *
 
 logger = logging.getLogger(__name__)
 
@@ -25,23 +25,25 @@ class slurm_job:
 
 
 class slurm_manager(object):
-
     cache_file = f"{config['gaussian']['work_dir']}/slurm_manager.pkl"
 
     def __init__(self):
         """load jobs under management in constructor"""
 
-        self.jobs = {} # jobs under management
-        if os.path.exists(self.cache_file):
+        self.jobs = {}  # jobs under management
+        if os.path.exists(self.cache_file) and os.path.getsize(self.cache_file) > 0:
             with open(self.cache_file, 'rb') as cf:
                 self.jobs = pickle.load(cf)
+
+        self.host = config['slurm']['host']
+        self.user = config['slurm']['user']
+        self.remote_dir = f"/home/{self.user}/gaussian"
         self.connection = None
 
     def __del__(self):
-        """save jobs under management on destruction"""
+        """disconnect on destruction"""
 
         self.disconnect()
-        self.__cache()
 
     def __cache(self):
         """save jobs under management"""
@@ -52,10 +54,7 @@ class slurm_manager(object):
     def connect(self):
         """connect to remote server"""
 
-        self.host = config['slurm']['host']
-        self.user = config['slurm']['user']
         logger.info(f"Connecting to {self.host} as {self.user}")
-        self.remote_dir = f"/home/{self.user}/gaussian"
         self.connection = ssh_connect(self.host, self.user)
         self.connection.run(f"mkdir -p {self.remote_dir}")
         logger.info(f"Connected to {self.host} as {self.user}.")
@@ -71,7 +70,7 @@ class slurm_manager(object):
         """generate slurm jobs for a given molecule"""
 
         directory = f"{config['gaussian']['work_dir']}/{molecule.fs_name}"
-        gfg = gaussian_file_generator(molecule)
+        gfg = gaussian_input_generator(molecule)
 
         if glob.glob(f"{directory}/*.gjf"):
             if yes_or_no(f"Molecule already has gaussian (gjf) input files created "
@@ -135,7 +134,7 @@ class slurm_manager(object):
             f.write(output)
         convert_crlf_to_lf(sh_file_path)
 
-        job = slurm_job(None,  # job_id
+        job = slurm_job(-1,  # job_id (not assigned yet)
                         directory,  # sh_path
                         base_file_name,  # gjf_path
                         checkpoints,  # checkpoints
@@ -163,6 +162,10 @@ class slurm_manager(object):
 
     def __submit_jobs_from_jobs_bag(self, jobs):
         """submit jobs"""
+
+        # check if there are any jobs to be submitted
+        if not jobs:
+            return
 
         # check if connected
         if self.connection is None:
@@ -201,15 +204,16 @@ class slurm_manager(object):
 
         # check if connected
         if self.connection is None:
-                self.connect()
-        ret = self.connection.run(f"squeue -j {','.join(ids_to_check)} -o %A,%T", hide=True)
-        ids_running = [s.split(',')[0] for s in ret.stdout.splitlines()[1:]]
-        ids_finished = [id for id in ids_to_check if id not in ids_running]
+            self.connect()
+        ret = self.connection.run(f"squeue -u {self.user} -o %A,%T", hide=True)
+        user_running_ids = [s.split(',')[0] for s in ret.stdout.splitlines()[1:]]
+        running_ids = [id for id in user_running_ids if id in ids_to_check]
+        finished_ids = [id for id in ids_to_check if id not in running_ids]
 
-        logger.info(f"There are {len(ids_running)} running jobs, {len(ids_finished)} finished jobs.")
+        logger.info(f"There are {len(running_ids)} running jobs, {len(finished_ids)} finished jobs.")
 
         # get finished jobs
-        finished_jobs = {name: job for name, job in self.jobs.items() if job.job_id in ids_finished}
+        finished_jobs = {name: job for name, job in self.jobs.items() if job.job_id in finished_ids}
         failed_jobs, success_jobs = {}, {}
 
         if finished_jobs:
@@ -227,13 +231,14 @@ class slurm_manager(object):
                 else:
                     job.status = slurm_status.failed
                     failed_jobs[name] = job
-                    log.warning(f"Job {job.name} has {job.success_steps} out of {len(job.checkpoints)} completed."
-                                f"The job needs to be resubmitted.")
+                    logger.warning(f"Job {job.name} has {job.success_steps} out of {len(job.checkpoints)} completed."
+                                   f"The job needs to be resubmitted.")
 
                 # clean up files on the remote site
                 with self.connection.cd(self.remote_dir):
-                    self.connection.rm(f"slurm-{job.id}.out")
-                    self.connection.rm(f"{job.name}.*")
+                    self.connection.run(f"rm slurm-{job.job_id}.out")
+                    self.connection.run(f"rm {job.name}.*")
 
             self.__cache()
-            logger.info(f"{len(success_jobs)} finished successfuly. {len(failed_jobs)} failed.")
+            logger.info(f"{len(success_jobs)} jobs finished successfully (all Gaussian steps finished normally)."
+                        f" {len(failed_jobs)} jobs failed.")

@@ -1,10 +1,12 @@
 import enum
+
 import yaml
 
 config = yaml.safe_load(open("config.yml"))
 
 
-class input_types():
+@enum.unique
+class input_types(enum.IntEnum):
     """enumeration of input types"""
 
     file = enum.auto()
@@ -43,20 +45,39 @@ class gaussian_workflows(enum.Enum):
     ]
     test = [
         {"desc": "Hartree-Fock", "route": lambda basis_set: f"{config['gaussian']['theory']}/{basis_set}"},
-        # {"desc": "Frequency Calculation",
-        # "route": lambda basis_set: f"freq {config['gaussian']['theory']}/{basis_set}"
-        #                            f" volume NMR pop=NPA density=current Geom=AllCheck Guess=Read"},
-        # {"desc": "Time Dependent Calcualtion",
-        # "route": lambda basis_set: f"TD(NStates=10, Root=1) {config['gaussian']['theory']}/{basis_set} "
-        #                            f"volume pop=NPA density=current Geom=AllCheck Guess=Read"},
     ]
 
 
-class slurm_status(enum.Enum):
+class OrderedEnum(enum.Enum):
+    """ordered enumerator"""
+
+    def __ge__(self, other):
+        if self.__class__ is other.__class__:
+            return self.value >= other.value
+        return NotImplemented
+
+    def __gt__(self, other):
+        if self.__class__ is other.__class__:
+            return self.value > other.value
+        return NotImplemented
+
+    def __le__(self, other):
+        if self.__class__ is other.__class__:
+            return self.value <= other.value
+        return NotImplemented
+
+    def __lt__(self, other):
+        if self.__class__ is other.__class__:
+            return self.value < other.value
+        return NotImplemented
+
+
+@enum.unique
+class slurm_status(OrderedEnum):
     """enumeration for slurm job status"""
 
-    created = enum.auto()  # job files have been created
-    submitted = enum.auto()  # jobs has been submitted to slurm
-    finished = enum.auto()  # job finished running with slurm (failed or success)
-    failed = enum.auto()  # job failed
-    success = enum.auto()  # job finished successfully and is ready for retrieval
+    created = 'created'  # job files have been created
+    submitted = 'submitted'  # jobs has been submitted to slurm
+    finished = 'finished'  # job finished running with slurm (failed or success)
+    failed = 'failed'  # job failed
+    success = 'success'  # job finished successfully and is ready for retrieval

@@ -1,11 +1,10 @@
 import hashlib
 
-from scipy.spatial.distance import cdist
 import numpy as np
 import rdkit.Chem
+from scipy.spatial.distance import cdist
 
-from autoqchem.gaussian_file_generator import *
-from autoqchem.util import *
+from autoqchem.gaussian_input_generator import *
 from autoqchem.openbabel_conversions import *
 
 logger = logging.getLogger(__name__)
@@ -30,7 +29,7 @@ class molecule(object):
         # group elements into light and heavy
         self.__get_light_and_heavy_elements()
 
-        # create a unique name for files and directories, aka filesystem name (use stoichoimetric formula)
+        # create a unique name for files and directories, aka filesystem name (use stoichiometric formula)
         # add 4 hash digits of its canonical smiles in case of collisions of formulas
         self.fs_name = f"{self.mol.GetFormula()}_{hashlib.md5(self.name.encode()).hexdigest()[:4]}"
 
@@ -119,7 +118,7 @@ class molecule(object):
             if counter > 0:
                 logger.info(f"Conformation {conf_id}: repositioned molecular fragments from"
                             f" {init_mdist:.2f} separation to "
-                            f"{mdist:.2f} separation in {counter} interations.")
+                            f"{mdist:.2f} separation in {counter} iterations.")
 
             # reposition the atoms in the OBMol object
             for atom in pybel.ob.OBMolAtomIter(self.mol):
@@ -129,20 +128,11 @@ class molecule(object):
     def get_initial_geometry(self, conformer_num=0) -> pd.DataFrame:
         """get coordinates dataframe for a given conformer"""
 
-        if conformer_num >= self.mol.NumConformers():
-            logger.error(f"Conformer number: {conformer_num} does not exist. The molecule"
-                         f" has {self.mol.NumConformers()} available.")
-            return
-
         self.mol.SetConformer(conformer_num)
         return OBMol_to_geom_df(self.mol)
 
     def draw(self, conformer_num=0) -> pybel.Molecule:
         """draw molecule"""
 
-        if conformer_num >= self.mol.NumConformers():
-            logger.error(f"Conformer number: {conformer_num} does not exist. The molecule"
-                         f" has {self.mol.NumConformers()} available.")
-            return
         self.mol.SetConformer(conformer_num)
         return pybel.Molecule(self.mol)
