@@ -13,18 +13,18 @@ logger = logging.getLogger(__name__)
 class molecule(object):
     """Class that holds a single molecule information"""
 
-    def __init__(self, input, input_type=input_types.string, input_format=input_formats.smiles):
+    def __init__(self, input, input_format='smi', input_type=input_types.string, ):
         """initialize the molecule"""
 
         # read the molecule
-        self.mol = input_to_OBMol(input, input_type, input_format)
+        self.mol = input_to_OBMol(input, input_format, input_type)
 
         # get canonical smiles of this molecule
         self.name = OBMol_to_string(self.mol, "can")
         logger.info(f"Initializing molecule with canonical smiles: {self.name}")
 
         # reload the molecule using its canonical smiles
-        self.mol = input_to_OBMol(self.name, input_types.string, input_formats.canonical)
+        self.mol = input_to_OBMol(self.name, "can", input_types.string)
 
         # group elements into light and heavy
         self.__get_light_and_heavy_elements()

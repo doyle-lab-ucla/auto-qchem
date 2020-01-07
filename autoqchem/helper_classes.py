@@ -1,4 +1,5 @@
 import enum
+from dataclasses import dataclass
 
 import yaml
 
@@ -11,15 +12,6 @@ class input_types(enum.IntEnum):
 
     file = enum.auto()
     string = enum.auto()
-
-
-@enum.unique
-class input_formats(enum.Enum):
-    """enumeration of input formats"""
-
-    smiles = "smi"
-    canonical = "can"
-    chemdraw = "cdx"
 
 
 @enum.unique
@@ -48,32 +40,8 @@ class gaussian_workflows(enum.Enum):
     ]
 
 
-class OrderedEnum(enum.Enum):
-    """ordered enumerator"""
-
-    def __ge__(self, other):
-        if self.__class__ is other.__class__:
-            return self.value >= other.value
-        return NotImplemented
-
-    def __gt__(self, other):
-        if self.__class__ is other.__class__:
-            return self.value > other.value
-        return NotImplemented
-
-    def __le__(self, other):
-        if self.__class__ is other.__class__:
-            return self.value <= other.value
-        return NotImplemented
-
-    def __lt__(self, other):
-        if self.__class__ is other.__class__:
-            return self.value < other.value
-        return NotImplemented
-
-
 @enum.unique
-class slurm_status(OrderedEnum):
+class slurm_status(enum.Enum):
     """enumeration for slurm job status"""
 
     created = 'created'  # job files have been created
@@ -81,3 +49,16 @@ class slurm_status(OrderedEnum):
     finished = 'finished'  # job finished running with slurm (failed or success)
     failed = 'failed'  # job failed
     success = 'success'  # job finished successfully and is ready for retrieval
+
+
+@dataclass
+class slurm_job:
+    """data class for slurm job"""
+
+    job_id: int
+    path: str
+    name: str
+    checkpoints: list
+    status: slurm_status
+    n_submissions: int = 0
+    n_success_steps: int = 0

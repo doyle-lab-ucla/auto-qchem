@@ -1,7 +1,6 @@
 import glob
 import pickle
 import re
-from dataclasses import dataclass
 
 import pandas as pd
 
@@ -9,19 +8,6 @@ from autoqchem.gaussian_input_generator import *
 from autoqchem.helper_functions import *
 
 logger = logging.getLogger(__name__)
-
-
-@dataclass
-class slurm_job:
-    """data class for slurm job"""
-
-    job_id: int
-    path: str
-    name: str
-    checkpoints: list
-    status: slurm_status
-    n_submissions: int = 0
-    n_success_steps: int = 0
 
 
 class slurm_manager(object):
@@ -69,6 +55,7 @@ class slurm_manager(object):
     def create_jobs_for_molecule(self, molecule, workflow=gaussian_workflows.equilibrium):
         """generate slurm jobs for a given molecule"""
 
+        # TODO: allow to create simultaneous jobs for the same molecule, but different workflows
         directory = f"{config['gaussian']['work_dir']}/{molecule.fs_name}"
         gfg = gaussian_input_generator(molecule)
 
@@ -148,10 +135,19 @@ class slurm_manager(object):
 
         return {name: job for name, job in self.jobs.items() if job.status == status}
 
+    def remove_jobs(self, status):
+        """remove jobs with a given status"""
+
+        for name, job in list(self.jobs.items()):  # iterate over a copy
+            if job.status == status:
+                del self.jobs[name]
+
     def get_job_stats(self):
         """count jobs with each status under management"""
 
-        return pd.DataFrame([v.__dict__ for _, v in self.jobs.items()]).groupby('status').size()
+        series = pd.Series([v.status.value for _, v in self.jobs.items()])
+        return series.groupby(series).size().to_frame("number_of_jobs")
+        # return pd.DataFrame([v.__dict__ for _, v in self.jobs.items()]).groupby('status').size()
 
     def submit_jobs(self, status=slurm_status.created):
         """submit jobs of a given status"""
@@ -164,27 +160,25 @@ class slurm_manager(object):
         """submit jobs"""
 
         # check if there are any jobs to be submitted
-        if not jobs:
-            return
+        if jobs:
+            # check if connected
+            if self.connection is None:
+                self.connect()
 
-        # check if connected
-        if self.connection is None:
-            self.connect()
+            # check if jobs are in status created or failed
+            for name, job in jobs.items():
+                # copy .sh and .gjf file to remote_dir
+                self.connection.put(f"{job.path}/{job.name}.sh", self.remote_dir)
+                self.connection.put(f"{job.path}/{job.name}.gjf", self.remote_dir)
 
-        # check if jobs are in status created or failed
-        for name, job in jobs.items():
-            # copy .sh and .gjf file to remote_dir
-            sh_file = self.connection.put(f"{job.path}/{job.name}.sh", self.remote_dir)
-            gjf_file = self.connection.put(f"{job.path}/{job.name}.gjf", self.remote_dir)
+                with self.connection.cd(self.remote_dir):
+                    ret = self.connection.run(f"sbatch {self.remote_dir}/{job.name}.sh", hide=True)
+                    job.job_id = re.search("job\s*(\d+)\n", ret.stdout).group(1)
+                    job.status = slurm_status.submitted
+                    job.n_submissions = job.n_submissions + 1
+                    logger.info(f"Submitted job {name}, job_id: {job.job_id}.")
 
-            with self.connection.cd(self.remote_dir):
-                ret = self.connection.run(f"sbatch {sh_file.remote}", hide=True)
-                job.job_id = re.search("job\s*(\d+)\n", ret.stdout).group(1)
-                job.status = slurm_status.submitted
-                job.n_submissions = job.n_submissions + 1
-                logger.info(f"Submitted job {name}, job_id: {job.job_id}.")
-
-        self.__cache()
+            self.__cache()
 
     def squeue(self):
         """run squeue command"""
@@ -242,3 +236,7 @@ class slurm_manager(object):
             self.__cache()
             logger.info(f"{len(success_jobs)} jobs finished successfully (all Gaussian steps finished normally)."
                         f" {len(failed_jobs)} jobs failed.")
+
+    def resubmit_failed_jobs(self):
+        # TODO: allow for resubmission of failed jobs using checkpoints (so far no jobs have failed)
+        pass

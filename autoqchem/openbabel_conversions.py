@@ -6,11 +6,11 @@ from autoqchem.helper_classes import *
 conv = pybel.ob.OBConversion()
 
 
-def input_to_OBMol(input, input_type, input_format) -> pybel.ob.OBMol:
+def input_to_OBMol(input, input_format, input_type) -> pybel.ob.OBMol:
     """create OBMol from input (type and format as supported in the enumerators)"""
 
     mol = pybel.ob.OBMol()
-    conv.SetInFormat(input_format.value)
+    conv.SetInFormat(input_format)
 
     if input_type == input_types.file:
         conv.ReadFile(mol, input)
