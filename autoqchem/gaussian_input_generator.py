@@ -18,7 +18,7 @@ class gaussian_input_generator(object):
         else:
             self.basis_set = config['gaussian']['light_basis_set']
 
-    def create_gaussian_files(self, workflow=gaussian_workflows.equilibrium) -> list:
+    def create_gaussian_files(self, workflow=gaussian_workflows.equilibrium) -> tuple:
         """write gaussian files for each conformation with defined options"""
 
         # prepare directory for gaussian files

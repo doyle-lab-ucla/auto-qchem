@@ -2,6 +2,8 @@ import hashlib
 import pickle
 from contextlib import suppress
 
+import pymongo
+
 from autoqchem.gaussian_input_generator import *
 from autoqchem.helper_functions import *
 from autoqchem.openbabel_conversions import *
@@ -382,13 +384,12 @@ class slurm_manager(object):
         weights /= weights.sum()
 
         for weight, conformation in zip(weights, conformations):
-            data = {}
-            data['can'] = can
-            data['metadata'] = {'gaussian_config': config['gaussian'], 'gaussian_tasks': tasks, 'tag': tag}
-            data['weight'] = weight
+            data = {'can': can,
+                    'metadata': {'gaussian_config': config['gaussian'], 'gaussian_tasks': tasks, 'tag': tag},
+                    'weight': weight}
             # update with descriptors
             data.update(conformation)
 
             # db insertion
             db['autoqchem']['descriptors'].insert_one(data)
-        logger.info(f"Uploaded descriptors to DB for smiles: {job.can}, number of conformers: {len(conformations)}.")
+        logger.info(f"Uploaded descriptors to DB for smiles: {can}, number of conformers: {len(conformations)}.")

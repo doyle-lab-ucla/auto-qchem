@@ -49,7 +49,6 @@ class slurm_status(enum.Enum):
     failed = 'failed'  # job failed
 
 
-
 @dataclass
 class slurm_job:
     """data class for slurm job"""
