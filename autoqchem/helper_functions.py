@@ -1,4 +1,5 @@
 import getpass
+import glob
 import logging
 import os
 
@@ -25,6 +26,14 @@ def cleanup_directory_files(dir_path, types=()) -> None:
         count += 1
 
     logger.info(f"{count} files of type {types} removed from {dir_path}")
+
+
+def cleanup_empty_dirs(dir_path) -> None:
+    """Remove empty directories under the dir_path"""
+
+    for directory in glob.glob(f"{dir_path}/*/"):
+        if not os.listdir(directory):
+            os.rmdir(directory)
 
 
 def convert_crlf_to_lf(file_path) -> None:
