@@ -18,7 +18,7 @@ def occupied_volume(geometry_df, atom_idx, r, mesh_density=30):
         logger.warning(f"Mesh density {mesh_density} is larger than allowed "
                        f"max of {MAX_MESH_DENSITY}. Using {MAX_MESH_DENSITY} instead.")
 
-    # compute Van der Waals radii for atoms, r
+    # fetch Van der Waals radii for atoms, r
     atom_r = geometry_df['AN'].map(pybel.ob.GetVdwRad)
 
     # isolate coordinates
@@ -36,12 +36,13 @@ def occupied_volume(geometry_df, atom_idx, r, mesh_density=30):
     mesh_overlap_indices = (atom_distances - atom_r) < r
 
     # compute distance of every atom to every point in the mesh (this is the longest operation)
-    distances_sq = pd.DataFrame(cdist(mesh, coords[mesh_overlap_indices], metric='sqeuclidean'))
-
+    distances_sq = pd.DataFrame(cdist(coords[mesh_overlap_indices], mesh, metric='sqeuclidean'),
+                                index=atom_r[mesh_overlap_indices].index)
     # mesh cells are occupied if their distances are less then Van der Waals radius
-    occupancy = distances_sq < atom_r[mesh_overlap_indices] ** 2
+    # the below comparison requires matching indexes in the distances_sq matrix and atom_r series
+    occupancy = distances_sq.lt(atom_r[mesh_overlap_indices] ** 2, axis=0)
 
     # mesh cells are occupied if they are occupied by at least 1 atom
-    occupied = occupancy.any(axis=1)
+    occupied = occupancy.any()
 
     return occupied.sum() / mesh.shape[0]
