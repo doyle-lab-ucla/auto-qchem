@@ -1,23 +1,28 @@
-babel:
-    gen3D_option: "best" # options are ['fastest', 'fast', 'medium', 'better', 'best']
-    num_conformers: 5
-    min_dist_for_salts: 2 # in Angstroms
+openbabel:
+    gen3D_option: "best"
 
 gaussian:
-    work_dir: "C:/Users/AndrzejZuranski/tmp/qchem/gaussian"
     theory: "APFD" # other option used recently is B3LYP
     light_basis_set: "6-31G*"
     heavy_basis_set: "LANL2DZ"
     generic_basis_set: "genecp"
-    max_light_atomic_number: 30
+    max_light_atomic_number: 36
+    conformer_RMSD_threshold: 0.01
+    max_num_conformers: 30
+    min_dist_for_salts: 2 # in Angstroms
+
+slurm:
+    work_dir: "C:/Users/AndrzejZuranski/tmp/qchem/gaussian"
+    host: "della.princeton.edu"
+    user: "zuranski"
+    wall_time: "23:59:00"
     atoms_per_processor: 6
     max_processors: 20
     ram_per_processor: 2
 
-slurm:
-    host: "della.princeton.edu"
-    user: "zuranski"
-    wall_time: "23:59:00"
-
-database:
-    url: "mysql://tbd"
+mongoDB:
+    #host: "azuranski.princeton.edu"
+    host: "localhost"
+    port: 27017
+    user: "autoqchem"
+    password: "autoqchem"
