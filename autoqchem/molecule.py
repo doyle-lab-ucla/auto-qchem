@@ -1,9 +1,5 @@
 import hashlib
 
-import numpy as np
-import rdkit.Chem
-from scipy.spatial.distance import cdist
-
 from autoqchem.gaussian_input_generator import *
 from autoqchem.openbabel_conversions import *
 
@@ -20,31 +16,32 @@ class molecule(object):
         self.mol = input_to_OBMol(input, input_format, input_type)
 
         # get canonical smiles of this molecule
-        self.name = OBMol_to_string(self.mol, "can")
-        logger.info(f"Initializing molecule with canonical smiles: {self.name}")
+        self.can = OBMol_to_string(self.mol, "can")
+        logger.info(f"Initializing molecule with canonical smiles: {self.can}")
 
         # reload the molecule using its canonical smiles
-        self.mol = input_to_OBMol(self.name, "can", input_types.string)
+        self.mol = input_to_OBMol(self.can, "can", input_types.string)
 
         # group elements into light and heavy
         self.__get_light_and_heavy_elements()
 
         # create a unique name for files and directories, aka filesystem name (use stoichiometric formula)
         # add 4 hash digits of its canonical smiles in case of collisions of formulas
-        self.fs_name = f"{self.mol.GetFormula()}_{hashlib.md5(self.name.encode()).hexdigest()[:4]}"
+        self.fs_name = f"{self.mol.GetFormula()}_{hashlib.md5(self.can.encode()).hexdigest()[:4]}"
 
         # generate initial geometry and conformations
-        self.__generate_geometry(config['babel']['gen3D_option'])
-        self.__generate_conformers(config['babel']['num_conformers'])
+        self.__generate_geometry(config['openbabel']['gen3D_option'])
+        self.__generate_conformers(config['gaussian']['max_num_conformers'])
 
         # find central atoms
+
         self.__find_central_atoms()
 
         # extra steps for molecules with multiple fragments
         if len(self.centers) == 2:
             logger.info(f"Molecule has 2 non-bonded fragments")
             # adjust distance between fragments (in-case it's not enough already)
-            self.__adjust_geometries(config['babel']['min_dist_for_salts'])
+            self.__adjust_geometries(config['gaussian']['min_dist_for_salts'])
         elif len(self.centers) > 2:
             message = f"Molecule has {len(self.centers)} non-bonded fragments. Only up to 2 are supported"
             logger.error(message)
@@ -53,7 +50,7 @@ class molecule(object):
     def __generate_geometry(self, option):
         """generate initial geometry using get3D option"""
 
-        logger.info(f"Creating initial geometry")
+        logger.info(f"Creating initial geometry with option '{option}'.")
         gen3D = pybel.ob.OBOp.FindType("gen3D")
         gen3D.Do(self.mol, option)
         logger.info(f"Initial geometry created successfully.")
@@ -63,10 +60,7 @@ class molecule(object):
         by the fragment they belong to, then, find central atoms
         for all fragments (closest to centroids)"""
 
-        # use RDKit to get molecular fragments
-        rdkit_mol = rdkit.Chem.MolFromSmiles(self.name)  # get rdkit mol from canonical
-        rdkit_mol = rdkit.Chem.AddHs(rdkit_mol)  # add hydrogens
-        fragments = rdkit.Chem.GetMolFrags(rdkit_mol)
+        fragments = [[atom.GetId() for atom in pybel.ob.OBMolAtomIter(part)] for part in self.mol.Separate()]
         self.fragments_dict = {i: j for j, frag in enumerate(fragments) for i in frag}
 
         # find centers for each fragment
@@ -84,7 +78,7 @@ class molecule(object):
         confSearch.Search()
         confSearch.GetConformers(self.mol)
 
-        logger.info(f"Conformer Search generated {self.mol.NumConformers()} conformations of {self.name} molecule")
+        logger.info(f"Conformer Search generated {self.mol.NumConformers()} conformations of {self.can} molecule")
 
     def __get_light_and_heavy_elements(self):
         """group elements into light and heavy for this molecule"""
