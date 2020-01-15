@@ -2,8 +2,6 @@ import re
 
 from autoqchem.descriptor_functions import *
 
-# TODO: develop structure for descriptors and their saving
-
 logger = logging.getLogger(__name__)
 float_or_int_regex = "[-+]?[0-9]*\.[0-9]+|[0-9]+"
 
@@ -18,10 +16,18 @@ class gaussian_log_extractor(object):
         # initialize descriptors
         self.descriptors = {}
         self.atom_descriptors = {}
+        self.modes = None
+        self.mode_vectors = None
+        self.transitions = None
 
-        self.split_parts()  # split parts
-        self.get_atom_labels()  # fetch atom labels
-        self.get_geometries()  # fetch geometries for each log section
+        self.__split_parts()  # split parts
+        self.__get_atom_labels()  # fetch atom labels
+        self.__get_geometry()  # fetch geometries for each log section
+
+    def extract_descriptors(self):
+        """function to execute all other desriptor extraction functions"""
+
+        logger.info(f"Extracting descriptors.")
         self.compute_buried_volumes()  # compute buried volumes
         self.get_frequencies_and_moment_vectors()  # fetch vibration table and vectors
         self.get_freq_part_descriptors()  # fetch descriptors from frequency section
@@ -29,9 +35,20 @@ class gaussian_log_extractor(object):
 
         # concatenate atom_desciptors from various sources
         self.atom_descriptors = pd.concat(self.atom_descriptors.values(), axis=1)
-        self.atom_descriptors.index = self.labels
 
-    def get_atom_labels(self):
+    def data(self) -> dict:
+        """get dictionary of the descriptors to save"""
+
+        keys_to_save = ['labels', 'descriptors', 'atom_descriptors', 'transitions', 'modes', 'mode_vectors', ][:]
+        dictionary = {key: value for key, value in self.__dict__.items() if key in keys_to_save}
+        # convert dataframes to dicts
+        for key, value in dictionary.items():
+            if isinstance(value, pd.DataFrame):
+                dictionary[key] = value.to_dict(orient='list')
+
+        return dictionary
+
+    def __get_atom_labels(self):
         """fetch the z-matrix from the log file and save atom labels"""
 
         # regex logic, fetch part between "Multiplicity =\d\n" and a double line
@@ -39,7 +56,7 @@ class gaussian_log_extractor(object):
         z_matrix = re.findall("Multiplicity = \d\n(.*?)\n\s*\n", self.log, re.DOTALL)[0]
         self.labels = [items[0] for items in map(str.split, z_matrix.split('\n'))]
 
-    def split_parts(self):
+    def __split_parts(self):
         """split the log file into parts that correspond to gaussian steps"""
 
         # regex logic: log parts start with a new line and " # " pattern
@@ -50,11 +67,11 @@ class gaussian_log_extractor(object):
             name = re.search("^\w+", p).group(0)
             self.parts[name] = p
 
-    def __process_geom_block(self, geom) -> pd.DataFrame:
+    @staticmethod
+    def process_geom_block(geom) -> pd.DataFrame:
         """convert geom text block to dataframe"""
 
-        geom = geom.splitlines()  # split lines
-        geom = map(str.strip, geom)  # strip outer spaces
+        geom = map(str.strip, geom.splitlines())  # split lines and strip outer spaces
         geom = filter(lambda line: set(line) != {'-'}, geom)  # remove lines that only contain "---"
         geom = map(str.split, geom)  # split each line by space
 
@@ -66,35 +83,27 @@ class gaussian_log_extractor(object):
             pd.DataFrame(geom_arr[:, 3:].astype(float), columns=list('XYZ'))
         ], axis=1)
 
-        # add atom labels
-        geom_df.insert(loc=0, column='Atom', value=self.labels)
         return geom_df
 
-    def get_geometries(self):
+    def __get_geometry(self):
         """fetch geometries from the log file"""
 
-        logger.info("Extracting geometry.")
         # regex logic: find parts between "Standard orientation.*X Y Z" and "Rotational constants"
-        self.geoms = {}
-        for part_name, part_text in self.parts.items():
-            geoms = re.findall("Standard orientation:.*?X\s+Y\s+Z\n(.*?)\n\s*Rotational constants",
-                               part_text, re.DOTALL)
-            # fetch all geometry blocks in the text
-            geom_dfs = [self.__process_geom_block(geom) for geom in geoms]
-            self.geoms[part_name] = geom_dfs[-1] if geom_dfs else None
+        geoms = re.findall("Standard orientation:.*?X\s+Y\s+Z\n(.*?)\n\s*Rotational constants",
+                           self.log, re.DOTALL)
+        self.geom = gaussian_log_extractor.process_geom_block(geoms[-1])
 
     def compute_buried_volumes(self, radius=3):
         """get buried volumes for atoms"""
 
-        logger.info(f"Computing buried volumes within radius: {radius} Angstroms.")
-        geom = self.geoms['freq']
-        self.atom_descriptors['vbur'] = pd.Series(geom.index.map(lambda i: occupied_volume(geom, i, radius)),
+        logger.debug(f"Computing buried volumes within radius: {radius} Angstroms.")
+        self.atom_descriptors['vbur'] = pd.Series(self.geom.index.map(lambda i: occupied_volume(self.geom, i, radius)),
                                                   name='VBur')
 
     def get_frequencies_and_moment_vectors(self):
         """extract the frequency and other features for each mode within a text section"""
 
-        logger.info("Extracting vibrational frequencies and moment vectors.")
+        logger.debug("Extracting vibrational frequencies and moment vectors.")
         if 'freq' not in self.parts:
             logger.warning("Output file does not have a 'freq' part. Cannot extract frequencies.")
             return
@@ -114,7 +123,7 @@ class gaussian_log_extractor(object):
             freqs = [text.split("--") for text in freqs.splitlines()]
             freqs = [[item[0].strip()] + item[1].split() for item in freqs]
             freqs = np.array(freqs).T.tolist()
-            freq_dfs.append(pd.DataFrame(freqs[1:], columns=freqs[0]))
+            freq_dfs.append(pd.DataFrame(freqs[1:], columns=[name.replace(".", "") for name in freqs[0]]))
 
             # vectors
             vectors = re.findall("\n(\s+Atom.*)", freq_section, re.DOTALL)[0]
@@ -128,16 +137,16 @@ class gaussian_log_extractor(object):
         frequencies['mode_number'] = range(1, len(frequencies) + 1)
         self.modes = frequencies.set_index('mode_number').astype(float)
 
-        vectors = pd.concat(vector_dfs, axis=1)
+        vectors = pd.concat(vector_dfs, axis=1).astype(float)
         vectors.columns = pd.MultiIndex.from_product([list(range(1, len(frequencies) + 1)), ['X', 'Y', 'Z'], ])
         vectors.columns.names = ['mode_number', 'axis']
-        vectors.index = self.labels
-        self.mode_vectors = vectors.astype(float)
+        vectors = vectors.unstack().reset_index(level=2, drop=True).to_frame('value').reset_index()
+        self.mode_vectors = vectors
 
     def get_freq_part_descriptors(self):
         """extract descriptors from frequency part"""
 
-        logger.info("Extracting frequency section descriptors")
+        logger.debug("Extracting frequency section descriptors")
         if 'freq' not in self.parts:
             logger.warning("Output file does not have a 'freq' section. Cannot extract descriptors.")
             return
@@ -174,8 +183,10 @@ class gaussian_log_extractor(object):
 
         # convergence, regex-logic: last word in each line should be "YES"
         string = re.search("(Maximum Force.*?)\sPredicted change", text, re.DOTALL).group(1)
+        # TODO it could be only two first =YES and opt still converges
         self.descriptors['converged'] = all(np.array(re.findall("(\w+)\n", string)) == 'YES')
 
+        # TODO if multiplicity is more than 1, then both Alph and Beta molecular orbitals will have homo/lumo
         # energies, regex-logic: find all floats in energy block, split by occupied, virtual orbitals
         string = re.search("Population.*?SCF density.*?(\sAlph.*?)\n\s*Condensed", text, re.DOTALL).group(1)
         energies = [re.findall(f"({float_or_int_regex})", s_part) for s_part in string.split("Alpha virt.", 1)]
@@ -206,12 +217,12 @@ class gaussian_log_extractor(object):
         string = re.findall(f"Isotropic\s=\s*({float_or_int_regex})\s*Anisotropy\s=\s*({float_or_int_regex})", text)
         nmr = pd.DataFrame(np.array(string).astype(float), columns=['NMR_shift', 'NMR_anisotropy'])
 
-        self.atom_descriptors['freq'] = pd.concat([mulliken, apt, npa, nmr], axis=1)
+        self.atom_descriptors['freq'] = pd.concat([self.geom[list('XYZ')], mulliken, apt, npa, nmr], axis=1)
 
     def get_td_part_descriptors(self):
         """extract descriptors from TD part"""
 
-        logger.info("Extracting TD section descriptors")
+        logger.debug("Extracting TD section descriptors")
         if 'TD' not in self.parts:
             logger.warning("Output file does not have a 'TD' section. Cannot extract descriptors.")
             return
