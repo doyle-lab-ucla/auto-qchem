@@ -1,5 +1,17 @@
 import hashlib
 
+try:
+    from openbabel import pybel  # openbabel 3.0.0
+
+    GetSymbol = pybel.ob.GetSymbol
+    GetVdwRad = pybel.ob.GetVdwRad
+except ImportError:
+    import pybel  # openbabel 2.4
+
+    table = pybel.ob.OBElementTable()
+    GetSymbol = table.GetSymbol
+    GetVdwRad = table.GetVdwRad
+
 from autoqchem.gaussian_input_generator import *
 from autoqchem.openbabel_conversions import *
 
@@ -9,7 +21,12 @@ logger = logging.getLogger(__name__)
 class molecule(object):
     """Class that holds a single molecule information"""
 
-    def __init__(self, input, input_format='smi', input_type=input_types.string, ):
+    def __init__(self,
+                 input,
+                 input_format='smi',
+                 input_type=input_types.string,
+                 gen3D_option=config['openbabel']['gen3D_option'],
+                 max_num_conformers=config['gaussian']['max_num_conformers']):
         """initialize the molecule"""
 
         # read the molecule
@@ -30,8 +47,8 @@ class molecule(object):
         self.fs_name = f"{self.mol.GetFormula()}_{hashlib.md5(self.can.encode()).hexdigest()[:4]}"
 
         # generate initial geometry and conformations
-        self.__generate_geometry(config['openbabel']['gen3D_option'])
-        self.__generate_conformers(config['gaussian']['max_num_conformers'])
+        self.__generate_geometry(gen3D_option)
+        self.__generate_conformers(max_num_conformers)
 
         # find central atoms
 
@@ -85,8 +102,8 @@ class molecule(object):
 
         max_light_z = config['gaussian']['max_light_atomic_number']
         atomic_nums = set(atom.GetAtomicNum() for atom in pybel.ob.OBMolAtomIter(self.mol))
-        self.light_elements = [pybel.ob.GetSymbol(n) for n in atomic_nums if n <= max_light_z]
-        self.heavy_elements = [pybel.ob.GetSymbol(n) for n in atomic_nums if n > max_light_z]
+        self.light_elements = [GetSymbol(n) for n in atomic_nums if n <= max_light_z]
+        self.heavy_elements = [GetSymbol(n) for n in atomic_nums if n > max_light_z]
 
     def __adjust_geometries(self, min_dist):
         """adjust geometries such that the minimum separation

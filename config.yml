@@ -7,22 +7,21 @@ gaussian:
     heavy_basis_set: "LANL2DZ"
     generic_basis_set: "genecp"
     max_light_atomic_number: 36
-    conformer_RMSD_threshold: 0.01
     max_num_conformers: 30
+    conformer_RMSD_threshold: 0.01 # in Angstroms
+    conformer_weight_threshold: 0.00001
     min_dist_for_salts: 2 # in Angstroms
 
 slurm:
     work_dir: "C:/Users/AndrzejZuranski/tmp/qchem/gaussian"
-    host: "della.princeton.edu"
-    user: "zuranski"
     wall_time: "23:59:00"
     atoms_per_processor: 6
     max_processors: 20
     ram_per_processor: 2
 
 mongoDB:
-    #host: "azuranski.princeton.edu"
-    host: "localhost"
+    #host: "localhost"
+    host: "128.112.123.54"
     port: 27017
     user: "autoqchem"
-    password: "autoqchem"
+    password: "dftworks"

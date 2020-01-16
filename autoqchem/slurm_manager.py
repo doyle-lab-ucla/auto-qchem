@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 class slurm_manager(object):
     cache_file = f"{config['slurm']['work_dir']}/slurm_manager.pkl"
 
-    def __init__(self):
+    def __init__(self, user, host):
         """load jobs under management in constructor"""
 
         self.jobs = {}  # jobs under management
@@ -24,8 +24,8 @@ class slurm_manager(object):
             with open(self.cache_file, 'rb') as cf:
                 self.jobs = pickle.load(cf)
 
-        self.host = config['slurm']['host']
-        self.user = config['slurm']['user']
+        self.host = host
+        self.user = user
         self.remote_dir = f"/home/{self.user}/gaussian"
         self.connection = None
 
@@ -311,6 +311,11 @@ class slurm_manager(object):
          are removed if their RMSD is below thershold.
         This is a postprocessing step."""
 
+        done_jobs = self.get_jobs(slurm_status.done)
+        if not done_jobs:
+            logger.info("There are no jobs in done status. Exitting.")
+            return
+
         # create db connection
         db = pymongo.MongoClient(config['mongoDB']['host'],
                                  username=config['mongoDB']['user'],
@@ -321,28 +326,21 @@ class slurm_manager(object):
                          "deduplicated and uploaded to the db. Would you like to continue?"):
             return
 
-        done_jobs = self.get_jobs(slurm_status.done)
-        if done_jobs:
-            logger.info(f"Deduplicating conformers if RMSD < {config['gaussian']['conformer_RMSD_threshold']}.")
+        logger.info(f"Deduplicating conformers if RMSD < {config['gaussian']['conformer_RMSD_threshold']}.")
 
-            done_jobs_df = pd.DataFrame([job.__dict__ for job in done_jobs.values()], index=done_jobs.keys())
+        done_jobs_df = pd.DataFrame([job.__dict__ for job in done_jobs.values()], index=done_jobs.keys())
 
-            keys_to_remove = []
-            for (can, tasks), keys in done_jobs_df.groupby(["can", "tasks"]).groups.items():
-                mols = [OBMol_from_done_slurm_job(done_jobs[key]) for key in keys]
-                duplicates = deduplicate_list_of_OBMols(mols, symmetry)
-                logger.info(f"Molecule {can} has {len(duplicates)} / {len(keys)} duplicate conformers.")
+        for (can, tasks), keys in done_jobs_df.groupby(["can", "tasks"]).groups.items():
+            mols = [OBMol_from_done_slurm_job(done_jobs[key]) for key in keys]
+            duplicates = deduplicate_list_of_OBMols(mols, symmetry)
+            logger.info(f"Molecule {can} has {len(duplicates)} / {len(keys)} duplicate conformers.")
+            can_keys_to_keep = [key for i, key in enumerate(keys) if i not in duplicates]
+            self.upload_can_to_db(db, can, tasks, can_keys_to_keep, tag)
 
-                keys_to_remove += [key for i, key in enumerate(keys) if i in duplicates]
-                can_keys_to_keep = [key for i, key in enumerate(keys) if i not in duplicates]
-                self.upload_can_to_db(db, can, tasks, can_keys_to_keep, tag)
-        else:
-            logger.info(f"There are no jobs with 'done' status. Nothing to upload.")
-
+        # cleanup
         db.close()
-
-    #            jobs_to_remove = {name: job for name, job in done_jobs.items() if name in keys_to_remove}
-    #            self.remove_jobs(jobs_to_remove)
+        if yes_or_no("Ok to remove log files for done jobs?"):
+            self.remove_jobs(done_jobs)
 
     def upload_can_to_db(self, db, can, tasks, keys, tag) -> None:
         """uploading done jobs to database"""
@@ -373,7 +371,7 @@ class slurm_manager(object):
         weights /= weights.sum()
 
         # fetch only significant conformers
-        min_weight = 1.e-5
+        min_weight = config['gaussian']['conformer_weight_threshold']
         big_weights_indices = np.where(weights > min_weight)[0]
         logger.info(f"Conformer weights: {weights}")
         logger.info(f"Keeping only {len(big_weights_indices)} conformers with weights > {min_weight}.")
@@ -391,5 +389,5 @@ class slurm_manager(object):
             data.update(conformation)
 
             # db insertion
-            db['autoqchem']['descriptors'].insert_one(data)
+            db['autoqchem']['dft_descriptors'].insert_one(data)
         logger.info(f"Uploaded descriptors to DB for smiles: {can}, number of conformers: {len(conformations)}.")

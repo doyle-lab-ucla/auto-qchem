@@ -1,5 +1,6 @@
 from autoqchem.gaussian_log_extractor import *
 from autoqchem.helper_classes import *
+from autoqchem.molecule import pybel, GetSymbol
 
 conv = pybel.ob.OBConversion()
 
@@ -35,7 +36,7 @@ def OBMol_to_file(mol, format, target_path) -> str:
 def OBMol_to_geom_df(mol) -> pd.DataFrame:
     """extract geometry dataframe from OBMol"""
 
-    array = [[pybel.ob.GetSymbol(a.GetAtomicNum()),
+    array = [[GetSymbol(a.GetAtomicNum()),
               a.GetIsotope(), a.x(), a.y(), a.z()] for a in pybel.ob.OBMolAtomIter(mol)]
     df = pd.DataFrame(array, columns=['Atom', 'Isotope'] + list('XYZ'))
     df['Atom'] = df['Atom'] + df['Isotope'].astype(str).where(df['Isotope'] > 0, '')

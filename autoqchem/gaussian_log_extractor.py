@@ -183,8 +183,8 @@ class gaussian_log_extractor(object):
 
         # convergence, regex-logic: last word in each line should be "YES"
         string = re.search("(Maximum Force.*?)\sPredicted change", text, re.DOTALL).group(1)
-        # TODO it could be only two first =YES and opt still converges
-        self.descriptors['converged'] = all(np.array(re.findall("(\w+)\n", string)) == 'YES')
+        # compute the fraction of YES/NO answers
+        self.descriptors['converged'] = (np.array(re.findall("(\w+)\n", string)) == 'YES').mean()
 
         # TODO if multiplicity is more than 1, then both Alph and Beta molecular orbitals will have homo/lumo
         # energies, regex-logic: find all floats in energy block, split by occupied, virtual orbitals

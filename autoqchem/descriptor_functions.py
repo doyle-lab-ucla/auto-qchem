@@ -2,8 +2,9 @@ import logging
 
 import numpy as np
 import pandas as pd
-from openbabel import pybel
 from scipy.spatial.distance import cdist
+
+from autoqchem.molecule import GetVdwRad
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +20,7 @@ def occupied_volume(geometry_df, atom_idx, r, mesh_density=30):
                        f"max of {MAX_MESH_DENSITY}. Using {MAX_MESH_DENSITY} instead.")
 
     # fetch Van der Waals radii for atoms, r
-    atom_r = geometry_df['AN'].map(pybel.ob.GetVdwRad)
+    atom_r = geometry_df['AN'].map(GetVdwRad)
 
     # isolate coordinates
     coords = geometry_df[list('XYZ')]
