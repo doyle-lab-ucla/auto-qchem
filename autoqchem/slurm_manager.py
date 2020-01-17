@@ -128,10 +128,20 @@ class slurm_manager(object):
         convert_crlf_to_lf(sh_file_path)
         logger.debug(f"Created a Slurm job file in {sh_file_path}")
 
-    def get_jobs(self, status) -> dict:
-        """get a list of jobs by status"""
+    def get_jobs(self, status=None, can=None) -> dict:
+        """get a list of jobs by status and can"""
 
-        return {name: job for name, job in self.jobs.items() if job.status == status}
+        def match(job, status, can):
+            match = True
+            if status is not None:
+                match = match and job.status == status
+            if can is not None:
+                if isinstance(can, str):
+                    can = [can]
+                match = match and (job.can in can)
+            return match
+
+        return {name: job for name, job in self.jobs.items() if match(job, status, can)}
 
     def remove_jobs(self, jobs) -> None:
         """remove jobs"""
@@ -150,9 +160,9 @@ class slurm_manager(object):
 
         df = pd.DataFrame([[v.status.value, v.can] for v in self.jobs.values()], columns=['status', 'can'])
         if split_by_can:
-            return df.groupby(['status', 'can']).size().unstack(level=1).fillna(0).astype(int)
+            return df.groupby(['status', 'can']).size().unstack(level=1).fillna(0).astype(int).T
         else:
-            return df.groupby('status').size().to_frame('jobs')
+            return df.groupby('status').size().to_frame('jobs').T
 
     def submit_jobs(self) -> None:
         """submit jobs of a given status"""
@@ -306,15 +316,27 @@ class slurm_manager(object):
 
         self.__submit_jobs_from_jobs_dict(failed_jobs)
 
-    def upload_done_jobs_to_db(self, tag, symmetry=True) -> None:
+    def upload_done_molecules_to_db(self, tag, symmetry=True) -> None:
         """Deduplicate done jobs molecule by molecule. The conformers
          are removed if their RMSD is below thershold.
         This is a postprocessing step."""
 
+        # fetch done jobs first
         done_jobs = self.get_jobs(slurm_status.done)
         if not done_jobs:
             logger.info("There are no jobs in done status. Exitting.")
             return
+
+        # check if there are molecules with all jobs done
+        dfj = self.get_job_stats(split_by_can=True)
+        dfj_done = dfj[dfj['done'] == dfj.sum(1)]  # only done jobs
+        done_cans = dfj_done.index.tolist()
+
+        if not done_cans:
+            logger.info("There are no molecules with all jobs done. Exitting.")
+            return
+
+        logger.info(f"There are {len(done_cans)} finished molecules {done_cans}.")
 
         # create db connection
         db = pymongo.MongoClient(config['mongoDB']['host'],
@@ -322,25 +344,26 @@ class slurm_manager(object):
                                  password=config['mongoDB']['password'],
                                  port=config['mongoDB']['port'])
 
-        if not yes_or_no("Please make sure all jobs for given molecules have finished. The conformers will be "
-                         "deduplicated and uploaded to the db. Would you like to continue?"):
-            return
+        # select jobs for done molecules
+        done_can_jobs = self.get_jobs(can=done_cans)
+        jobs_df = pd.DataFrame([job.__dict__ for job in done_can_jobs.values()], index=done_can_jobs.keys())
 
-        logger.info(f"Deduplicating conformers if RMSD < {config['gaussian']['conformer_RMSD_threshold']}.")
+        logger.debug(f"Deduplicating conformers if RMSD < {config['gaussian']['conformer_RMSD_threshold']}.")
 
-        done_jobs_df = pd.DataFrame([job.__dict__ for job in done_jobs.values()], index=done_jobs.keys())
-
-        for (can, tasks), keys in done_jobs_df.groupby(["can", "tasks"]).groups.items():
+        for (can, tasks), keys in jobs_df.groupby(["can", "tasks"]).groups.items():
+            # deduplicate conformers
             mols = [OBMol_from_done_slurm_job(done_jobs[key]) for key in keys]
             duplicates = deduplicate_list_of_OBMols(mols, symmetry)
             logger.info(f"Molecule {can} has {len(duplicates)} / {len(keys)} duplicate conformers.")
+
+            # fetch non-duplicate keys
             can_keys_to_keep = [key for i, key in enumerate(keys) if i not in duplicates]
             self.upload_can_to_db(db, can, tasks, can_keys_to_keep, tag)
 
         # cleanup
         db.close()
         if yes_or_no("Ok to remove log files for done jobs?"):
-            self.remove_jobs(done_jobs)
+            self.remove_jobs(done_can_jobs)
 
     def upload_can_to_db(self, db, can, tasks, keys, tag) -> None:
         """uploading done jobs to database"""
@@ -368,17 +391,6 @@ class slurm_manager(object):
             [Hartree_in_kcal_per_mol * c['descriptors']['G'] for c in conformations])  # in kcal_mol
         free_energies -= free_energies.min()  # to avoid huge exponentials
         weights = np.exp(-free_energies / (k_in_kcal_per_mol_K * T))
-        weights /= weights.sum()
-
-        # fetch only significant conformers
-        min_weight = config['gaussian']['conformer_weight_threshold']
-        big_weights_indices = np.where(weights > min_weight)[0]
-        logger.info(f"Conformer weights: {weights}")
-        logger.info(f"Keeping only {len(big_weights_indices)} conformers with weights > {min_weight}.")
-
-        # filter out only those conformations
-        conformations = np.array(conformations)[big_weights_indices]
-        weights = weights[big_weights_indices]
         weights /= weights.sum()
 
         for weight, conformation in zip(weights, conformations):
