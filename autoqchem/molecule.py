@@ -2,12 +2,10 @@ import hashlib
 
 try:
     from openbabel import pybel  # openbabel 3.0.0
-
     GetSymbol = pybel.ob.GetSymbol
     GetVdwRad = pybel.ob.GetVdwRad
 except ImportError:
     import pybel  # openbabel 2.4
-
     table = pybel.ob.OBElementTable()
     GetSymbol = table.GetSymbol
     GetVdwRad = table.GetVdwRad

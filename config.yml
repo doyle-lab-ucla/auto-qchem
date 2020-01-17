@@ -20,7 +20,6 @@ slurm:
     ram_per_processor: 2
 
 mongoDB:
-    #host: "localhost"
     host: "128.112.123.54"
     port: 27017
     user: "autoqchem"

@@ -27,7 +27,7 @@ class gaussian_log_extractor(object):
     def extract_descriptors(self):
         """function to execute all other desriptor extraction functions"""
 
-        logger.info(f"Extracting descriptors.")
+        logger.debug(f"Extracting descriptors.")
         self.compute_buried_volumes()  # compute buried volumes
         self.get_frequencies_and_moment_vectors()  # fetch vibration table and vectors
         self.get_freq_part_descriptors()  # fetch descriptors from frequency section
