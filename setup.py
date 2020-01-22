@@ -9,5 +9,14 @@ setup(
     license='GPL',
     author='AndrzejZuranski',
     author_email='zuranski@princeton.edu',
-    description='auto-qchem'
+    description='auto-qchem',
+    install_requires=['numpy',
+                      'pandas',
+                      'scipy',
+                      'yaml',
+                      'fabric',
+                      'paramiko',
+                      'openbabel',
+                      'IPython',
+                      'pymongo']
 )
