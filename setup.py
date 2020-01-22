@@ -17,7 +17,6 @@ setup(
                       'fabric',
                       'paramiko',
                       'openbabel',
-                      'IPython',
                       'pymongo',
                       'appdirs']
 )
