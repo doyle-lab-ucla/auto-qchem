@@ -25,7 +25,7 @@ class molecule(object):
                  input,
                  input_type="string",
                  input_format='smi',
-                 gen3d_option='best',
+                 gen3D_option='best',
                  max_num_conformers=30,
                  min_fragment_dist=2,
                  ):
@@ -35,7 +35,7 @@ class molecule(object):
         :param input: string or file path
         :param input_type: "string" or "file", in line with the input
         :param input_format: any format supported by OpenBabel, e.g. 'smi', 'cdx', 'pdb', etc.
-        :param gen3d_option: "best", "medium", "fast" or "gen2D" (no 3D generation)
+        :param gen3D_option: "best", "medium", "fast" or "gen2D" (no 3D generation)
         :param max_num_conformers: maximum number of conformers to generate
         :param min_fragment_dist: minimum distance between molecular fragments for salts, no more than 2 \
         molecular fragments are supported
@@ -59,7 +59,7 @@ class molecule(object):
         self.fs_name = f"{self.mol.GetFormula()}_{hashlib.md5(self.can.encode()).hexdigest()[:4]}"
 
         # generate initial geometry and conformations
-        self._generate_geometry(gen3d_option)
+        self._generate_geometry(gen3D_option)
         self._generate_conformers(max_num_conformers)
         self.max_num_conformers = max_num_conformers
 
@@ -104,20 +104,20 @@ class molecule(object):
         except ImportError as e:
             logger.warning(f"Import Error: {e}")
 
-    def _generate_geometry(self, gen3d_option) -> None:
+    def _generate_geometry(self, gen3D_option) -> None:
         """Generate initial geometry of the molecule.
 
-        :param gen3d_option: "best", "medium", "fast" or "gen2D" (no 3D generation)
+        :param gen3D_option: "best", "medium", "fast" or "gen2D" (no 3D generation)
         """
 
-        logger.info(f"Creating initial geometry with option '{gen3d_option}'.")
-        if gen3d_option == "gen2D":
+        logger.info(f"Creating initial geometry with option '{gen3D_option}'.")
+        if gen3D_option == "gen2D":
             self.mol.AddHydrogens()
             gen2D = pybel.ob.OBOp.FindType("gen2D")
             gen2D.Do(self.mol)
         else:
             gen3D = pybel.ob.OBOp.FindType("gen3D")
-            gen3D.Do(self.mol, gen3d_option)
+            gen3D.Do(self.mol, gen3D_option)
         logger.info(f"Initial geometry created successfully.")
 
     def _find_central_atoms(self) -> None:
@@ -138,6 +138,13 @@ class molecule(object):
 
         :param num_conformers: maximum number of conformers to generate
         """
+
+        # safety check
+        assert num_conformers > 0
+
+        # skip trivial case
+        if num_conformers < 2:
+            return
 
         confSearch = pybel.ob.OBConformerSearch()
         confSearch.Setup(self.mol, num_conformers)
