@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<!--[if IE 8]>
+<html class="no-js lt-ie9" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en"> <!--<![endif]-->
+<head>
+    <meta charset="utf-8">
+
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+    <title>helper_classes &mdash; autoqchem 0.1 documentation</title>
+
+
+    <script src="_static/js/modernizr.min.js" type="text/javascript"></script>
+
+
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"
+            type="text/javascript"></script>
+    <script src="_static/jquery.js" type="text/javascript"></script>
+    <script src="_static/underscore.js" type="text/javascript"></script>
+    <script src="_static/doctools.js" type="text/javascript"></script>
+    <script src="_static/language_data.js" type="text/javascript"></script>
+
+    <script src="_static/js/theme.js" type="text/javascript"></script>
+
+
+    <link href="_static/css/theme.css" rel="stylesheet" type="text/css"/>
+    <link href="_static/pygments.css" rel="stylesheet" type="text/css"/>
+    <link href="genindex.html" rel="index" title="Index"/>
+    <link href="search.html" rel="search" title="Search"/>
+    <link href="helper_functions.html" rel="next" title="helper_functions"/>
+    <link href="descriptor_functions.html" rel="prev" title="descriptor_functions"/>
+</head>
+
+<body class="wy-body-for-nav">
+
+
+<div class="wy-grid-for-nav">
+
+    <nav class="wy-nav-side" data-toggle="wy-nav-shift">
+        <div class="wy-side-scroll">
+            <div class="wy-side-nav-search">
+
+
+                <a class="icon icon-home" href="index.html"> autoqchem
+
+
+                </a>
+
+
+                <div role="search">
+                    <form action="search.html" class="wy-form" id="rtd-search-form" method="get">
+                        <input name="q" placeholder="Search docs" type="text"/>
+                        <input name="check_keywords" type="hidden" value="yes"/>
+                        <input name="area" type="hidden" value="default"/>
+                    </form>
+                </div>
+
+
+            </div>
+
+            <div aria-label="main navigation" class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation">
+
+
+                <p class="caption"><span class="caption-text">Contents:</span></p>
+                <ul class="current">
+                    <li class="toctree-l1 current"><a class="reference internal" href="modules.html">autoqchem</a>
+                        <ul class="current">
+                            <li class="toctree-l2"><a class="reference internal" href="molecule.html">molecule class</a>
+                            </li>
+                            <li class="toctree-l2"><a class="reference internal" href="slurm_manager.html">slurm_manager
+                                class</a></li>
+                            <li class="toctree-l2"><a class="reference internal" href="gaussian_input_generator.html">gaussian_input_generator
+                                class</a></li>
+                            <li class="toctree-l2"><a class="reference internal" href="gaussian_log_extractor.html">gaussian_log_extractor
+                                class</a></li>
+                            <li class="toctree-l2"><a class="reference internal" href="openbabel_functions.html">openbabel_functions</a>
+                            </li>
+                            <li class="toctree-l2"><a class="reference internal" href="descriptor_functions.html">descriptor_functions</a>
+                            </li>
+                            <li class="toctree-l2 current"><a class="current reference internal"
+                                                              href="#">helper_classes</a></li>
+                            <li class="toctree-l2"><a class="reference internal" href="helper_functions.html">helper_functions</a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+
+
+            </div>
+        </div>
+    </nav>
+
+    <section class="wy-nav-content-wrap" data-toggle="wy-nav-shift">
+
+
+        <nav aria-label="top navigation" class="wy-nav-top">
+
+            <i class="fa fa-bars" data-toggle="wy-nav-top"></i>
+            <a href="index.html">autoqchem</a>
+
+        </nav>
+
+
+        <div class="wy-nav-content">
+
+            <div class="rst-content">
+
+
+                <div aria-label="breadcrumbs navigation" role="navigation">
+
+                    <ul class="wy-breadcrumbs">
+
+                        <li><a href="index.html">Docs</a> &raquo;</li>
+
+                        <li><a href="modules.html">autoqchem</a> &raquo;</li>
+
+                        <li>helper_classes</li>
+
+
+                        <li class="wy-breadcrumbs-aside">
+
+
+                            <a href="_sources/helper_classes.rst.txt" rel="nofollow"> View page source</a>
+
+
+                        </li>
+
+                    </ul>
+
+
+                    <hr/>
+                </div>
+                <div class="document" itemscope="itemscope" itemtype="http://schema.org/Article" role="main">
+                    <div itemprop="articleBody">
+
+                        <div class="section" id="module-helper_classes">
+                            <span id="helper-classes"></span>
+                            <h1>helper_classes<a class="headerlink" href="#module-helper_classes"
+                                                 title="Permalink to this headline">¶</a></h1>
+                            <dl class="class">
+                                <dt id="helper_classes.slurm_status">
+                                    <em class="property">class </em><code class="sig-prename descclassname">helper_classes.</code><code
+                                        class="sig-name descname">slurm_status</code><a class="headerlink"
+                                                                                        href="#helper_classes.slurm_status"
+                                                                                        title="Permalink to this definition">¶</a>
+                                </dt>
+                                <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span
+                                        class="pre">enum.IntEnum</span></code></p>
+                                    <p>Slurm job status enumerator.</p>
+                                    <dl class="attribute">
+                                        <dt id="helper_classes.slurm_status.created">
+                                            <code class="sig-name descname">created</code><em class="property"> = 1</em><a
+                                                class="headerlink" href="#helper_classes.slurm_status.created"
+                                                title="Permalink to this definition">¶</a></dt>
+                                        <dd><p>job files have been created and stored locally</p>
+                                        </dd>
+                                    </dl>
+
+                                    <dl class="attribute">
+                                        <dt id="helper_classes.slurm_status.submitted">
+                                            <code class="sig-name descname">submitted</code><em class="property"> =
+                                            2</em><a class="headerlink" href="#helper_classes.slurm_status.submitted"
+                                                     title="Permalink to this definition">¶</a></dt>
+                                        <dd><p>jobs has been submitted to slurm on remote host</p>
+                                        </dd>
+                                    </dl>
+
+                                    <dl class="attribute">
+                                        <dt id="helper_classes.slurm_status.done">
+                                            <code class="sig-name descname">done</code><em class="property"> = 3</em><a
+                                                class="headerlink" href="#helper_classes.slurm_status.done"
+                                                title="Permalink to this definition">¶</a></dt>
+                                        <dd><p>job finished successfully (all gaussian steps finished) and have been
+                                            retrieved from host</p>
+                                        </dd>
+                                    </dl>
+
+                                    <dl class="attribute">
+                                        <dt id="helper_classes.slurm_status.failed">
+                                            <code class="sig-name descname">failed</code><em class="property"> =
+                                            4</em><a class="headerlink" href="#helper_classes.slurm_status.failed"
+                                                     title="Permalink to this definition">¶</a></dt>
+                                        <dd><p>job failed</p>
+                                        </dd>
+                                    </dl>
+
+                                </dd>
+                            </dl>
+
+                            <dl class="class">
+                                <dt id="helper_classes.slurm_job">
+                                    <em class="property">class </em><code class="sig-prename descclassname">helper_classes.</code><code
+                                        class="sig-name descname">slurm_job</code><span class="sig-paren">(</span><em
+                                        class="sig-param">can: str</em>, <em class="sig-param">conformation: int</em>,
+                                    <em class="sig-param">max_num_conformers: int</em>, <em class="sig-param">tasks:
+                                    tuple</em>, <em class="sig-param">job_id: int</em>, <em class="sig-param">directory:
+                                    str</em>, <em class="sig-param">base_name: str</em>, <em class="sig-param">status:
+                                    helper_classes.slurm_status</em>, <em class="sig-param">n_submissions: int</em>, <em
+                                        class="sig-param">n_success_tasks: int</em><span class="sig-paren">)</span><a
+                                        class="headerlink" href="#helper_classes.slurm_job"
+                                        title="Permalink to this definition">¶</a></dt>
+                                <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span
+                                        class="pre">object</span></code></p>
+                                    <p>Dataclass for slurm job.</p>
+                                    <dl class="field-list simple">
+                                        <dt class="field-odd">Parameters</dt>
+                                        <dd class="field-odd">
+                                            <ul class="simple">
+                                                <li><p><strong>can</strong> (<em>str</em>) – canonical smiles</p></li>
+                                                <li><p><strong>conformation</strong> (<em>int</em>) – conformation
+                                                    number</p></li>
+                                                <li><p><strong>max_num_conformers</strong> – max number of conformers
+                                                    generated for the molecule</p></li>
+                                                <li><p><strong>tasks</strong> (<em>tuple</em>) – gaussian tasks tuple
+                                                </p></li>
+                                                <li><p><strong>job_id</strong> (<em>int</em>) – job id on the remote
+                                                    host</p></li>
+                                                <li><p><strong>directory</strong> (<em>str</em>) – job local directory
+                                                </p></li>
+                                                <li><p><strong>base_name</strong> (<em>str</em>) – job local base_name
+                                                </p></li>
+                                                <li><p><strong>status</strong> (<a class="reference internal"
+                                                                                   href="#helper_classes.slurm_status"
+                                                                                   title="helper_classes.slurm_status"><em>slurm_status</em></a>)
+                                                    – slurm_status of the job</p></li>
+                                                <li><p><strong>n_submission</strong> (<em>int</em>) – number of times
+                                                    the job has been submitted</p></li>
+                                                <li><p><strong>n_success_tasks</strong> (<em>int</em>) – number of
+                                                    successfully completed tasks</p></li>
+                                            </ul>
+                                        </dd>
+                                        <dt class="field-even">Type</dt>
+                                        <dd class="field-even"><p>max_num_conformers: int</p>
+                                        </dd>
+                                    </dl>
+                                </dd>
+                            </dl>
+
+                        </div>
+
+
+                    </div>
+
+                </div>
+                <footer>
+
+                    <div aria-label="footer navigation" class="rst-footer-buttons" role="navigation">
+
+                        <a accesskey="n" class="btn btn-neutral float-right" href="helper_functions.html" rel="next"
+                           title="helper_functions">Next <span class="fa fa-arrow-circle-right"></span></a>
+
+
+                        <a accesskey="p" class="btn btn-neutral float-left" href="descriptor_functions.html" rel="prev"
+                           title="descriptor_functions"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+
+                    </div>
+
+
+                    <hr/>
+
+                    <div role="contentinfo">
+                        <p>
+                            &copy; Copyright 2020, Andrzej Zuranski
+
+                        </p>
+                    </div>
+                    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
+                        href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a
+                        href="https://readthedocs.org">Read the Docs</a>.
+
+                </footer>
+
+            </div>
+        </div>
+
+    </section>
+
+</div>
+
+
+<script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+
+</script>
+
+
+</body>
+</html>

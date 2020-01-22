@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<!--[if IE 8]>
+<html class="no-js lt-ie9" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en"> <!--<![endif]-->
+<head>
+    <meta charset="utf-8">
+
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+    <title>slurm_manager class &mdash; autoqchem 0.1 documentation</title>
+
+
+    <script src="_static/js/modernizr.min.js" type="text/javascript"></script>
+
+
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"
+            type="text/javascript"></script>
+    <script src="_static/jquery.js" type="text/javascript"></script>
+    <script src="_static/underscore.js" type="text/javascript"></script>
+    <script src="_static/doctools.js" type="text/javascript"></script>
+    <script src="_static/language_data.js" type="text/javascript"></script>
+
+    <script src="_static/js/theme.js" type="text/javascript"></script>
+
+
+    <link href="_static/css/theme.css" rel="stylesheet" type="text/css"/>
+    <link href="_static/pygments.css" rel="stylesheet" type="text/css"/>
+    <link href="genindex.html" rel="index" title="Index"/>
+    <link href="search.html" rel="search" title="Search"/>
+    <link href="gaussian_input_generator.html" rel="next" title="gaussian_input_generator class"/>
+    <link href="molecule.html" rel="prev" title="molecule class"/>
+</head>
+
+<body class="wy-body-for-nav">
+
+
+<div class="wy-grid-for-nav">
+
+    <nav class="wy-nav-side" data-toggle="wy-nav-shift">
+        <div class="wy-side-scroll">
+            <div class="wy-side-nav-search">
+
+
+                <a class="icon icon-home" href="index.html"> autoqchem
+
+
+                </a>
+
+
+                <div role="search">
+                    <form action="search.html" class="wy-form" id="rtd-search-form" method="get">
+                        <input name="q" placeholder="Search docs" type="text"/>
+                        <input name="check_keywords" type="hidden" value="yes"/>
+                        <input name="area" type="hidden" value="default"/>
+                    </form>
+                </div>
+
+
+            </div>
+
+            <div aria-label="main navigation" class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation">
+
+
+                <p class="caption"><span class="caption-text">Contents:</span></p>
+                <ul class="current">
+                    <li class="toctree-l1 current"><a class="reference internal" href="modules.html">autoqchem</a>
+                        <ul class="current">
+                            <li class="toctree-l2"><a class="reference internal" href="molecule.html">molecule class</a>
+                            </li>
+                            <li class="toctree-l2 current"><a class="current reference internal" href="#">slurm_manager
+                                class</a></li>
+                            <li class="toctree-l2"><a class="reference internal" href="gaussian_input_generator.html">gaussian_input_generator
+                                class</a></li>
+                            <li class="toctree-l2"><a class="reference internal" href="gaussian_log_extractor.html">gaussian_log_extractor
+                                class</a></li>
+                            <li class="toctree-l2"><a class="reference internal" href="openbabel_functions.html">openbabel_functions</a>
+                            </li>
+                            <li class="toctree-l2"><a class="reference internal" href="descriptor_functions.html">descriptor_functions</a>
+                            </li>
+                            <li class="toctree-l2"><a class="reference internal" href="helper_classes.html">helper_classes</a>
+                            </li>
+                            <li class="toctree-l2"><a class="reference internal" href="helper_functions.html">helper_functions</a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+
+
+            </div>
+        </div>
+    </nav>
+
+    <section class="wy-nav-content-wrap" data-toggle="wy-nav-shift">
+
+
+        <nav aria-label="top navigation" class="wy-nav-top">
+
+            <i class="fa fa-bars" data-toggle="wy-nav-top"></i>
+            <a href="index.html">autoqchem</a>
+
+        </nav>
+
+
+        <div class="wy-nav-content">
+
+            <div class="rst-content">
+
+
+                <div aria-label="breadcrumbs navigation" role="navigation">
+
+                    <ul class="wy-breadcrumbs">
+
+                        <li><a href="index.html">Docs</a> &raquo;</li>
+
+                        <li><a href="modules.html">autoqchem</a> &raquo;</li>
+
+                        <li>slurm_manager class</li>
+
+
+                        <li class="wy-breadcrumbs-aside">
+
+
+                            <a href="_sources/slurm_manager.rst.txt" rel="nofollow"> View page source</a>
+
+
+                        </li>
+
+                    </ul>
+
+
+                    <hr/>
+                </div>
+                <div class="document" itemscope="itemscope" itemtype="http://schema.org/Article" role="main">
+                    <div itemprop="articleBody">
+
+                        <div class="section" id="module-slurm_manager">
+                            <span id="slurm-manager-class"></span>
+                            <h1>slurm_manager class<a class="headerlink" href="#module-slurm_manager"
+                                                      title="Permalink to this headline">¶</a></h1>
+                            <dl class="class">
+                                <dt id="slurm_manager.slurm_manager">
+                                    <em class="property">class </em><code class="sig-prename descclassname">slurm_manager.</code><code
+                                        class="sig-name descname">slurm_manager</code><span
+                                        class="sig-paren">(</span><em class="sig-param">user</em>, <em
+                                        class="sig-param">host</em><span class="sig-paren">)</span><a class="headerlink"
+                                                                                                      href="#slurm_manager.slurm_manager"
+                                                                                                      title="Permalink to this definition">¶</a>
+                                </dt>
+                                <dd><p>Slurm manager class.</p>
+                                    <dl class="method">
+                                        <dt id="slurm_manager.slurm_manager.__init__">
+                                            <code class="sig-name descname">__init__</code><span
+                                                class="sig-paren">(</span><em class="sig-param">user</em>, <em
+                                                class="sig-param">host</em><span class="sig-paren">)</span><a
+                                                class="headerlink" href="#slurm_manager.slurm_manager.__init__"
+                                                title="Permalink to this definition">¶</a></dt>
+                                        <dd><p>Initialize slurm manager and load the cache file.</p>
+                                            <dl class="field-list simple">
+                                                <dt class="field-odd">Parameters</dt>
+                                                <dd class="field-odd">
+                                                    <ul class="simple">
+                                                        <li><p><strong>user</strong> (<em>str</em>) – username at remote
+                                                            host</p></li>
+                                                        <li><p><strong>host</strong> (<em>str</em>) – remote host name
+                                                        </p></li>
+                                                    </ul>
+                                                </dd>
+                                            </dl>
+                                        </dd>
+                                    </dl>
+
+                                    <dl class="method">
+                                        <dt id="slurm_manager.slurm_manager.connect">
+                                            <code class="sig-name descname">connect</code><span
+                                                class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a
+                                                class="headerlink" href="#slurm_manager.slurm_manager.connect"
+                                                title="Permalink to this definition">¶</a></dt>
+                                        <dd><p>Connect to remote host.</p>
+                                        </dd>
+                                    </dl>
+
+                                    <dl class="method">
+                                        <dt id="slurm_manager.slurm_manager.create_jobs_for_molecule">
+                                            <code class="sig-name descname">create_jobs_for_molecule</code><span
+                                                class="sig-paren">(</span><em class="sig-param">molecule</em>, <em
+                                                class="sig-param">workflow_type='equilibrium'</em><span
+                                                class="sig-paren">)</span> &#x2192; None<a class="headerlink"
+                                                                                           href="#slurm_manager.slurm_manager.create_jobs_for_molecule"
+                                                                                           title="Permalink to this definition">¶</a>
+                                        </dt>
+                                        <dd><p>Generate slurm jobs for a molecule. Gaussian input files are also
+                                            generated.</p>
+                                            <dl class="field-list simple">
+                                                <dt class="field-odd">Parameters</dt>
+                                                <dd class="field-odd">
+                                                    <ul class="simple">
+                                                        <li><p><strong>molecule</strong> (<a class="reference internal"
+                                                                                             href="molecule.html#molecule.molecule"
+                                                                                             title="molecule.molecule"><em>molecule</em></a>)
+                                                            – molecule object</p></li>
+                                                        <li><p><strong>workflow_type</strong> (<em>str</em>) – Gaussian
+                                                            workflow type, allowed types are: ‘equilibrium’ or
+                                                            ‘transition_state’</p></li>
+                                                    </ul>
+                                                </dd>
+                                            </dl>
+                                        </dd>
+                                    </dl>
+
+                                    <dl class="method">
+                                        <dt id="slurm_manager.slurm_manager.submit_jobs">
+                                            <code class="sig-name descname">submit_jobs</code><span
+                                                class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a
+                                                class="headerlink" href="#slurm_manager.slurm_manager.submit_jobs"
+                                                title="Permalink to this definition">¶</a></dt>
+                                        <dd><p>Submit jobs that have status ‘created’ to remote host.</p>
+                                        </dd>
+                                    </dl>
+
+                                    <dl class="method">
+                                        <dt id="slurm_manager.slurm_manager.retrieve_jobs">
+                                            <code class="sig-name descname">retrieve_jobs</code><span class="sig-paren">(</span><span
+                                                class="sig-paren">)</span> &#x2192; None<a class="headerlink"
+                                                                                           href="#slurm_manager.slurm_manager.retrieve_jobs"
+                                                                                           title="Permalink to this definition">¶</a>
+                                        </dt>
+                                        <dd><p>Retrieve finished jobs from remote host and check which finished
+                                            succesfully and which failed.</p>
+                                        </dd>
+                                    </dl>
+
+                                    <dl class="method">
+                                        <dt id="slurm_manager.slurm_manager.resubmit_failed_jobs">
+                                            <code class="sig-name descname">resubmit_failed_jobs</code><span
+                                                class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a
+                                                class="headerlink"
+                                                href="#slurm_manager.slurm_manager.resubmit_failed_jobs"
+                                                title="Permalink to this definition">¶</a></dt>
+                                        <dd><p>Resubmit jobs that failed. If the job has failed but a log file has been
+                                            retrieved, then the last geometry will be used for the next submission. If
+                                            the job didn’t finish in time the time required will be increased by a
+                                            factor of 2. Maximum number of allowed submission of the same job is 3.</p>
+                                        </dd>
+                                    </dl>
+
+                                    <dl class="method">
+                                        <dt id="slurm_manager.slurm_manager.upload_done_molecules_to_db">
+                                            <code class="sig-name descname">upload_done_molecules_to_db</code><span
+                                                class="sig-paren">(</span><em class="sig-param">tag</em>, <em
+                                                class="sig-param">RMSD_threshold=0.01</em>, <em class="sig-param">symmetry=True</em><span
+                                                class="sig-paren">)</span> &#x2192; None<a class="headerlink"
+                                                                                           href="#slurm_manager.slurm_manager.upload_done_molecules_to_db"
+                                                                                           title="Permalink to this definition">¶</a>
+                                        </dt>
+                                        <dd><p>Upload done molecules to db. Molecules are considered done when all jobs
+                                            for a given smiles are in ‘done’ status. The conformers are deduplicated and
+                                            uploaded to database using a metadata tag.</p>
+                                            <dl class="field-list simple">
+                                                <dt class="field-odd">Parameters</dt>
+                                                <dd class="field-odd">
+                                                    <ul class="simple">
+                                                        <li><p><strong>tag</strong> (<em>str</em>) – metadata tag to use
+                                                            for these molecules in the database</p></li>
+                                                        <li><p><strong>RMSD_threshold</strong> (<em>float</em>) – RMSD
+                                                            threshold (in Angstroms) to use when deduplicating multiple
+                                                            conformers after Gaussian has found optimal geometry</p>
+                                                        </li>
+                                                        <li><p><strong>symmetry</strong> (<em>bool</em>) – if True
+                                                            symmetry is taken into account when comparing molecules in
+                                                            OBAlign(symmetry=True)</p></li>
+                                                    </ul>
+                                                </dd>
+                                            </dl>
+                                        </dd>
+                                    </dl>
+
+                                    <dl class="method">
+                                        <dt id="slurm_manager.slurm_manager.get_jobs">
+                                            <code class="sig-name descname">get_jobs</code><span
+                                                class="sig-paren">(</span><em class="sig-param">status=None</em>, <em
+                                                class="sig-param">can=None</em><span class="sig-paren">)</span> &#x2192;
+                                            dict<a class="headerlink" href="#slurm_manager.slurm_manager.get_jobs"
+                                                   title="Permalink to this definition">¶</a></dt>
+                                        <dd><p>Get a dictionary of jobs, optionally filter by status and canonical
+                                            smiles.</p>
+                                            <dl class="field-list simple">
+                                                <dt class="field-odd">Parameters</dt>
+                                                <dd class="field-odd">
+                                                    <ul class="simple">
+                                                        <li><p><strong>status</strong> (<a class="reference internal"
+                                                                                           href="helper_classes.html#helper_classes.slurm_status"
+                                                                                           title="helper_classes.slurm_status"><em>slurm_status</em></a>)
+                                                            – slurm status of the jobs</p></li>
+                                                        <li><p><strong>can</strong> (<em>str</em><em>
+                                                            or </em><em>list</em>) – canonical smiles of the molecules,
+                                                            single string for one smiles, a list for multiple smiles</p>
+                                                        </li>
+                                                    </ul>
+                                                </dd>
+                                                <dt class="field-even">Returns</dt>
+                                                <dd class="field-even"><p>dict</p>
+                                                </dd>
+                                            </dl>
+                                        </dd>
+                                    </dl>
+
+                                    <dl class="method">
+                                        <dt id="slurm_manager.slurm_manager.get_job_stats">
+                                            <code class="sig-name descname">get_job_stats</code><span class="sig-paren">(</span><em
+                                                class="sig-param">split_by_can=False</em><span
+                                                class="sig-paren">)</span> &#x2192; pandas.core.frame.DataFrame<a
+                                                class="headerlink" href="#slurm_manager.slurm_manager.get_job_stats"
+                                                title="Permalink to this definition">¶</a></dt>
+                                        <dd><p>Job stats for jobs currently under management, optionally split by
+                                            canonical smiles.</p>
+                                            <dl class="field-list simple">
+                                                <dt class="field-odd">Parameters</dt>
+                                                <dd class="field-odd"><p><strong>split_by_can</strong> (<em>bool</em>) –
+                                                    if True each canonical smiles will be listed separately</p>
+                                                </dd>
+                                                <dt class="field-even">Returns</dt>
+                                                <dd class="field-even"><p>pandas.core.frame.DataFrame</p>
+                                                </dd>
+                                            </dl>
+                                        </dd>
+                                    </dl>
+
+                                    <dl class="method">
+                                        <dt id="slurm_manager.slurm_manager.remove_jobs">
+                                            <code class="sig-name descname">remove_jobs</code><span
+                                                class="sig-paren">(</span><em class="sig-param">jobs</em><span
+                                                class="sig-paren">)</span> &#x2192; None<a class="headerlink"
+                                                                                           href="#slurm_manager.slurm_manager.remove_jobs"
+                                                                                           title="Permalink to this definition">¶</a>
+                                        </dt>
+                                        <dd><p>Remove jobs.</p>
+                                            <dl class="field-list simple">
+                                                <dt class="field-odd">Parameters</dt>
+                                                <dd class="field-odd"><p><strong>jobs</strong> (<em>dict</em>) –
+                                                    dictionary of jobs to remove</p>
+                                                </dd>
+                                            </dl>
+                                        </dd>
+                                    </dl>
+
+                                    <dl class="method">
+                                        <dt id="slurm_manager.slurm_manager.squeue">
+                                            <code class="sig-name descname">squeue</code><span
+                                                class="sig-paren">(</span><em class="sig-param">summary=True</em><span
+                                                class="sig-paren">)</span> &#x2192; pandas.core.frame.DataFrame<a
+                                                class="headerlink" href="#slurm_manager.slurm_manager.squeue"
+                                                title="Permalink to this definition">¶</a></dt>
+                                        <dd><p>Run ‘squeue -u $user’ command on the server.</p>
+                                            <dl class="field-list simple">
+                                                <dt class="field-odd">Parameters</dt>
+                                                <dd class="field-odd"><p><strong>summary</strong> – if True only a
+                                                    summary frame is displayed with counts of jobs in each status</p>
+                                                </dd>
+                                                <dt class="field-even">Returns</dt>
+                                                <dd class="field-even"><p>pandas.core.frame.DataFrame</p>
+                                                </dd>
+                                            </dl>
+                                        </dd>
+                                    </dl>
+
+                                </dd>
+                            </dl>
+
+                        </div>
+
+
+                    </div>
+
+                </div>
+                <footer>
+
+                    <div aria-label="footer navigation" class="rst-footer-buttons" role="navigation">
+
+                        <a accesskey="n" class="btn btn-neutral float-right" href="gaussian_input_generator.html"
+                           rel="next" title="gaussian_input_generator class">Next <span
+                                class="fa fa-arrow-circle-right"></span></a>
+
+
+                        <a accesskey="p" class="btn btn-neutral float-left" href="molecule.html" rel="prev"
+                           title="molecule class"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+
+                    </div>
+
+
+                    <hr/>
+
+                    <div role="contentinfo">
+                        <p>
+                            &copy; Copyright 2020, Andrzej Zuranski
+
+                        </p>
+                    </div>
+                    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
+                        href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a
+                        href="https://readthedocs.org">Read the Docs</a>.
+
+                </footer>
+
+            </div>
+        </div>
+
+    </section>
+
+</div>
+
+
+<script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+
+</script>
+
+
+</body>
+</html>
