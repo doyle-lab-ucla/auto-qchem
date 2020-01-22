@@ -2,6 +2,7 @@ import hashlib
 import pickle
 from contextlib import suppress
 
+import appdirs
 import pymongo
 
 from autoqchem.gaussian_input_generator import *
@@ -14,8 +15,6 @@ logger = logging.getLogger(__name__)
 class slurm_manager(object):
     """Slurm manager class."""
 
-    cache_file = f"{config['slurm']['work_dir']}/slurm_manager.pkl"
-
     def __init__(self, user, host):
         """Initialize slurm manager and load the cache file.
 
@@ -24,6 +23,11 @@ class slurm_manager(object):
         :param host: remote host name
         :type host: str
         """
+
+        # set workdir and cache file
+        self.workdir = appdirs.user_data_dir(appname="autoqchem")
+        self.cache_file = os.path.join(self.workdir, "slurm_manager.pkl")
+        os.makedirs(self.workdir, exist_ok=True)
 
         self.jobs = {}  # jobs under management
 
@@ -66,17 +70,16 @@ class slurm_manager(object):
         :type workflow_type: str
         """
 
-        molecule_work_dir = f"{config['slurm']['work_dir']}/{molecule.fs_name}"
-
         # create gaussian files
-        gig = gaussian_input_generator(molecule, workflow_type, molecule_work_dir)
+        molecule_workdir = os.path.join(self.workdir, molecule.fs_name)
+        gig = gaussian_input_generator(molecule, workflow_type, molecule_workdir)
         gig.create_gaussian_files()
 
         # create slurm files
-        for gjf_file in glob.glob(f"{molecule_work_dir}/*.gjf"):
+        for gjf_file in glob.glob(f"{molecule_workdir}/*.gjf"):
 
             base_name = os.path.basename(os.path.splitext(gjf_file)[0])
-            slurm_manager._create_slurm_file_from_gaussian_file(base_name, molecule_work_dir)
+            slurm_manager._create_slurm_file_from_gaussian_file(base_name, molecule_workdir)
             # create job structure
             job = slurm_job(can=molecule.can,
                             conformation=int(base_name.split("_conf_")[1]),
@@ -288,6 +291,63 @@ class slurm_manager(object):
         if yes_or_no("Ok to remove log files for done jobs?"):
             self.remove_jobs(done_can_jobs)
 
+    def _upload_can_to_db(self, db, can, tasks, keys, tag, max_conf) -> None:
+        """Uploading single molecule conformers to database.
+
+        :param db: database client
+        :type db: pymongo.MongoClient
+        :param can: canonical smiles
+        :type can: str
+        :param tasks: tuple of Gaussian tasks
+        :type tasks: tuple
+        :param keys: list of keys to the self.jobs dictionary to upload
+        :type keys: list
+        :param tag: metadata tag
+        :type tag: str
+        :param max_conf: max number of conformers used for this molecule
+        :type max_conf: int
+        """
+
+        # check if the tag is properly provided
+        assert isinstance(tag, str)
+        assert len(tag.strip()) > 0
+
+        # loop over the conformers
+        conformations = []
+        for key in keys:
+            # fetch job, verify that there are not can issues (just in case)
+            job = self.jobs[key]
+            assert job.can == can
+
+            # extract descriptors for this conformer from log file
+            log = f"{job.directory}/{job.base_name}.log"
+            le = gaussian_log_extractor(log)
+            # add descriptors to conformations list
+            conformations.append(le.get_descriptors())
+
+        # compute weights
+        free_energies = np.array(
+            [Hartree_in_kcal_per_mol * c['descriptors']['G'] for c in conformations])  # in kcal_mol
+        free_energies -= free_energies.min()  # to avoid huge exponentials
+        weights = np.exp(-free_energies / (k_in_kcal_per_mol_K * T))
+        weights /= weights.sum()
+
+        for weight, conformation in zip(weights, conformations):
+            data = {'can': can,
+                    'metadata': {
+                        'gaussian_config': config['gaussian'],
+                        'gaussian_tasks': tasks,
+                        'tag': tag,
+                        'max_num_conformers': max_conf,
+                    },
+                    'weight': weight}
+            # update with descriptors
+            data.update(conformation)
+
+            # db insertion
+            db['autoqchem']['dft_descriptors'].insert_one(data)
+        logger.info(f"Uploaded descriptors to DB for smiles: {can}, number of conformers: {len(conformations)}.")
+
     def get_jobs(self, status=None, can=None) -> dict:
         """Get a dictionary of jobs, optionally filter by status and canonical smiles.
 
@@ -380,63 +440,6 @@ class slurm_manager(object):
 
             self.__cache()
 
-    def _upload_can_to_db(self, db, can, tasks, keys, tag, max_conf) -> None:
-        """Uploading single molecule conformers to database.
-
-        :param db: database client
-        :type db: pymongo.MongoClient
-        :param can: canonical smiles
-        :type can: str
-        :param tasks: tuple of Gaussian tasks
-        :type tasks: tuple
-        :param keys: list of keys to the self.jobs dictionary to upload
-        :type keys: list
-        :param tag: metadata tag
-        :type tag: str
-        :param max_conf: max number of conformers used for this molecule
-        :type max_conf: int
-        """
-
-        # check if the tag is properly provided
-        assert isinstance(tag, str)
-        assert len(tag.strip()) > 0
-
-        # loop over the conformers
-        conformations = []
-        for key in keys:
-            # fetch job, verify that there are not can issues (just in case)
-            job = self.jobs[key]
-            assert job.can == can
-
-            # extract descriptors for this conformer from log file
-            log = f"{job.directory}/{job.base_name}.log"
-            le = gaussian_log_extractor(log)
-            # add descriptors to conformations list
-            conformations.append(le.get_descriptors())
-
-        # compute weights
-        free_energies = np.array(
-            [Hartree_in_kcal_per_mol * c['descriptors']['G'] for c in conformations])  # in kcal_mol
-        free_energies -= free_energies.min()  # to avoid huge exponentials
-        weights = np.exp(-free_energies / (k_in_kcal_per_mol_K * T))
-        weights /= weights.sum()
-
-        for weight, conformation in zip(weights, conformations):
-            data = {'can': can,
-                    'metadata': {
-                        'gaussian_config': config['gaussian'],
-                        'gaussian_tasks': tasks,
-                        'tag': tag,
-                        'max_num_conformers': max_conf,
-                    },
-                    'weight': weight}
-            # update with descriptors
-            data.update(conformation)
-
-            # db insertion
-            db['autoqchem']['dft_descriptors'].insert_one(data)
-        logger.info(f"Uploaded descriptors to DB for smiles: {can}, number of conformers: {len(conformations)}.")
-
     @staticmethod
     def _create_slurm_file_from_gaussian_file(base_name, directory) -> None:
         """Generate a single slurm submission file based on the Gaussian input file.
@@ -482,4 +485,4 @@ class slurm_manager(object):
         with open(self.cache_file, 'wb') as cf:
             pickle.dump(self.jobs, cf)
 
-        cleanup_empty_dirs(config['slurm']['work_dir'])
+        cleanup_empty_dirs(self.workdir)

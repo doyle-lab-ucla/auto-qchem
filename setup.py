@@ -18,5 +18,6 @@ setup(
                       'paramiko',
                       'openbabel',
                       'IPython',
-                      'pymongo']
+                      'pymongo',
+                      'appdirs']
 )

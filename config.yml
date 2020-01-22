@@ -1,12 +1,11 @@
 gaussian:
-    theory: "APFD" # other option used recently is B3LYP
+    theory: "APFD"
     light_basis_set: "6-31G*"
     heavy_basis_set: "LANL2DZ"
     generic_basis_set: "genecp"
     max_light_atomic_number: 36
 
 slurm:
-    work_dir: "C:/Users/AndrzejZuranski/tmp/qchem/gaussian"
     wall_time: "23:59:00"
     atoms_per_processor: 6
     max_processors: 20

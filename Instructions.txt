@@ -12,7 +12,7 @@ conda create --name autoqchem python=3.7
 conda activate autoqchem
 
 # install mainstream python packages using conda
-conda install jupyter pandas scipy matplotlib pymongo pyyaml fabric xlrd
+conda install jupyter pandas scipy matplotlib pymongo pyyaml fabric xlrd appdirs
 
 # install openbabel python bindings
 conda install -c conda-forge openbabel=2.4.1
