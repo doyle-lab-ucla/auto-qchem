@@ -104,7 +104,7 @@ class slurm_manager(object):
                 continue
 
             self.jobs[key] = job  # add job to bag
-        self.__cache()
+        self._cache()
 
     def submit_jobs(self) -> None:
         """Submit jobs that have status 'created' to remote host."""
@@ -165,7 +165,7 @@ class slurm_manager(object):
                     self.connection.run(f"rm slurm-{job.job_id}.out")
                     self.connection.run(f"rm {job.base_name}.*")
 
-            self.__cache()
+            self._cache()
             logger.info(f"{len(done_jobs)} jobs finished successfully (all Gaussian steps finished normally)."
                         f" {len(failed_jobs)} jobs failed.")
 
@@ -399,13 +399,24 @@ class slurm_manager(object):
             if os.path.exists(f"{job.directory}/{job.base_name}.log"):
                 os.remove(f"{job.directory}/{job.base_name}.log")  # log file
             del self.jobs[name]
-        self.__cache()
+        self._cache()
 
-    def squeue(self) -> None:
-        """Run 'squeue -u $user' command on the server."""
+    def squeue(self, summary=True) -> pd.DataFrame:
+        """Run 'squeue -u $user' command on the server.
+
+        :param summary: if True only a summary frame is displayed with counts of jobs in each status
+        :return: pandas.core.frame.DataFrame
+        """
 
         self.connect()
-        self.connection.run(f"squeue -u {self.user}")
+        if summary:
+            ret = self.connection.run(f"squeue -u {self.user} -o %T", hide=True)
+            status_series = pd.Series(ret.stdout.splitlines()[1:])
+            return status_series.groupby(status_series).size().to_frame("jobs").T
+        else:
+            ret = self.connection.run(f"squeue -u {self.user}", hide=True)
+            data = np.array(list(map(str.split, ret.stdout.splitlines())))
+            return pd.DataFrame(data[1:], columns=data[0])
 
     def _scancel(self) -> None:
         """Run 'scancel -u $user' command on the server."""
@@ -439,7 +450,7 @@ class slurm_manager(object):
                     job.n_submissions = job.n_submissions + 1
                     logger.info(f"Submitted job {name}, job_id: {job.job_id}.")
 
-            self.__cache()
+            self._cache()
 
     @staticmethod
     def _create_slurm_file_from_gaussian_file(base_name, directory) -> None:
@@ -480,7 +491,7 @@ class slurm_manager(object):
         convert_crlf_to_lf(sh_file_path)
         logger.debug(f"Created a Slurm job file in {sh_file_path}")
 
-    def __cache(self) -> None:
+    def _cache(self) -> None:
         """save jobs under management and cleanup empty directories"""
 
         with open(self.cache_file, 'wb') as cf:
