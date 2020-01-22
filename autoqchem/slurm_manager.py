@@ -25,7 +25,7 @@ class slurm_manager(object):
         """
 
         # set workdir and cache file
-        self.workdir = appdirs.user_data_dir(appname="autoqchem")
+        self.workdir = appdirs.user_data_dir(appauthor="autoqchem", appname=host.split('.')[0])
         self.cache_file = os.path.join(self.workdir, "slurm_manager.pkl")
         os.makedirs(self.workdir, exist_ok=True)
 
@@ -79,7 +79,7 @@ class slurm_manager(object):
         for gjf_file in glob.glob(f"{molecule_workdir}/*.gjf"):
 
             base_name = os.path.basename(os.path.splitext(gjf_file)[0])
-            slurm_manager._create_slurm_file_from_gaussian_file(base_name, molecule_workdir)
+            self._create_slurm_file_from_gaussian_file(base_name, molecule_workdir)
             # create job structure
             job = slurm_job(can=molecule.can,
                             conformation=int(base_name.split("_conf_")[1]),
@@ -111,7 +111,34 @@ class slurm_manager(object):
 
         jobs = self.get_jobs(slurm_status.created)
         logger.info(f"Submitting {len(jobs)} jobs.")
-        self._submit_jobs_from_jobs_dict(jobs)
+        self.submit_jobs_from_jobs_dict(jobs)
+
+    def submit_jobs_from_jobs_dict(self, jobs) -> None:
+        """Submit jobs to remote host.
+
+        :param jobs: dictionary of jobs to submit
+        :type jobs: dict
+        """
+
+        # check if there are any jobs to be submitted
+        if jobs:
+            # get or create connection
+            self.connect()
+
+            # check if jobs are in status created or failed
+            for name, job in jobs.items():
+                # copy .sh and .gjf file to remote_dir
+                self.connection.put(f"{job.directory}/{job.base_name}.sh", self.remote_dir)
+                self.connection.put(f"{job.directory}/{job.base_name}.gjf", self.remote_dir)
+
+                with self.connection.cd(self.remote_dir):
+                    ret = self.connection.run(f"sbatch {self.remote_dir}/{job.base_name}.sh", hide=True)
+                    job.job_id = re.search("job\s*(\d+)\n", ret.stdout).group(1)
+                    job.status = slurm_status.submitted
+                    job.n_submissions = job.n_submissions + 1
+                    logger.info(f"Submitted job {name}, job_id: {job.job_id}.")
+
+            self._cache()
 
     def retrieve_jobs(self) -> None:
         """Retrieve finished jobs from remote host and check which finished succesfully and which failed."""
@@ -153,12 +180,11 @@ class slurm_manager(object):
                     else:
                         job.status = slurm_status.failed
                         failed_jobs[name] = job
-                        logger.warning(f"Job {job.base_name} has {job.n_success_tasks} out of {n_steps} completed."
-                                       f"The job needs to be resubmitted.")
-                except FileNotFoundError:  # TODO rare occurence, not exactly sure what exception is thrown here
+                        logger.info(f"Job {job.base_name} failed - {job.n_success_tasks}/{n_steps} completed.")
+                except FileNotFoundError:
                     job.status = slurm_status.failed
                     failed_jobs[name] = job
-                    logger.warning(f" Job {job.base_name} run out of time.")
+                    logger.warning(f"Job {job.base_name} failed  - could not retrieve log file.")
 
                 # clean up files on the remote site
                 with self.connection.cd(self.remote_dir):
@@ -171,11 +197,13 @@ class slurm_manager(object):
 
     def resubmit_failed_jobs(self) -> None:
         """Resubmit jobs that failed. If the job has failed but a log file has been retrieved, then \
-        the last geometry will be used for the next submission. If the job didn't finish in time the time required \
-        will be increased by a factor of 2. Maximum number of allowed submission of \
-        the same job is 3."""
+        the last geometry will be used for the next submission. If the log file could not be \
+        retrieved or is truncated, the job input files will need to be fixed manually and submitted using the \
+        function :py:meth:`~slurm_manager.slurm_manager.submit_jobs_from_jobs_dict`.\
+         Maximum number of allowed submission of the same job is 3."""
 
         failed_jobs = self.get_jobs(slurm_status.failed)
+        failed_jobs_to_resubmit = {}
 
         if not failed_jobs:
             logger.info("There are no failed jobs to resubmit.")
@@ -184,12 +212,11 @@ class slurm_manager(object):
 
             # put a limit on resubmissions
             if job.n_submissions >= 3:
-                logger.warning(f"Job {key} has been already failed 3 times, not submitting again.")
+                logger.warning(f"Job {job.base_name} has been already failed 3 times, not submitting again.")
                 continue
 
             job_log = f"{job.directory}/{job.base_name}.log"
             job_gjf = f"{job.directory}/{job.base_name}.gjf"
-            job_sh = f"{job.directory}/{job.base_name}.sh"
 
             # option 1 replace geometry
             try:
@@ -214,27 +241,14 @@ class slurm_manager(object):
                     f.write(file_string)
 
                 logger.info("Log file retrieved. Substituting last checked geometry in the new input file.")
+                failed_jobs_to_resubmit[key] = job
 
-            # option 2, log file is empty or does not have geometry
-            except Exception:
+            except (FileNotFoundError, LookupError):  # no log file or log file truncated
+                logger.warning(f"No log file or log file is truncated. Please fix the errors in .gjf or .sh files"
+                               f"manually and resubmit using "
+                               f"self._submit_jobs_from_jobs_dict(self.get_jobs(slurm_status.failed)")
 
-                # open sh file and increase the runtime by factor of 2
-                with open(job_sh, "r") as f:
-                    file_string = f.read()
-
-                # fetch time
-                h, m, s = re.search("#SBATCH -t (\d+):(\d+):(\d+)", file_string).groups()
-                h = str((int(h) + 1) * 2 - 1)  # increase time by factor of 2
-                # substitute time
-                file_string = re.sub("#SBATCH -t (\d+):(\d+):(\d+)", f"#SBATCH -t {h}:{m}:{s}", file_string)
-
-                with open(job_sh, "w") as f:
-                    f.write(file_string)
-                convert_crlf_to_lf(job_sh)
-
-                logger.warning(f"No log file was retrieved from the server. Resubmitting with more time: {h}:{m}:{s}.")
-
-        self._submit_jobs_from_jobs_dict(failed_jobs)
+        self.submit_jobs_from_jobs_dict(failed_jobs_to_resubmit)
 
     def upload_done_molecules_to_db(self, tag, RMSD_threshold=0.01, symmetry=True) -> None:
         """Upload done molecules to db. Molecules are considered done when all jobs for a given \
@@ -293,8 +307,7 @@ class slurm_manager(object):
 
         # cleanup
         db.close()
-        if yes_or_no("Ok to remove log files for done jobs?"):
-            self.remove_jobs(done_can_jobs)
+        self.remove_jobs(done_can_jobs)
 
     def _upload_can_to_db(self, db, can, tasks, keys, tag, max_conf) -> None:
         """Uploading single molecule conformers to database.
@@ -429,35 +442,15 @@ class slurm_manager(object):
         self.connection.run(f"scancel -u {self.user}")
         self.remove_jobs(self.get_jobs(status=slurm_status.submitted))
 
-    def _submit_jobs_from_jobs_dict(self, jobs) -> None:
-        """Submit jobs to remote host.
+    def _cache(self) -> None:
+        """save jobs under management and cleanup empty directories"""
 
-        :param jobs: dictionary of jobs to submit
-        :type jobs: dict
-        """
+        with open(self.cache_file, 'wb') as cf:
+            pickle.dump(self.jobs, cf)
 
-        # check if there are any jobs to be submitted
-        if jobs:
-            # get or create connection
-            self.connect()
+        cleanup_empty_dirs(self.workdir)
 
-            # check if jobs are in status created or failed
-            for name, job in jobs.items():
-                # copy .sh and .gjf file to remote_dir
-                self.connection.put(f"{job.directory}/{job.base_name}.sh", self.remote_dir)
-                self.connection.put(f"{job.directory}/{job.base_name}.gjf", self.remote_dir)
-
-                with self.connection.cd(self.remote_dir):
-                    ret = self.connection.run(f"sbatch {self.remote_dir}/{job.base_name}.sh", hide=True)
-                    job.job_id = re.search("job\s*(\d+)\n", ret.stdout).group(1)
-                    job.status = slurm_status.submitted
-                    job.n_submissions = job.n_submissions + 1
-                    logger.info(f"Submitted job {name}, job_id: {job.job_id}.")
-
-            self._cache()
-
-    @staticmethod
-    def _create_slurm_file_from_gaussian_file(base_name, directory) -> None:
+    def _create_slurm_file_from_gaussian_file(self, base_name, directory) -> None:
         """Generate a single slurm submission file based on the Gaussian input file.
 
         :param base_name: base name of the Gaussian file
@@ -468,14 +461,19 @@ class slurm_manager(object):
         with open(f"{directory}/{base_name}.gjf") as f:
             file_string = f.read()
 
+        host = self.host.split(".")[0]
+
         n_processors = re.search("nprocshared=(.*?)\n", file_string).group(1)
+        constraint = {'della': '\"haswell|skylake\"', 'adroit': '\"skylake\"'}[host]
 
         output = ""
         output += f"#!/bin/bash\n"
         output += f"#SBATCH -N 1\n" \
                   f"#SBATCH --ntasks-per-node={n_processors}\n" \
                   f"#SBATCH -t {config['slurm']['wall_time']}\n" \
-                  f"#SBATCH -C haswell\n\n"
+                  f"#SBATCH --constraint={constraint}\n\n"
+        if host == "adroit":
+            output += f"module load gaussian/g16\n\n"
         output += f"input={base_name}\n\n"
         output += f"# create scratch directory for the job\n" \
                   f"export GAUSS_SCRDIR=/scratch/${{USER}}/${{SLURM_JOB_ID}}\n" \
@@ -494,11 +492,3 @@ class slurm_manager(object):
             f.write(output)
         convert_crlf_to_lf(sh_file_path)
         logger.debug(f"Created a Slurm job file in {sh_file_path}")
-
-    def _cache(self) -> None:
-        """save jobs under management and cleanup empty directories"""
-
-        with open(self.cache_file, 'wb') as cf:
-            pickle.dump(self.jobs, cf)
-
-        cleanup_empty_dirs(self.workdir)
