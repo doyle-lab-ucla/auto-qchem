@@ -26,8 +26,11 @@ class gaussian_log_extractor(object):
         self.transitions = None
 
         self._split_parts()  # split parts
-        self._get_atom_labels()  # fetch atom labels
-        self._get_geometry()  # fetch geometries for each log section
+        try:
+            self._get_atom_labels()  # fetch atom labels
+            self._get_geometry()  # fetch geometries for each log section
+        except IndexError:
+            raise LookupError("Log file is truncated. Cannot read atom labels and geometry.")
 
     def get_descriptors(self) -> dict:
         """Extract and retrieve all descriptors as a dictionary.
