@@ -80,6 +80,7 @@ class slurm_manager(object):
             # create job structure
             job = slurm_job(can=molecule.can,
                             conformation=int(base_name.split("_conf_")[1]),
+                            max_num_conformers=gig.molecule.max_num_conformers,
                             tasks=gig.tasks,
                             job_id=-1,  # job_id (not assigned yet)
                             directory=gig.directory,  # filesystem path
@@ -272,7 +273,7 @@ class slurm_manager(object):
 
         logger.debug(f"Deduplicating conformers if RMSD < {RMSD_threshold}.")
 
-        for (can, tasks), keys in jobs_df.groupby(["can", "tasks"]).groups.items():
+        for (can, tasks, max_n_conf), keys in jobs_df.groupby(["can", "tasks", "max_num_conformers"]).groups.items():
             # deduplicate conformers
             mols = [OBMol_from_done_slurm_job(done_jobs[key]) for key in keys]
             duplicates = deduplicate_list_of_OBMols(mols, RMSD_threshold=RMSD_threshold, symmetry=symmetry)
@@ -280,7 +281,7 @@ class slurm_manager(object):
 
             # fetch non-duplicate keys
             can_keys_to_keep = [key for i, key in enumerate(keys) if i not in duplicates]
-            self._upload_can_to_db(db, can, tasks, can_keys_to_keep, tag)
+            self._upload_can_to_db(db, can, tasks, can_keys_to_keep, tag, max_n_conf)
 
         # cleanup
         db.close()
@@ -379,7 +380,7 @@ class slurm_manager(object):
 
             self.__cache()
 
-    def _upload_can_to_db(self, db, can, tasks, keys, tag) -> None:
+    def _upload_can_to_db(self, db, can, tasks, keys, tag, max_conf) -> None:
         """Uploading single molecule conformers to database.
 
         :param db: database client
@@ -392,6 +393,8 @@ class slurm_manager(object):
         :type keys: list
         :param tag: metadata tag
         :type tag: str
+        :param max_conf: max number of conformers used for this molecule
+        :type max_conf: int
         """
 
         # check if the tag is properly provided
@@ -420,7 +423,12 @@ class slurm_manager(object):
 
         for weight, conformation in zip(weights, conformations):
             data = {'can': can,
-                    'metadata': {'gaussian_config': config['gaussian'], 'gaussian_tasks': tasks, 'tag': tag},
+                    'metadata': {
+                        'gaussian_config': config['gaussian'],
+                        'gaussian_tasks': tasks,
+                        'tag': tag,
+                        'max_num_conformers': max_conf,
+                    },
                     'weight': weight}
             # update with descriptors
             data.update(conformation)

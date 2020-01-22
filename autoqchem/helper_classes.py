@@ -28,6 +28,8 @@ class slurm_job:
     :type can: str
     :param conformation: conformation number
     :type conformation: int
+    :param max_num_conformers: max number of conformers generated for the molecule
+    :type: max_num_conformers: int
     :param tasks: gaussian tasks tuple
     :type tasks: tuple
     :param job_id: job id on the remote host
@@ -47,6 +49,7 @@ class slurm_job:
     # molecule and gaussian config
     can: str
     conformation: int
+    max_num_conformers: int
     tasks: tuple
 
     # slurm variables
