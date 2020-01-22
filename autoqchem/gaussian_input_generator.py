@@ -70,7 +70,7 @@ class gaussian_input_generator(object):
 
             # coordinates block
             geom_df = self.molecule.get_geometry(conf_id)
-            geom_df['Iso_String'] = geom_df['Isotope'].astype(str).map(lambda s: f" (Iso={s})")
+            geom_df['Iso_String'] = geom_df['Isotope'].astype(str).map(lambda s: f"(Iso={s})")
             geom_df['Atom'] += geom_df['Iso_String'].where(geom_df['Isotope'] > 0, '')
             geom_np_array = geom_df[['Atom', 'X', 'Y', 'Z']].astype(str).values
             coords_block = "\n".join(map(" ".join, geom_np_array))
