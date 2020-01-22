@@ -9,8 +9,20 @@ from autoqchem.molecule import GetVdwRad
 logger = logging.getLogger(__name__)
 
 
-def occupied_volume(geometry_df, atom_idx, r, mesh_density=30):
-    """compute occupied volume"""
+def occupied_volume(geometry_df, atom_idx, r, mesh_density=30) -> float:
+    """Compute occupied volume fraction within a sphere of radius 'r' for an atom at position 'atom_idx'. Each atom \
+    radius is taken to be its Van der Waals radius.
+
+    :param geometry_df: geometry dataframe, must contain 'X', 'Y', 'Z' and 'AN' (atomic number) columns
+    :type geometry_df: pd.DataFrame
+    :param atom_idx: index of the atom to use as 'central' atom
+    :type atom_idx: int
+    :param r: occupied volume radius in Angstroms
+    :type r: float
+    :param mesh_density: density of the mesh for numerical integration (MAX=100)
+    :type mesh_density: int
+    :return: float, occupied volume fraction
+    """
 
     # make sure mesh_density is not outrageous
     MAX_MESH_DENSITY = 100

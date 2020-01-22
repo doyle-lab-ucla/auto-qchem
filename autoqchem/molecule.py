@@ -2,91 +2,142 @@ import hashlib
 
 try:
     from openbabel import pybel  # openbabel 3.0.0
+
     GetSymbol = pybel.ob.GetSymbol
     GetVdwRad = pybel.ob.GetVdwRad
 except ImportError:
     import pybel  # openbabel 2.4
+
     table = pybel.ob.OBElementTable()
     GetSymbol = table.GetSymbol
     GetVdwRad = table.GetVdwRad
 
 from autoqchem.gaussian_input_generator import *
-from autoqchem.openbabel_conversions import *
+from autoqchem.openbabel_functions import *
 
 logger = logging.getLogger(__name__)
 
 
 class molecule(object):
-    """Class that holds a single molecule information"""
+    """Wrapper class for openbabel.OBMol class"""
 
     def __init__(self,
                  input,
+                 input_type="string",
                  input_format='smi',
-                 input_type=input_types.string,
-                 gen3D_option=config['openbabel']['gen3D_option'],
-                 max_num_conformers=config['gaussian']['max_num_conformers']):
-        """initialize the molecule"""
+                 gen3d_option='best',
+                 max_num_conformers=30,
+                 min_fragment_dist=2,
+                 ):
+        """
+        Initialize the OBMol molecule, generate initial 3D geometry and do conformer search.
+
+        :param input: string or file path
+        :param input_type: "string" or "file", in line with the input
+        :param input_format: any format supported by OpenBabel, e.g. 'smi', 'cdx', 'pdb', etc.
+        :param gen3d_option: "best", "medium", "fast" or "gen2D" (no 3D generation)
+        :param max_num_conformers: maximum number of conformers to generate
+        :param min_fragment_dist: minimum distance between molecular fragments for salts, no more than 2 \
+        molecular fragments are supported
+        """
 
         # read the molecule
-        self.mol = input_to_OBMol(input, input_format, input_type)
+        self.mol = input_to_OBMol(input, input_type, input_format)
 
         # get canonical smiles of this molecule
         self.can = OBMol_to_string(self.mol, "can")
         logger.info(f"Initializing molecule with canonical smiles: {self.can}")
 
-        # reload the molecule using its canonical smiles
-        self.mol = input_to_OBMol(self.can, "can", input_types.string)
+        # reload molecule from can
+        self.mol = input_to_OBMol(self.can, "string", "can")
 
         # group elements into light and heavy
-        self.__get_light_and_heavy_elements()
+        self._get_light_and_heavy_elements(config['gaussian']['max_light_atomic_number'])
 
         # create a unique name for files and directories, aka filesystem name (use stoichiometric formula)
         # add 4 hash digits of its canonical smiles in case of collisions of formulas
         self.fs_name = f"{self.mol.GetFormula()}_{hashlib.md5(self.can.encode()).hexdigest()[:4]}"
 
         # generate initial geometry and conformations
-        self.__generate_geometry(gen3D_option)
-        self.__generate_conformers(max_num_conformers)
+        self._generate_geometry(gen3d_option)
+        self._generate_conformers(max_num_conformers)
+        self.max_num_conformers = max_num_conformers
 
         # find central atoms
-
-        self.__find_central_atoms()
+        self._find_central_atoms()
 
         # extra steps for molecules with multiple fragments
         if len(self.centers) == 2:
             logger.info(f"Molecule has 2 non-bonded fragments")
             # adjust distance between fragments (in-case it's not enough already)
-            self.__adjust_geometries(config['gaussian']['min_dist_for_salts'])
+            self._adjust_geometries(min_fragment_dist)
         elif len(self.centers) > 2:
             message = f"Molecule has {len(self.centers)} non-bonded fragments. Only up to 2 are supported"
             logger.error(message)
             raise Exception(message)
 
-    def __generate_geometry(self, option):
-        """generate initial geometry using get3D option"""
+    def get_geometry(self, conformer_num=0) -> pd.DataFrame:
+        """Get coordinates DataFrame for a given conformer.
 
-        logger.info(f"Creating initial geometry with option '{option}'.")
-        gen3D = pybel.ob.OBOp.FindType("gen3D")
-        gen3D.Do(self.mol, option)
+        :param conformer_num: conformer number, if larger than number of conformations available, the last is returned
+        :return: pandas.core.frame.DataFrame
+        """
+
+        self.mol.SetConformer(conformer_num)
+        array = [[GetSymbol(a.GetAtomicNum()),
+                  a.GetIsotope(), a.x(), a.y(), a.z()] for a in pybel.ob.OBMolAtomIter(self.mol)]
+        return pd.DataFrame(array, columns=['Atom', 'Isotope'] + list('XYZ'))
+
+    def draw(self, conformer_num=0, ipython_3d=True) -> None:
+        """Draw a depiction of the molecule for a given conformer.
+
+        :param conformer_num: conformer number, if larger than number of conformations available, the last is returned
+        :param ipython_3d: if True 3-dim rotatable graphics is generated
+        """
+
+        self.mol.SetConformer(conformer_num)
+        pybel.ipython_3d = ipython_3d
+
+        try:
+            from IPython.core.display import display
+            display(pybel.Molecule(self.mol))
+        except ImportError as e:
+            logger.warning(f"Import Error: {e}")
+
+    def _generate_geometry(self, gen3d_option) -> None:
+        """Generate initial geometry of the molecule.
+
+        :param gen3d_option: "best", "medium", "fast" or "gen2D" (no 3D generation)
+        """
+
+        logger.info(f"Creating initial geometry with option '{gen3d_option}'.")
+        if gen3d_option == "gen2D":
+            self.mol.AddHydrogens()
+            gen2D = pybel.ob.OBOp.FindType("gen2D")
+            gen2D.Do(self.mol)
+        else:
+            gen3D = pybel.ob.OBOp.FindType("gen3D")
+            gen3D.Do(self.mol, gen3d_option)
         logger.info(f"Initial geometry created successfully.")
 
-    def __find_central_atoms(self):
-        """First find molecular fragments (if any) and group atoms
-        by the fragment they belong to, then, find central atoms
-        for all fragments (closest to centroids)"""
+    def _find_central_atoms(self) -> None:
+        """Find central atoms for molecular fragments of the molecule."""
 
         fragments = [[atom.GetId() for atom in pybel.ob.OBMolAtomIter(part)] for part in self.mol.Separate()]
         self.fragments_dict = {i: j for j, frag in enumerate(fragments) for i in frag}
 
         # find centers for each fragment
-        geom = self.get_initial_geometry()
+        geom = self.get_geometry()
         geom['Fragment'] = geom.index.map(self.fragments_dict)
         self.centers = geom.groupby('Fragment')[['X', 'Y', 'Z']].apply(
             lambda frag: frag.sub(frag.mean()).pow(2).sum(1).idxmin()
         ).values
 
-    def __generate_conformers(self, num_conformers):
-        """generate conformations with GA algorithm"""
+    def _generate_conformers(self, num_conformers) -> None:
+        """Generate conformations with genetic algorithm isomg pybel.ob.OBConformerSearch class.
+
+        :param num_conformers: maximum number of conformers to generate
+        """
 
         confSearch = pybel.ob.OBConformerSearch()
         confSearch.Setup(self.mol, num_conformers)
@@ -95,21 +146,26 @@ class molecule(object):
 
         logger.info(f"Conformer Search generated {self.mol.NumConformers()} conformations of {self.can} molecule")
 
-    def __get_light_and_heavy_elements(self):
-        """group elements into light and heavy for this molecule"""
+    def _get_light_and_heavy_elements(self, max_light_atomic_number) -> None:
+        """Group molecule elements into light and heavy.
 
-        max_light_z = config['gaussian']['max_light_atomic_number']
+        :param max_light_atomic_number: maximum atomic number classified as light
+        """
+
         atomic_nums = set(atom.GetAtomicNum() for atom in pybel.ob.OBMolAtomIter(self.mol))
-        self.light_elements = [GetSymbol(n) for n in atomic_nums if n <= max_light_z]
-        self.heavy_elements = [GetSymbol(n) for n in atomic_nums if n > max_light_z]
+        self.light_elements = [GetSymbol(n) for n in atomic_nums if n <= max_light_atomic_number]
+        self.heavy_elements = [GetSymbol(n) for n in atomic_nums if n > max_light_atomic_number]
 
-    def __adjust_geometries(self, min_dist):
-        """adjust geometries such that the minimum separation
-        between any atoms for fragments is at least 'min_dist' Angstroms"""
+    def _adjust_geometries(self, min_fragment_dist) -> None:
+        """Adjust molecule fragment geometries such that the minimum separation
+        between any atom between fragments is at least 'min_fragment_dist' in Angstroms.
+
+        :param min_fragment_dist: minimum distance between molecular fragments for salts, no more than 2 \
+        molecular fragments are supported
+        """
 
         for conf_id in range(self.mol.NumConformers()):
-            self.mol.SetConformer(conf_id)
-            geom = OBMol_to_geom_df(self.mol)
+            geom = self.get_geometry(conf_id)
 
             geom['Fragment'] = geom.index.map(self.fragments_dict)
             geom = geom.set_index(['Fragment', 'Atom'])
@@ -119,7 +175,7 @@ class molecule(object):
             init_mdist = cdist(geom.loc[0], geom.loc[1]).min()
             counter = 0
             mdist = init_mdist
-            while mdist < min_dist:
+            while mdist < min_fragment_dist:
                 geom.loc[1] = geom.loc[1].values + 0.1 * v
                 mdist = cdist(geom.loc[0], geom.loc[1]).min()
                 counter += 1
@@ -133,15 +189,3 @@ class molecule(object):
             for atom in pybel.ob.OBMolAtomIter(self.mol):
                 pos = geom.iloc[atom.GetIdx() - 1]
                 atom.SetVector(pos.X, pos.Y, pos.Z)
-
-    def get_initial_geometry(self, conformer_num=0) -> pd.DataFrame:
-        """get coordinates dataframe for a given conformer"""
-
-        self.mol.SetConformer(conformer_num)
-        return OBMol_to_geom_df(self.mol)
-
-    def draw(self, conformer_num=0) -> pybel.Molecule:
-        """draw molecule"""
-
-        self.mol.SetConformer(conformer_num)
-        return pybel.Molecule(self.mol)

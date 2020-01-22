@@ -11,47 +11,38 @@ T = 298
 
 
 @enum.unique
-class input_types(enum.IntEnum):
-    """enumeration of input types"""
+class slurm_status(enum.IntEnum):
+    """Slurm job status enumerator."""
 
-    file = enum.auto()
-    string = enum.auto()
-
-
-@enum.unique
-class gaussian_workflows(enum.Enum):
-    """enumeration of gaussian workflows"""
-
-    equilibrium = (
-        lambda basis_set: f"opt=CalcFc {config['gaussian']['theory']}/{basis_set} scf=xqc",  # geometry optimization
-        lambda basis_set: f"freq {config['gaussian']['theory']}/{basis_set} volume NMR pop=NPA "  # frequency calc
-                          f"density=current Geom=AllCheck Guess=Read",
-        lambda basis_set: f"TD(NStates=10, Root=1) {config['gaussian']['theory']}/{basis_set} "  # Time-Dependent
-                          f"volume pop=NPA density=current Geom=AllCheck Guess=Read",
-    )
-    transition_state = (
-        lambda basis_set: f"opt=(calcfc,ts,noeigentest) scf=xqc {config['gaussian']['theory']}/{basis_set}",  # geometry
-        lambda basis_set: f"freq {config['gaussian']['theory']}/{basis_set} volume NMR pop=NPA"  # frequency calc.
-                          f" density=current Geom=AllCheck Guess=Read",
-    )
-    test = (
-        lambda basis_set: f"{config['gaussian']['theory']}/{basis_set}",  # Hartree-Fock
-    )
-
-
-@enum.unique
-class slurm_status(enum.Enum):
-    """enumeration for slurm job status"""
-
-    created = 'created'  # job files have been created
-    submitted = 'submitted'  # jobs has been submitted to slurm
-    done = 'done'  # job finished successfully (all gaussian steps finished)
-    failed = 'failed'  # job failed
+    created = 1  #: job files have been created and stored locally
+    submitted = 2  #: jobs has been submitted to slurm on remote host
+    done = 3  #: job finished successfully (all gaussian steps finished) and have been retrieved from host
+    failed = 4  #: job failed
 
 
 @dataclass
 class slurm_job:
-    """data class for slurm job"""
+    """Dataclass for slurm job.
+
+    :param can: canonical smiles
+    :type can: str
+    :param conformation: conformation number
+    :type conformation: int
+    :param tasks: gaussian tasks tuple
+    :type tasks: tuple
+    :param job_id: job id on the remote host
+    :type job_id: int
+    :param directory: job local directory
+    :type directory: str
+    :param base_name: job local base_name
+    :type base_name: str
+    :param status: slurm_status of the job
+    :type status: slurm_status
+    :param n_submission: number of times the job has been submitted
+    :type n_submission: int
+    :param n_success_tasks: number of successfully completed tasks
+    :type n_success_tasks: int
+    """
 
     # molecule and gaussian config
     can: str
@@ -63,5 +54,5 @@ class slurm_job:
     directory: str
     base_name: str
     status: slurm_status
-    n_submissions: int = 0
-    n_success_steps: int = 0
+    n_submissions: int
+    n_success_tasks: int

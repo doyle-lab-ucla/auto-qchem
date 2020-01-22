@@ -6,16 +6,24 @@ import pymongo
 
 from autoqchem.gaussian_input_generator import *
 from autoqchem.helper_functions import *
-from autoqchem.openbabel_conversions import *
+from autoqchem.openbabel_functions import *
 
 logger = logging.getLogger(__name__)
 
 
 class slurm_manager(object):
+    """Slurm manager class."""
+
     cache_file = f"{config['slurm']['work_dir']}/slurm_manager.pkl"
 
     def __init__(self, user, host):
-        """load jobs under management in constructor"""
+        """Initialize slurm manager and load the cache file.
+
+        :param user: username at remote host
+        :type user: str
+        :param host: remote host name
+        :type host: str
+        """
 
         self.jobs = {}  # jobs under management
 
@@ -29,16 +37,8 @@ class slurm_manager(object):
         self.remote_dir = f"/home/{self.user}/gaussian"
         self.connection = None
 
-    def __cache(self):
-        """save jobs under management and cleanup empty directories"""
-
-        with open(self.cache_file, 'wb') as cf:
-            pickle.dump(self.jobs, cf)
-
-        cleanup_empty_dirs(config['slurm']['work_dir'])
-
     def connect(self) -> None:
-        """connect to remote server"""
+        """Connect to remote host."""
 
         create_new_connection = False
         # check if connection already exists
@@ -57,28 +57,36 @@ class slurm_manager(object):
             self.connection.run(f"mkdir -p {self.remote_dir}")
             logger.info(f"Connected to {self.host} as {self.user}.")
 
-    def create_jobs_for_molecule(self, molecule, workflow=gaussian_workflows.equilibrium) -> None:
-        """generate slurm jobs for a given molecule"""
+    def create_jobs_for_molecule(self, molecule, workflow_type="equilibrium") -> None:
+        """Generate slurm jobs for a molecule. Gaussian input files are also generated.
+
+        :param molecule: molecule object
+        :type molecule: molecule
+        :param workflow_type: Gaussian workflow type, allowed types are: 'equilibrium' or 'transition_state'
+        :type workflow_type: str
+        """
 
         molecule_work_dir = f"{config['slurm']['work_dir']}/{molecule.fs_name}"
 
         # create gaussian files
-        gig = gaussian_input_generator(molecule, molecule_work_dir)
-        tasks = gig.create_gaussian_files(workflow)
+        gig = gaussian_input_generator(molecule, workflow_type, molecule_work_dir)
+        gig.create_gaussian_files()
 
         # create slurm files
         for gjf_file in glob.glob(f"{molecule_work_dir}/*.gjf"):
 
             base_name = os.path.basename(os.path.splitext(gjf_file)[0])
-            slurm_manager.create_slurm_file_from_gaussian_file(base_name, molecule_work_dir)
+            slurm_manager._create_slurm_file_from_gaussian_file(base_name, molecule_work_dir)
             # create job structure
             job = slurm_job(can=molecule.can,
                             conformation=int(base_name.split("_conf_")[1]),
-                            tasks=tasks,
+                            tasks=gig.tasks,
                             job_id=-1,  # job_id (not assigned yet)
                             directory=gig.directory,  # filesystem path
                             base_name=base_name,  # filesystem basename
-                            status=slurm_status.created)  # status
+                            status=slurm_status.created,
+                            n_submissions=0,
+                            n_success_tasks=0)  # status
 
             # create a key for the job
             key = hashlib.md5((job.can + str(job.conformation) + ','.join(map(str, job.tasks))).encode()).hexdigest()
@@ -93,115 +101,15 @@ class slurm_manager(object):
             self.jobs[key] = job  # add job to bag
         self.__cache()
 
-    @staticmethod
-    def create_slurm_file_from_gaussian_file(base_name, directory) -> None:
-        """generate a single slurm submission file based on the gaussian input file"""
-
-        # get information from gaussian file needed for submission
-        with open(f"{directory}/{base_name}.gjf") as f:
-            file_string = f.read()
-
-        n_processors = re.search("nprocshared=(.*?)\n", file_string).group(1)
-
-        output = ""
-        output += f"#!/bin/bash\n"
-        output += f"#SBATCH -N 1\n" \
-                  f"#SBATCH --ntasks-per-node={n_processors}\n" \
-                  f"#SBATCH -t {config['slurm']['wall_time']}\n" \
-                  f"#SBATCH -C haswell\n\n"
-        output += f"input={base_name}\n\n"
-        output += f"# create scratch directory for the job\n" \
-                  f"export GAUSS_SCRDIR=/scratch/${{USER}}/${{SLURM_JOB_ID}}\n" \
-                  f"tempdir=${{GAUSS_SCRDIR}}\n" \
-                  f"mkdir -p ${{tempdir}}\n\n"
-        output += f"# copy input file to scratch directory\n" \
-                  f"cp ${{SLURM_SUBMIT_DIR}}/${{input}}.gjf ${{tempdir}}\n\n"
-        output += f"# run the code \n" \
-                  f"cd ${{tempdir}}\n" \
-                  f"g16 ${{input}}.gjf\n\n"
-        output += f"# copy output\n" \
-                  f"cp ${{input}}.log ${{SLURM_SUBMIT_DIR}}"
-
-        sh_file_path = f"{directory}/{base_name}.sh"
-        with open(sh_file_path, "w") as f:
-            f.write(output)
-        convert_crlf_to_lf(sh_file_path)
-        logger.debug(f"Created a Slurm job file in {sh_file_path}")
-
-    def get_jobs(self, status=None, can=None) -> dict:
-        """get a list of jobs by status and can"""
-
-        def match(job, status, can):
-            match = True
-            if status is not None:
-                match = match and job.status == status
-            if can is not None:
-                if isinstance(can, str):
-                    can = [can]
-                match = match and (job.can in can)
-            return match
-
-        return {name: job for name, job in self.jobs.items() if match(job, status, can)}
-
-    def remove_jobs(self, jobs) -> None:
-        """remove jobs"""
-
-        for name, job in jobs.items():
-            logger.debug(f"Removing job {name}.")
-            os.remove(f"{job.directory}/{job.base_name}.sh")  # slurm file
-            os.remove(f"{job.directory}/{job.base_name}.gjf")  # gaussian file
-            if os.path.exists(f"{job.directory}/{job.base_name}.log"):
-                os.remove(f"{job.directory}/{job.base_name}.log")  # log file
-            del self.jobs[name]
-        self.__cache()
-
-    def get_job_stats(self, split_by_can=False) -> pd.DataFrame:
-        """count jobs with each status under management"""
-
-        df = pd.DataFrame([[v.status.value, v.can] for v in self.jobs.values()], columns=['status', 'can'])
-        if split_by_can:
-            return df.groupby(['status', 'can']).size().unstack(level=1).fillna(0).astype(int).T
-        else:
-            return df.groupby('status').size().to_frame('jobs').T
-
     def submit_jobs(self) -> None:
-        """submit jobs of a given status"""
+        """Submit jobs that have status 'created' to remote host."""
 
         jobs = self.get_jobs(slurm_status.created)
         logger.info(f"Submitting {len(jobs)} jobs.")
-        self.__submit_jobs_from_jobs_dict(jobs)
-
-    def __submit_jobs_from_jobs_dict(self, jobs) -> None:
-        """submit jobs"""
-
-        # check if there are any jobs to be submitted
-        if jobs:
-            # get or create connection
-            self.connect()
-
-            # check if jobs are in status created or failed
-            for name, job in jobs.items():
-                # copy .sh and .gjf file to remote_dir
-                self.connection.put(f"{job.directory}/{job.base_name}.sh", self.remote_dir)
-                self.connection.put(f"{job.directory}/{job.base_name}.gjf", self.remote_dir)
-
-                with self.connection.cd(self.remote_dir):
-                    ret = self.connection.run(f"sbatch {self.remote_dir}/{job.base_name}.sh", hide=True)
-                    job.job_id = re.search("job\s*(\d+)\n", ret.stdout).group(1)
-                    job.status = slurm_status.submitted
-                    job.n_submissions = job.n_submissions + 1
-                    logger.info(f"Submitted job {name}, job_id: {job.job_id}.")
-
-            self.__cache()
-
-    def squeue(self) -> None:
-        """run squeue command"""
-
-        self.connect()
-        self.connection.run(f"squeue -u {self.user}")
+        self._submit_jobs_from_jobs_dict(jobs)
 
     def retrieve_jobs(self) -> None:
-        """retrieve finished jobs"""
+        """Retrieve finished jobs from remote host and check which finished succesfully and which failed."""
 
         ids_to_check = [j.job_id for j in self.get_jobs(slurm_status.submitted).values()]
         if not ids_to_check:
@@ -231,16 +139,16 @@ class slurm_manager(object):
                                                    local=f"{job.directory}/{job.base_name}.log")
                     with open(log_file.local) as f:
                         log = f.read()
-                    job.n_success_steps = len(re.findall("Normal termination", log))
+                    job.n_success_tasks = len(re.findall("Normal termination", log))
 
                     n_steps = len(job.tasks)
-                    if job.n_success_steps == n_steps:
+                    if job.n_success_tasks == n_steps:
                         job.status = slurm_status.done
                         done_jobs[name] = job
                     else:
                         job.status = slurm_status.failed
                         failed_jobs[name] = job
-                        logger.warning(f"Job {job.base_name} has {job.n_success_steps} out of {n_steps} completed."
+                        logger.warning(f"Job {job.base_name} has {job.n_success_tasks} out of {n_steps} completed."
                                        f"The job needs to be resubmitted.")
                 except FileNotFoundError:  # TODO rare occurence, not exactly sure what exception is thrown here
                     job.status = slurm_status.failed
@@ -256,8 +164,11 @@ class slurm_manager(object):
             logger.info(f"{len(done_jobs)} jobs finished successfully (all Gaussian steps finished normally)."
                         f" {len(failed_jobs)} jobs failed.")
 
-    def resubmit_failed_jobs(self):
-        """resubmit jobs that failed"""
+    def resubmit_failed_jobs(self) -> None:
+        """Resubmit jobs that failed. If the job has failed but a log file has been retrieved, then \
+        the last geometry will be used for the next submission. If the job didn't finish in time the time required \
+        will be increased by a factor of 2. Maximum number of allowed submission of \
+        the same job is 3."""
 
         failed_jobs = self.get_jobs(slurm_status.failed)
 
@@ -297,6 +208,8 @@ class slurm_manager(object):
                 with open(job_gjf, "w") as f:
                     f.write(file_string)
 
+                logger.info("Log file retrieved. Substituting last checked geometry in the new input file.")
+
             # option 2, log file is empty or does not have geometry
             except Exception:
 
@@ -314,14 +227,23 @@ class slurm_manager(object):
                     f.write(file_string)
                 convert_crlf_to_lf(job_sh)
 
-        self.__submit_jobs_from_jobs_dict(failed_jobs)
+                logger.warning(f"No log file was retrieved from the server. Resubmitting with more time: {h}:{m}:{s}.")
 
-    def upload_done_molecules_to_db(self, tag, symmetry=True) -> None:
-        """Deduplicate done jobs molecule by molecule. The conformers
-         are removed if their RMSD is below thershold.
-        This is a postprocessing step."""
+        self._submit_jobs_from_jobs_dict(failed_jobs)
 
-        # fetch done jobs first
+    def upload_done_molecules_to_db(self, tag, RMSD_threshold=0.01, symmetry=True) -> None:
+        """Upload done molecules to db. Molecules are considered done when all jobs for a given \
+         smiles are in 'done' status. The conformers are deduplicated and uploaded to database using a metadata tag.
+
+        :param tag: metadata tag to use for these molecules in the database
+        :type tag: str
+        :param RMSD_threshold: RMSD threshold (in Angstroms) to use when deduplicating multiple conformers \
+        after Gaussian has found optimal geometry
+        :type RMSD_threshold: float
+        :param symmetry: if True symmetry is taken into account when comparing molecules in OBAlign(symmetry=True)
+        :type symmetry: bool
+        """
+
         done_jobs = self.get_jobs(slurm_status.done)
         if not done_jobs:
             logger.info("There are no jobs in done status. Exitting.")
@@ -348,27 +270,131 @@ class slurm_manager(object):
         done_can_jobs = self.get_jobs(can=done_cans)
         jobs_df = pd.DataFrame([job.__dict__ for job in done_can_jobs.values()], index=done_can_jobs.keys())
 
-        logger.debug(f"Deduplicating conformers if RMSD < {config['gaussian']['conformer_RMSD_threshold']}.")
+        logger.debug(f"Deduplicating conformers if RMSD < {RMSD_threshold}.")
 
         for (can, tasks), keys in jobs_df.groupby(["can", "tasks"]).groups.items():
             # deduplicate conformers
             mols = [OBMol_from_done_slurm_job(done_jobs[key]) for key in keys]
-            duplicates = deduplicate_list_of_OBMols(mols, symmetry)
+            duplicates = deduplicate_list_of_OBMols(mols, RMSD_threshold=RMSD_threshold, symmetry=symmetry)
             logger.info(f"Molecule {can} has {len(duplicates)} / {len(keys)} duplicate conformers.")
 
             # fetch non-duplicate keys
             can_keys_to_keep = [key for i, key in enumerate(keys) if i not in duplicates]
-            self.upload_can_to_db(db, can, tasks, can_keys_to_keep, tag)
+            self._upload_can_to_db(db, can, tasks, can_keys_to_keep, tag)
 
         # cleanup
         db.close()
         if yes_or_no("Ok to remove log files for done jobs?"):
             self.remove_jobs(done_can_jobs)
 
-    def upload_can_to_db(self, db, can, tasks, keys, tag) -> None:
-        """uploading done jobs to database"""
+    def get_jobs(self, status=None, can=None) -> dict:
+        """Get a dictionary of jobs, optionally filter by status and canonical smiles.
 
-        # make sure tag is a non-empty string
+        :param status: slurm status of the jobs
+        :type status: slurm_status
+        :param can: canonical smiles of the molecules, single string for one smiles, a list for multiple smiles
+        :type can: str or list
+        :return: dict
+        """
+
+        def match(job, status, can):
+            match = True
+            if status is not None:
+                match = match and job.status.value == status.value
+            if can is not None:
+                if isinstance(can, str):
+                    can = [can]
+                match = match and (job.can in can)
+            return match
+
+        return {name: job for name, job in self.jobs.items() if match(job, status, can)}
+
+    def get_job_stats(self, split_by_can=False) -> pd.DataFrame:
+        """Job stats for jobs currently under management, optionally split by canonical smiles.
+
+        :param split_by_can: if True each canonical smiles will be listed separately
+        :type split_by_can: bool
+        :return: pandas.core.frame.DataFrame
+        """
+
+        df = pd.DataFrame([[v.status.name, v.can] for v in self.jobs.values()], columns=['status', 'can'])
+        if split_by_can:
+            return df.groupby(['status', 'can']).size().unstack(level=1).fillna(0).astype(int).T
+        else:
+            return df.groupby('status').size().to_frame('jobs').T
+
+    def remove_jobs(self, jobs) -> None:
+        """Remove jobs.
+
+        :param jobs: dictionary of jobs to remove
+        :type jobs: dict
+        """
+
+        for name, job in jobs.items():
+            logger.debug(f"Removing job {name}.")
+            os.remove(f"{job.directory}/{job.base_name}.sh")  # slurm file
+            os.remove(f"{job.directory}/{job.base_name}.gjf")  # gaussian file
+            if os.path.exists(f"{job.directory}/{job.base_name}.log"):
+                os.remove(f"{job.directory}/{job.base_name}.log")  # log file
+            del self.jobs[name]
+        self.__cache()
+
+    def squeue(self) -> None:
+        """Run 'squeue -u $user' command on the server."""
+
+        self.connect()
+        self.connection.run(f"squeue -u {self.user}")
+
+    def _scancel(self) -> None:
+        """Run 'scancel -u $user' command on the server."""
+
+        self.connect()
+        self.connection.run(f"scancel -u {self.user}")
+        self.remove_jobs(self.get_jobs(status=slurm_status.submitted))
+
+    def _submit_jobs_from_jobs_dict(self, jobs) -> None:
+        """Submit jobs to remote host.
+
+        :param jobs: dictionary of jobs to submit
+        :type jobs: dict
+        """
+
+        # check if there are any jobs to be submitted
+        if jobs:
+            # get or create connection
+            self.connect()
+
+            # check if jobs are in status created or failed
+            for name, job in jobs.items():
+                # copy .sh and .gjf file to remote_dir
+                self.connection.put(f"{job.directory}/{job.base_name}.sh", self.remote_dir)
+                self.connection.put(f"{job.directory}/{job.base_name}.gjf", self.remote_dir)
+
+                with self.connection.cd(self.remote_dir):
+                    ret = self.connection.run(f"sbatch {self.remote_dir}/{job.base_name}.sh", hide=True)
+                    job.job_id = re.search("job\s*(\d+)\n", ret.stdout).group(1)
+                    job.status = slurm_status.submitted
+                    job.n_submissions = job.n_submissions + 1
+                    logger.info(f"Submitted job {name}, job_id: {job.job_id}.")
+
+            self.__cache()
+
+    def _upload_can_to_db(self, db, can, tasks, keys, tag) -> None:
+        """Uploading single molecule conformers to database.
+
+        :param db: database client
+        :type db: pymongo.MongoClient
+        :param can: canonical smiles
+        :type can: str
+        :param tasks: tuple of Gaussian tasks
+        :type tasks: tuple
+        :param keys: list of keys to the self.jobs dictionary to upload
+        :type keys: list
+        :param tag: metadata tag
+        :type tag: str
+        """
+
+        # check if the tag is properly provided
         assert isinstance(tag, str)
         assert len(tag.strip()) > 0
 
@@ -382,9 +408,8 @@ class slurm_manager(object):
             # extract descriptors for this conformer from log file
             log = f"{job.directory}/{job.base_name}.log"
             le = gaussian_log_extractor(log)
-            le.extract_descriptors()
             # add descriptors to conformations list
-            conformations.append(le.data())
+            conformations.append(le.get_descriptors())
 
         # compute weights
         free_energies = np.array(
@@ -403,3 +428,50 @@ class slurm_manager(object):
             # db insertion
             db['autoqchem']['dft_descriptors'].insert_one(data)
         logger.info(f"Uploaded descriptors to DB for smiles: {can}, number of conformers: {len(conformations)}.")
+
+    @staticmethod
+    def _create_slurm_file_from_gaussian_file(base_name, directory) -> None:
+        """Generate a single slurm submission file based on the Gaussian input file.
+
+        :param base_name: base name of the Gaussian file
+        :param directory: directory location of the Gaussian file
+        """
+
+        # get information from gaussian file needed for submission
+        with open(f"{directory}/{base_name}.gjf") as f:
+            file_string = f.read()
+
+        n_processors = re.search("nprocshared=(.*?)\n", file_string).group(1)
+
+        output = ""
+        output += f"#!/bin/bash\n"
+        output += f"#SBATCH -N 1\n" \
+                  f"#SBATCH --ntasks-per-node={n_processors}\n" \
+                  f"#SBATCH -t {config['slurm']['wall_time']}\n" \
+                  f"#SBATCH -C haswell\n\n"
+        output += f"input={base_name}\n\n"
+        output += f"# create scratch directory for the job\n" \
+                  f"export GAUSS_SCRDIR=/scratch/${{USER}}/${{SLURM_JOB_ID}}\n" \
+                  f"tempdir=${{GAUSS_SCRDIR}}\n" \
+                  f"mkdir -p ${{tempdir}}\n\n"
+        output += f"# copy input file to scratch directory\n" \
+                  f"cp ${{SLURM_SUBMIT_DIR}}/${{input}}.gjf ${{tempdir}}\n\n"
+        output += f"# run the code \n" \
+                  f"cd ${{tempdir}}\n" \
+                  f"g16 ${{input}}.gjf\n\n"
+        output += f"# copy output\n" \
+                  f"cp ${{input}}.log ${{SLURM_SUBMIT_DIR}}"
+
+        sh_file_path = f"{directory}/{base_name}.sh"
+        with open(sh_file_path, "w") as f:
+            f.write(output)
+        convert_crlf_to_lf(sh_file_path)
+        logger.debug(f"Created a Slurm job file in {sh_file_path}")
+
+    def __cache(self) -> None:
+        """save jobs under management and cleanup empty directories"""
+
+        with open(self.cache_file, 'wb') as cf:
+            pickle.dump(self.jobs, cf)
+
+        cleanup_empty_dirs(config['slurm']['work_dir'])

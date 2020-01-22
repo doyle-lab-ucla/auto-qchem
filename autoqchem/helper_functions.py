@@ -9,68 +9,13 @@ import paramiko
 logger = logging.getLogger(__name__)
 
 
-def cleanup_directory_files(dir_path, types=()) -> None:
-    """remove files of specific extension(s) from a directory"""
-
-    if not os.path.exists(dir_path):
-        logger.info(f"Directory {dir_path} does not exist. No files of type {types} to cleanup.")
-        return
-
-    count = 0
-    for file_name in os.listdir(dir_path):
-        if types:
-            ext = os.path.splitext(file_name)[1][1:]
-            if ext not in types:
-                continue
-        os.remove(os.path.join(dir_path, file_name))
-        count += 1
-
-    logger.info(f"{count} files of type {types} removed from {dir_path}")
-
-
-def cleanup_empty_dirs(dir_path) -> None:
-    """Remove empty directories under the dir_path"""
-
-    for directory in glob.glob(f"{dir_path}/*/"):
-        if not os.listdir(directory):
-            os.rmdir(directory)
-
-
-def convert_crlf_to_lf(file_path) -> None:
-    """utility to convert a windows line endings CRLF (\r\n)
-    to unix line endings LF (\n)"""
-
-    # replacement strings
-    windows_line_ending = b'\r\n'
-    unix_line_ending = b'\n'
-
-    # open file - need to use binary mode
-    with open(file_path, 'rb') as open_file:
-        content = open_file.read()
-
-    # replace
-    content = content.replace(windows_line_ending, unix_line_ending)
-
-    # write
-    with open(file_path, 'wb') as open_file:
-        open_file.write(content)
-
-
-def yes_or_no(question) -> bool:
-    """input question yes or no"""
-
-    while "the answer is invalid":
-        reply = str(input(question + ' (y/n): ')).lower().strip()
-        if reply[0] == 'y':
-            return True
-        if reply[0] == 'n':
-            return False
-
-
 def ssh_connect(host, user) -> fabric.Connection:
-    """ssh connection using fabric and paramiko
-    special handling is required to manage DUO
-    authentication"""
+    """Create ssh connection using fabric and paramiko, supports DUO authentication.
+
+    :param host: remote host
+    :param user: username to authenticate on remote host
+    :return: fabric.Connection
+    """
 
     client = paramiko.SSHClient()
     client.load_system_host_keys()
@@ -91,3 +36,73 @@ def ssh_connect(host, user) -> fabric.Connection:
     c.transport = client.get_transport()
 
     return c
+
+
+def cleanup_directory_files(dir_path, types=()) -> None:
+    """Remove files with specific extension(s) from a directory.
+
+    :param dir_path: path of the directory to cleanup
+    :param types: a tuple with file extenstions that will be removed
+    """
+
+    if not os.path.exists(dir_path):
+        logger.debug(f"Directory {dir_path} does not exist. No files of type {types} to cleanup.")
+        return
+
+    count = 0
+    for file_name in os.listdir(dir_path):
+        if types:
+            ext = os.path.splitext(file_name)[1][1:]
+            if ext not in types:
+                continue
+        os.remove(os.path.join(dir_path, file_name))
+        count += 1
+
+    logger.debug(f"{count} files of type {types} removed from {dir_path}")
+
+
+def cleanup_empty_dirs(dir_path) -> None:
+    """Remove empty directories 1-level under the specified directory.
+
+    :param dir_path: path of the directory to cleanup
+    """
+
+    for directory in glob.glob(f"{dir_path}/*/"):
+        if not os.listdir(directory):
+            os.rmdir(directory)
+
+
+def convert_crlf_to_lf(file_path) -> None:
+    """Convert windows line endings CRLF to unix line endings LF in a given file.
+
+    :param file_path: file path to convert
+    """
+
+    windows_line_ending = b'\r\n'
+    unix_line_ending = b'\n'
+
+    # open file - need to use binary mode
+    with open(file_path, 'rb') as open_file:
+        content = open_file.read()
+
+    # replace
+    content = content.replace(windows_line_ending, unix_line_ending)
+
+    # write
+    with open(file_path, 'wb') as open_file:
+        open_file.write(content)
+
+
+def yes_or_no(question) -> bool:
+    """Input question yes or no.
+
+    :param question: question string
+    :return: bool
+    """
+
+    while "the answer is invalid":
+        reply = str(input(question + ' (y/n): ')).lower().strip()
+        if reply[0] == 'y':
+            return True
+        if reply[0] == 'n':
+            return False
