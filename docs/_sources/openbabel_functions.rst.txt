@@ -1,0 +1,6 @@
+openbabel\_functions
+====================
+
+.. automodule:: openbabel_functions
+   :members:
+   :member-order: bysource
