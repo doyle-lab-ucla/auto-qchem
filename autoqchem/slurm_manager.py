@@ -278,13 +278,17 @@ class slurm_manager(object):
         logger.debug(f"Deduplicating conformers if RMSD < {RMSD_threshold}.")
 
         for (can, tasks, max_n_conf), keys in jobs_df.groupby(["can", "tasks", "max_num_conformers"]).groups.items():
-            # deduplicate conformers
-            mols = [OBMol_from_done_slurm_job(done_jobs[key]) for key in keys]
-            duplicates = deduplicate_list_of_OBMols(mols, RMSD_threshold=RMSD_threshold, symmetry=symmetry)
-            logger.info(f"Molecule {can} has {len(duplicates)} / {len(keys)} duplicate conformers.")
 
-            # fetch non-duplicate keys
-            can_keys_to_keep = [key for i, key in enumerate(keys) if i not in duplicates]
+            if len(keys) > 1:
+                # deduplicate conformers
+                mols = [OBMol_from_done_slurm_job(done_jobs[key]) for key in keys]
+                duplicates = deduplicate_list_of_OBMols(mols, RMSD_threshold=RMSD_threshold, symmetry=symmetry)
+                logger.info(f"Molecule {can} has {len(duplicates)} / {len(keys)} duplicate conformers.")
+
+                # fetch non-duplicate keys
+                can_keys_to_keep = [key for i, key in enumerate(keys) if i not in duplicates]
+            else:
+                can_keys_to_keep = keys
             self._upload_can_to_db(db, can, tasks, can_keys_to_keep, tag, max_n_conf)
 
         # cleanup
