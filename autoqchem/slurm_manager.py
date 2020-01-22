@@ -93,7 +93,8 @@ class slurm_manager(object):
                             n_success_tasks=0)  # status
 
             # create a key for the job
-            key = hashlib.md5((job.can + str(job.conformation) + ','.join(map(str, job.tasks))).encode()).hexdigest()
+            key = hashlib.md5((job.can + str(job.conformation) +
+                               str(job.max_num_conformers) + ','.join(map(str, job.tasks))).encode()).hexdigest()
 
             # check if a job like that already exists
             if key in self.jobs:  # a job like that is already present:
