@@ -20,7 +20,10 @@ class gaussian_log_extractor(object):
 
         # initialize descriptors
         self.descriptors = {}
-        self.atom_descriptors = {}
+        self.atom_freq_descriptors = None
+        self.atom_td_descriptors = None
+        self.atom_descriptors = None
+        self.vbur = None
         self.modes = None
         self.mode_vectors = None
         self.transitions = None
@@ -39,6 +42,11 @@ class gaussian_log_extractor(object):
         """
 
         self._extract_descriptors()
+        # concatenate atom_desciptors from various sources
+        self.atom_descriptors = pd.concat([self.geom[list('XYZ')],
+                                           self.vbur,
+                                           self.atom_freq_descriptors,
+                                           self.atom_td_descriptors], axis=1)
 
         keys_to_save = ['labels', 'descriptors', 'atom_descriptors', 'transitions', 'modes', 'mode_vectors', ][:]
         dictionary = {key: value for key, value in self.__dict__.items() if key in keys_to_save}
@@ -58,9 +66,6 @@ class gaussian_log_extractor(object):
         self._get_frequencies_and_moment_vectors()  # fetch vibration table and vectors
         self._get_freq_part_descriptors()  # fetch descriptors from frequency section
         self._get_td_part_descriptors()  # fetch descriptors from TD section
-
-        # concatenate atom_desciptors from various sources
-        self.atom_descriptors = pd.concat(self.atom_descriptors.values(), axis=1)
 
     def _get_atom_labels(self) -> None:
         """Find the the z-matrix and collect atom labels."""
@@ -97,14 +102,14 @@ class gaussian_log_extractor(object):
         """Calculate occupied volumes for each atom in the molecule."""
 
         logger.debug(f"Computing buried volumes within radius: {radius} Angstroms.")
-        self.atom_descriptors['vbur'] = pd.Series(self.geom.index.map(lambda i: occupied_volume(self.geom, i, radius)),
-                                                  name='VBur')
+        self.vbur = pd.Series(self.geom.index.map(lambda i: occupied_volume(self.geom, i, radius)),
+                              name='VBur')
 
     def _split_parts(self) -> None:
         """Split the log file into parts that correspond to gaussian tasks."""
 
         # regex logic: log parts start with a new line and " # " pattern
-        log_parts = re.split("\n\s#\s", self.log)[1:]
+        log_parts = re.split("\n\s-+\n\s#\s", self.log)[1:]
         self.parts = {}
         for p in log_parts:
             # regex logic: find first word in the text
@@ -120,7 +125,7 @@ class gaussian_log_extractor(object):
             return
 
         # regex logic: text between "Harmonic... normal coordinates and Thermochemistry, preceeded by a line of "---"
-        freq_part = re.findall("Harmonic frequencies.*normal coordinates:\s*(\n.*?)\n\n\s*-+\n.*Thermochemistry",
+        freq_part = re.findall("Harmonic frequencies.*normal coordinates:\s*(\n.*?)\n\n\s-+\n.*Thermochemistry",
                                self.parts['freq'], re.DOTALL)[0]
 
         # split each section of text with frequencies
@@ -228,7 +233,7 @@ class gaussian_log_extractor(object):
         string = re.findall(f"Isotropic\s=\s*({float_or_int_regex})\s*Anisotropy\s=\s*({float_or_int_regex})", text)
         nmr = pd.DataFrame(np.array(string).astype(float), columns=['NMR_shift', 'NMR_anisotropy'])
 
-        self.atom_descriptors['freq'] = pd.concat([self.geom[list('XYZ')], mulliken, apt, npa, nmr], axis=1)
+        self.atom_freq_descriptors = pd.concat([mulliken, apt, npa, nmr], axis=1)
 
     def _get_td_part_descriptors(self) -> None:
         """Extract descriptors from TD part."""
@@ -270,4 +275,4 @@ class gaussian_log_extractor(object):
         npa = pd.DataFrame(population, columns=['ES_root_NPA_charge', 'ES_root_NPA_core', 'ES_root_NPA_valence',
                                                 'ES_root_NPA_Rydberg', 'ES_root_NPA_total'])
 
-        self.atom_descriptors['TD'] = pd.concat([mulliken, npa], axis=1)
+        self.atom_td_descriptors = pd.concat([mulliken, npa], axis=1)
