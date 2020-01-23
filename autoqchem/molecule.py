@@ -51,9 +51,6 @@ class molecule(object):
         # reload molecule from can
         self.mol = input_to_OBMol(self.can, "string", "can")
 
-        # group elements into light and heavy
-        self._get_light_and_heavy_elements(config['gaussian']['max_light_atomic_number'])
-
         # create a unique name for files and directories, aka filesystem name (use stoichiometric formula)
         # add 4 hash digits of its canonical smiles in case of collisions of formulas
         self.fs_name = f"{self.mol.GetFormula()}_{hashlib.md5(self.can.encode()).hexdigest()[:4]}"
@@ -62,6 +59,9 @@ class molecule(object):
         self._generate_geometry(gen3D_option)
         self._generate_conformers(max_num_conformers)
         self.max_num_conformers = max_num_conformers
+
+        # group elements into light and heavy (do it after gen3D to include hydrogen)
+        self._get_light_and_heavy_elements(config['gaussian']['max_light_atomic_number'])
 
         # find central atoms
         self._find_central_atoms()
