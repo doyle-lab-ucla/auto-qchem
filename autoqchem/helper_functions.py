@@ -31,7 +31,7 @@ def ssh_connect(host, user) -> fabric.Connection:
 
     client.get_transport().auth_interactive(username=user, handler=my_handler)
 
-    c = fabric.Connection("")
+    c = fabric.Connection(host)
     c.client = client
     c.transport = client.get_transport()
 
