@@ -48,7 +48,7 @@ class gaussian_log_extractor(object):
                                            self.atom_freq_descriptors,
                                            self.atom_td_descriptors], axis=1)
 
-        keys_to_save = ['labels', 'descriptors', 'atom_descriptors', 'transitions', 'modes', 'mode_vectors', ][:]
+        keys_to_save = ['labels', 'descriptors', 'atom_descriptors', 'transitions', 'modes', 'mode_vectors', ]
         dictionary = {key: value for key, value in self.__dict__.items() if key in keys_to_save}
         # convert dataframes to dicts
         for key, value in dictionary.items():
