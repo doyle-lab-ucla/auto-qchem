@@ -219,6 +219,24 @@
                                     </dl>
 
                                     <dl class="method">
+                                        <dt id="slurm_manager.slurm_manager.submit_jobs_from_jobs_dict">
+                                            <code class="sig-name descname">submit_jobs_from_jobs_dict</code><span
+                                                class="sig-paren">(</span><em class="sig-param">jobs</em><span
+                                                class="sig-paren">)</span> &#x2192; None<a class="headerlink"
+                                                                                           href="#slurm_manager.slurm_manager.submit_jobs_from_jobs_dict"
+                                                                                           title="Permalink to this definition">¶</a>
+                                        </dt>
+                                        <dd><p>Submit jobs to remote host.</p>
+                                            <dl class="field-list simple">
+                                                <dt class="field-odd">Parameters</dt>
+                                                <dd class="field-odd"><p><strong>jobs</strong> (<em>dict</em>) –
+                                                    dictionary of jobs to submit</p>
+                                                </dd>
+                                            </dl>
+                                        </dd>
+                                    </dl>
+
+                                    <dl class="method">
                                         <dt id="slurm_manager.slurm_manager.retrieve_jobs">
                                             <code class="sig-name descname">retrieve_jobs</code><span class="sig-paren">(</span><span
                                                 class="sig-paren">)</span> &#x2192; None<a class="headerlink"
@@ -239,8 +257,14 @@
                                                 title="Permalink to this definition">¶</a></dt>
                                         <dd><p>Resubmit jobs that failed. If the job has failed but a log file has been
                                             retrieved, then the last geometry will be used for the next submission. If
-                                            the job didn’t finish in time the time required will be increased by a
-                                            factor of 2. Maximum number of allowed submission of the same job is 3.</p>
+                                            the log file could not be retrieved or is truncated, the job input files
+                                            will need to be fixed manually and submitted using the function <a
+                                                    class="reference internal"
+                                                    href="#slurm_manager.slurm_manager.submit_jobs_from_jobs_dict"
+                                                    title="slurm_manager.slurm_manager.submit_jobs_from_jobs_dict"><code
+                                                    class="xref py py-meth docutils literal notranslate"><span
+                                                    class="pre">submit_jobs_from_jobs_dict()</span></code></a>. Maximum
+                                            number of allowed submission of the same job is 3.</p>
                                         </dd>
                                     </dl>
 
