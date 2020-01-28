@@ -5,6 +5,7 @@ from contextlib import suppress
 import appdirs
 import pymongo
 
+from autoqchem.db_functions import *
 from autoqchem.gaussian_input_generator import *
 from autoqchem.helper_functions import *
 from autoqchem.openbabel_functions import *
@@ -157,7 +158,7 @@ class slurm_manager(object):
         running_ids = [id for id in user_running_ids if id in ids_to_check]
         finished_ids = [id for id in ids_to_check if id not in running_ids]
 
-        logger.info(f"There are {len(running_ids)} running jobs, {len(finished_ids)} finished jobs.")
+        logger.info(f"There are {len(running_ids)} running/pending jobs, {len(finished_ids)} finished jobs.")
 
         # get finished jobs
         finished_jobs = {name: job for name, job in self.jobs.items() if job.job_id in finished_ids}

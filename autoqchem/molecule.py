@@ -26,7 +26,7 @@ class molecule(object):
                  input_type="string",
                  input_format='smi',
                  gen3D_option='best',
-                 max_num_conformers=30,
+                 max_num_conformers=1,
                  min_fragment_dist=2,
                  ):
         """
@@ -36,7 +36,9 @@ class molecule(object):
         :param input_type: "string" or "file", in line with the input
         :param input_format: any format supported by OpenBabel, e.g. 'smi', 'cdx', 'pdb', etc.
         :param gen3D_option: "best", "medium", "fast" or "gen2D" (no 3D generation)
-        :param max_num_conformers: maximum number of conformers to generate
+        :param max_num_conformers: maximum number of conformers to generate, use 1 (default) for no conformer search, \
+        a reasonable number of conformations to use is 30. Conformations are generated with genetic algorithm \
+        using pybel.ob.OBConformerSearch class.
         :param min_fragment_dist: minimum distance between molecular fragments for salts, no more than 2 \
         molecular fragments are supported
         """
@@ -134,7 +136,7 @@ class molecule(object):
         ).values
 
     def _generate_conformers(self, num_conformers) -> None:
-        """Generate conformations with genetic algorithm isomg pybel.ob.OBConformerSearch class.
+        """Generate conformations with genetic algorithm using pybel.ob.OBConformerSearch class.
 
         :param num_conformers: maximum number of conformers to generate
         """
