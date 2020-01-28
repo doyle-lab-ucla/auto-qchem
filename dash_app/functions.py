@@ -4,6 +4,10 @@ from autoqchem.molecule import *
 
 def image(can):
     hash = hashlib.md5(can.encode()).hexdigest()
+
+    if not os.path.exists("./static"):
+        os.mkdir("./static")
+
     if not os.path.exists(f"./static/{hash}.svg"):
         mol = input_to_OBMol(can, input_type="string", input_format="can")
         OBMol_to_file(mol, "svg", f"./static/{hash}.svg")
