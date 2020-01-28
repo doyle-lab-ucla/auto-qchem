@@ -6,9 +6,10 @@ autoqchem
 
    molecule
    slurm_manager
+   db_functions
+   descriptor_functions
    gaussian_input_generator
    gaussian_log_extractor
    openbabel_functions
-   descriptor_functions
    helper_classes
    helper_functions

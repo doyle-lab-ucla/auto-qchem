@@ -70,13 +70,15 @@
                                 class</a></li>
                             <li class="toctree-l2"><a class="reference internal" href="slurm_manager.html">slurm_manager
                                 class</a></li>
+                            <li class="toctree-l2"><a class="reference internal" href="db_functions.html">db_functions
+                                module</a></li>
+                            <li class="toctree-l2"><a class="reference internal" href="descriptor_functions.html">descriptor_functions</a>
+                            </li>
                             <li class="toctree-l2"><a class="reference internal" href="gaussian_input_generator.html">gaussian_input_generator
                                 class</a></li>
                             <li class="toctree-l2"><a class="reference internal" href="gaussian_log_extractor.html">gaussian_log_extractor
                                 class</a></li>
                             <li class="toctree-l2"><a class="reference internal" href="openbabel_functions.html">openbabel_functions</a>
-                            </li>
-                            <li class="toctree-l2"><a class="reference internal" href="descriptor_functions.html">descriptor_functions</a>
                             </li>
                             <li class="toctree-l2"><a class="reference internal" href="helper_classes.html">helper_classes</a>
                             </li>
@@ -145,7 +147,7 @@
                                         class="sig-name descname">molecule</code><span class="sig-paren">(</span><em
                                         class="sig-param">input</em>, <em class="sig-param">input_type='string'</em>,
                                     <em class="sig-param">input_format='smi'</em>, <em class="sig-param">gen3D_option='best'</em>,
-                                    <em class="sig-param">max_num_conformers=30</em>, <em class="sig-param">min_fragment_dist=2</em><span
+                                    <em class="sig-param">max_num_conformers=1</em>, <em class="sig-param">min_fragment_dist=2</em><span
                                         class="sig-paren">)</span><a class="headerlink" href="#molecule.molecule"
                                                                      title="Permalink to this definition">¶</a></dt>
                                 <dd><p>Wrapper class for openbabel.OBMol class</p>
@@ -154,7 +156,7 @@
                                             <code class="sig-name descname">__init__</code><span
                                                 class="sig-paren">(</span><em class="sig-param">input</em>, <em
                                                 class="sig-param">input_type='string'</em>, <em class="sig-param">input_format='smi'</em>,
-                                            <em class="sig-param">gen3D_option='best'</em>, <em class="sig-param">max_num_conformers=30</em>,
+                                            <em class="sig-param">gen3D_option='best'</em>, <em class="sig-param">max_num_conformers=1</em>,
                                             <em class="sig-param">min_fragment_dist=2</em><span
                                                 class="sig-paren">)</span><a class="headerlink"
                                                                              href="#molecule.molecule.__init__"
@@ -174,7 +176,10 @@
                                                         <li><p><strong>gen3D_option</strong> – “best”, “medium”, “fast”
                                                             or “gen2D” (no 3D generation)</p></li>
                                                         <li><p><strong>max_num_conformers</strong> – maximum number of
-                                                            conformers to generate</p></li>
+                                                            conformers to generate, use 1 (default) for no conformer
+                                                            search, a reasonable number of conformations to use is 30.
+                                                            Conformations are generated with genetic algorithm using
+                                                            pybel.ob.OBConformerSearch class.</p></li>
                                                         <li><p><strong>min_fragment_dist</strong> – minimum distance
                                                             between molecular fragments for salts, no more than 2
                                                             molecular fragments are supported</p></li>
