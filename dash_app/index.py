@@ -2,7 +2,7 @@ import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
 
-from dash_app.app import app
+from dash_app.app import app, server
 from dash_app.layouts import layout_table, layout_descriptors
 
 app.layout = html.Div([
@@ -14,12 +14,12 @@ app.layout = html.Div([
 @app.callback(Output('page-content', 'children'),
               [Input('url', 'pathname')])
 def display_page(pathname):
-    if pathname == '/':
+    if pathname == f"/":
         return layout_table(None)
-    elif pathname.startswith('/collection/'):
+    elif pathname.startswith(f"/collection/"):
         tag = pathname.split('/')[-1]
         return layout_table(tag)
-    elif pathname.startswith('/descriptors/'):
+    elif pathname.startswith(f"/descriptors/"):
         id = pathname.split('/')[-1]
         return layout_descriptors(id)
     else:
@@ -32,6 +32,6 @@ def redirect(value):
     if value is not None:
         return dcc.Location(pathname=f"/collection/{value}", id="")
 
-
 if __name__ == '__main__':
-    app.run_server(debug=False, port=8001, host='0.0.0.0')
+    server.run(port=80)
+    #app.run_server(debug=False, port=80)

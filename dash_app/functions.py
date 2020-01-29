@@ -1,17 +1,15 @@
 from autoqchem.db_functions import *
 from autoqchem.molecule import *
 
+app_path = "C:/Users/Andrzej/Software/github/auto-qchem/dash_app"
 
 def image(can):
-    hash = hashlib.md5(can.encode()).hexdigest()
+    hash_str = hashlib.md5(can.encode()).hexdigest()
 
-    if not os.path.exists("./static"):
-        os.mkdir("./static")
-
-    if not os.path.exists(f"./static/{hash}.svg"):
+    if not os.path.exists(f"{app_path}/static/{hash_str}.svg"):
         mol = input_to_OBMol(can, input_type="string", input_format="can")
-        OBMol_to_file(mol, "svg", f"./static/{hash}.svg")
-    return f"/static/{hash}.svg"
+        OBMol_to_file(mol, "svg", f"{app_path}/static/{hash_str}.svg")
+    return f"/static/{hash_str}.svg"
 
 
 def image_3d(can, geom):
