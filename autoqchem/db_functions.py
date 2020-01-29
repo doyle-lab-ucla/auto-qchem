@@ -1,7 +1,9 @@
 import logging
+import re
 
 import pandas as pd
 import pymongo
+from rdkit import Chem
 
 from autoqchem.helper_classes import config
 
@@ -22,7 +24,7 @@ def db_connect() -> pymongo.collection.Collection:
     return db['autoqchem']['dft_descriptors']
 
 
-def db_can_summary(tag) -> pd.DataFrame:
+def db_can_summary(tag="", substructure="", db_query={}) -> pd.DataFrame:
     """Get a summary frame of records in the database for a given tag
 
     :param tag: metadata.tag of the db records
@@ -32,15 +34,25 @@ def db_can_summary(tag) -> pd.DataFrame:
 
     table = db_connect()
 
-    cursor = table.find({'metadata.tag': tag}, {'can': 1, 'weight': 1, 'metadata.gaussian_config': 1,
-                                                'metadata.max_num_conformers': 1})
+    query = {"$and": [{'metadata.tag': re.compile(f".*{tag}.*")},
+                      db_query]}
+
+    # fetch records
+    cursor = table.find(query, {'can': 1,
+                                'weight': 1,
+                                'metadata.gaussian_config': 1,
+                                'metadata.max_num_conformers': 1,
+                                'metadata.tag': 1})
     records = list(cursor)
 
-    columns = ['can', 'DFT_functional', 'DFT_basis_set', 'num_conformers', 'max_num_conformers', 'weights', '_ids']
+    columns = ['can', 'tag', 'DFT_functional', 'DFT_basis_set', 'num_conformers', 'max_num_conformers', 'weights',
+               '_ids']
     if not records:
         return pd.DataFrame(columns=columns)
 
+    # reorganize metadata records
     for record in records:
+        record['tag'] = record['metadata']['tag']
         record['max_num_conformers'] = record['metadata']['max_num_conformers']
         record['DFT_functional'] = record['metadata']['gaussian_config']['theory']
         record['DFT_basis_set'] = record['metadata']['gaussian_config']['light_basis_set']
@@ -48,12 +60,26 @@ def db_can_summary(tag) -> pd.DataFrame:
 
     records_df = pd.DataFrame(records)
     records_df = records_df.sort_values(['can', 'weight'], ascending=[True, False])
-    agg = records_df.groupby(['can', 'DFT_functional', 'DFT_basis_set']).agg({
+
+    # fetch only unique can-tag-config combinations
+    agg = records_df.groupby(['can', 'tag', 'DFT_functional', 'DFT_basis_set']).agg({
         'max_num_conformers': ['size', 'first'],
         'weight': lambda x: ["%.6f" % w for w in list(x)],
         '_id': list,
     }).reset_index()
     agg.columns = columns
+
+    # substructure search
+    if substructure:
+        pattern = Chem.MolFromSmiles(substructure)
+        if pattern is not None:
+            agg['rdkit_mol'] = agg['can'].map(lambda can: Chem.MolFromSmiles(can))
+            agg = agg[agg['rdkit_mol'].map(lambda mol: mol.HasSubstructMatch(pattern))]
+            agg = agg.drop('rdkit_mol', axis=1)
+        else:
+            logger.warning(f"Pattern '{substructure}' could not be initialized by rdkit. "
+                           f"Please verify the smiles string.")
+
     return agg
 
 
