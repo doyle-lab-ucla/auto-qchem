@@ -1,5 +1,4 @@
 import logging
-import re
 
 import pandas as pd
 import pymongo
@@ -34,8 +33,7 @@ def db_can_summary(tag="", substructure="", db_query={}) -> pd.DataFrame:
 
     table = db_connect()
 
-    query = {"$and": [{'metadata.tag': re.compile(f".*{tag}.*")},
-                      db_query]}
+    query = {"$and": [{'metadata.tag': tag}, db_query]}
 
     # fetch records
     cursor = table.find(query, {'can': 1,
