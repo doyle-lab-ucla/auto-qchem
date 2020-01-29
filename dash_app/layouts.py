@@ -8,20 +8,26 @@ from dash_app.functions import *
 db = db_connect()
 
 
-def layout_table(tag):
+def layout_table(tag, substructure, message=""):
     return html.Div(children=[
         html.Div(id="hidden_div_for_redirect_callback", hidden=True),
         html.H3('Autoqchem DFT descriptors database'),
-        html.Label("Choose molecule collection:", style={"font-weight": "bold"}),
-        dcc.Dropdown(
-            id='field-dropdown',
-            options=[{'value': tag, 'label': f"{tag} ({len(db.distinct('can', {'metadata.tag': tag}))})"}
-                     for tag in list(db.distinct('metadata.tag'))],
-            value=tag
-        ),
+
+        html.Datalist(id='collections',
+                      children=[html.Option(label=f"{len(db.distinct('can', {'metadata.tag': tag}))} molecules",
+                                            value=tag)
+                                for tag in list(db.distinct('metadata.tag'))]),
+
+        html.Form(id='form', children=[
+            dcc.Input(name="Collection", id="collection", placeholder="Choose molecule collection...",
+                      list='collections', style={"width": "300px"}, persistence=True),
+            dcc.Input(name="Substructure", id="substructure",
+                      placeholder="Filter on substructure, e.g. CCO...", style={"width": "300px"}, persistence=True),
+            html.Button('Submit', id='submit_button')]),
+        html.P(message) if message else html.Div(),
         dt.DataTable(
             id='table',
-            data=get_table(tag).to_dict('records') if tag is not None else [],
+            data=get_table(tag, substructure).to_dict('records') if tag is not None else [],
             columns=[dict(name="image", id="image", hideable=True, presentation="markdown"),
                      dict(name="can", id="can", hideable=True),
                      dict(name='DFT functional', id="DFT_functional", hideable=True),
@@ -38,7 +44,7 @@ def layout_table(tag):
             sort_action="native",
             sort_mode="multi",
             filter_action="native",
-        ),
+        ) if tag is not None else html.Div(),
     ])
 
 

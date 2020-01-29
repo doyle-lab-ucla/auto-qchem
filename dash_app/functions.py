@@ -3,6 +3,9 @@ from autoqchem.molecule import *
 
 app_path = "C:/Users/Andrzej/Software/github/auto-qchem/dash_app"
 
+
+# app_path = "C:/Users/AndrzejZuranski/Dropbox/DataX_PU/github/auto-qchem/dash_app"
+
 def image(can):
     hash_str = hashlib.md5(can.encode()).hexdigest()
 
@@ -26,8 +29,8 @@ def image_3d(can, geom):
     return pm._repr_html_()
 
 
-def get_table(tag):
-    df = db_can_summary(tag)
+def get_table(tag, substructure):
+    df = db_can_summary(tag=tag, substructure=substructure)
     # make a link, as data pass db _id of any conformer (limitation on what to pass in the link)
     # the link action will fetch all conformers and reweight them
     df['descriptors'] = df['_ids'].map(lambda ids: f'''|[descriptors](/descriptors/{str(ids[0])})|\n|:----:|''')
