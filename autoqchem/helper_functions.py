@@ -2,6 +2,7 @@ import getpass
 import glob
 import logging
 import os
+from collections import Counter
 
 import fabric
 import paramiko
@@ -106,3 +107,24 @@ def yes_or_no(question) -> bool:
             return True
         if reply[0] == 'n':
             return False
+
+
+def add_numbers_to_repeated_items(items_list) -> list:
+    """
+
+    :param items_list: list of strings
+    :return: list
+    """
+    updated_items_list = []
+
+    counts = Counter(items_list)
+    current_count = {}
+    for item in items_list:
+        if counts[item] > 1:
+            if item not in current_count:
+                current_count[item] = 1
+            updated_items_list.append(f"{item}{current_count[item]}")
+            current_count[item] = current_count[item] + 1
+        else:
+            updated_items_list.append(item)
+    return updated_items_list
