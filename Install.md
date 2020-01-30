@@ -1,6 +1,6 @@
 # auto-qchem installation instructions
 
-### For Windows users only
+### Prerequisite for Windows users only
 Install openbabel binaries (comes with a GUI)
 https://github.com/openbabel/openbabel/releases/download/openbabel-2-4-1/OpenBabel-2.4.1.exe
 
@@ -43,4 +43,8 @@ python setup.py install
 ```
 
 et voila!
+
+### Verify the installation and proper functions
+
+
 
