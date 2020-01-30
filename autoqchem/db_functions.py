@@ -1,8 +1,8 @@
 import logging
+import pybel
 
 import pandas as pd
 import pymongo
-from rdkit import Chem
 
 from autoqchem.helper_classes import config
 
@@ -33,7 +33,7 @@ def db_can_summary(tag="", substructure="", db_query={}) -> pd.DataFrame:
 
     table = db_connect()
 
-    query = {"$and": [{'metadata.tag': tag}, db_query]}
+    query = {"$and": [{'metadata.tag': tag} if tag else {}, db_query]}
 
     # fetch records
     cursor = table.find(query, {'can': 1,
@@ -69,11 +69,11 @@ def db_can_summary(tag="", substructure="", db_query={}) -> pd.DataFrame:
 
     # substructure search
     if substructure:
-        pattern = Chem.MolFromSmiles(substructure)
+        pattern = pybel.Smarts(substructure)
         if pattern is not None:
-            agg['rdkit_mol'] = agg['can'].map(lambda can: Chem.MolFromSmiles(can))
-            agg = agg[agg['rdkit_mol'].map(lambda mol: mol.HasSubstructMatch(pattern))]
-            agg = agg.drop('rdkit_mol', axis=1)
+            agg['pybel_mol'] = agg['can'].map(lambda can: pybel.readstring("smi", can))
+            agg = agg[agg['pybel_mol'].map(lambda mol: bool(pattern.findall(mol)))]
+            agg = agg.drop('pybel_mol', axis=1)
         else:
             logger.warning(f"Pattern '{substructure}' could not be initialized by rdkit. "
                            f"Please verify the smiles string.")
