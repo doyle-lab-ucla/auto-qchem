@@ -33,7 +33,7 @@ def db_select_molecules(tag="", substructure="", db_query={}) -> pd.DataFrame:
     :param substructure: substructure SMARTS string
     :type substructure: str
     :param db_query: additional MongoDB type query, use only if familiar with MongoDB query language and \
-    teh database record structure
+    the database record structure
     :return: pandas.core.frame.DataFrame
     """
 
@@ -95,7 +95,7 @@ def descriptors(tag, presets, conf_option, substructure="") -> dict:
     'min_max' (min and max for each atomic descriptor across the molecule), 'substructure' \
     (atomic descriptors for each atom in the substrucre)
     :type presets: list
-    :param conf_option: conformer averaging options: 'boltzmann' (Boltzmann average), \
+    :param conf_option: conformer averaging option: 'boltzmann' (Boltzmann average), \
     'max' (conformer with highest weight), 'mean' (arithmetic average), 'min' (conformer with smallest weight), \
     'any' (any single conformer), 'std' (std dev. over conformers)
     :type conf_option: str
@@ -176,7 +176,7 @@ def descriptors_from_can(can, tag, conf_option) -> dict:
     :type can: str
     :param tag: metadata.tag of the db records
     :type tag: str
-    :param conf_option: conformer averaging options: 'boltzmann' (Boltzmann average), \
+    :param conf_option: conformer averaging option: 'boltzmann' (Boltzmann average), \
      'max' (conformer with highest weight), 'mean' (arithmetic average), 'min' (conformer with smallest weight), \
      'any' (any single conformer), 'std' (std dev. over conformers)
     :type conf_option: str
@@ -194,7 +194,7 @@ def descriptors_from_list_of_ids(ids, conf_option='max') -> dict:
 
     :param ids: list of db id's that correspond to a given molecule
     :type ids: list
-    :param conf_option: conformer averaging options: 'boltzmann' (Boltzmann average), \
+    :param conf_option: conformer averaging option: 'boltzmann' (Boltzmann average), \
      'max' (conformer with highest weight), 'mean' (arithmetic average), 'min' (conformer with smallest weight), \
      'any' (any single conformer), 'std' (std dev. over conformers)
     :type conf_option: str
