@@ -9,6 +9,8 @@ from dash.dependencies import Input, Output
 from autoqchem.db_functions import pybel
 from dash_app.app import app, server
 from dash_app.layouts import layout_table, layout_descriptors
+from dash_app.functions import app_path
+
 
 app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
@@ -47,7 +49,7 @@ def on_post():
     url_items = [item.split("=") for item in flask.request.url.split('?')[1].split("&")]
     items_dict = {key: unquote(value) for key, value in url_items}
 
-    path = "static/user_desc/descriptors.xlsx"
+    path = f"{app_path}/static/user_desc/descriptors.xlsx"
 
     df = pd.DataFrame([1, 2, 3])
     df.to_excel(path)
