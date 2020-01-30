@@ -4,7 +4,7 @@
 Install openbabel binaries (comes with a GUI)
 https://github.com/openbabel/openbabel/releases/download/openbabel-2-4-1/OpenBabel-2.4.1.exe
 
-### Installation with miniconda (Windows, MacOS)
+### Installation with Miniconda (Windows, MacOS)
 
 Install the miniconda with python=3.7 suitable for your OS: [miniconda installation webpage](https://docs.conda.io/en/latest/miniconda.html)
 
