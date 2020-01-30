@@ -17,34 +17,51 @@ def layout_table(tag, substructure, message=""):
                       children=[html.Option(label=f"{len(db.distinct('can', {'metadata.tag': tag}))} molecules",
                                             value=tag)
                                 for tag in list(db.distinct('metadata.tag'))]),
+        html.Datalist(id='presets', children=[html.Option(label=val, value=val) for val in list('abc')]),
 
-        html.Form(id='form', children=[
+        html.Label("Please specify molecule query parameters", style={"font-weight": "bold"}),
+        html.Form(id='query-form', children=[
             dcc.Input(name="Collection", id="collection", placeholder="Choose molecule collection...",
                       list='collections', style={"width": "300px"}, persistence=True),
             dcc.Input(name="Substructure", id="substructure",
-                      placeholder="Filter on substructure, e.g. CCO...", style={"width": "300px"}, persistence=True),
-            html.Button('Submit', id='submit_button')]),
+                      placeholder="Filter on SMARTS substructure...", style={"width": "300px"}, persistence=True),
+            html.Button('Submit', id='submit_query-form')]),
         html.P(message) if message else html.Div(),
-        dt.DataTable(
-            id='table',
-            data=get_table(tag, substructure).to_dict('records') if tag is not None else [],
-            columns=[dict(name="image", id="image", hideable=True, presentation="markdown"),
-                     dict(name="can", id="can", hideable=True),
-                     dict(name='DFT functional', id="DFT_functional", hideable=True),
-                     dict(name='DFT basis set', id="DFT_basis_set", hideable=True),
-                     dict(name="num_conformers", id="num_conformers", hideable=True),
-                     dict(name="max_num_conformers", id="max_num_conformers", hideable=True),
-                     dict(name="descriptors", id="descriptors", hideable=True, presentation="markdown")
-                     ],
-            dropdown={'descriptors': {
-                'options': [{'label': value, 'value': name} for name, value in zip(list('abc'), ['10', '20', '30'])]}},
-            editable=False,
-            hidden_columns=['max_num_conformers'],
-            page_size=10, page_action="native",
-            sort_action="native",
-            sort_mode="multi",
-            filter_action="native",
-        ) if tag is not None else html.Div(),
+        html.Div(children=[
+            html.Label("Please select descriptors presets for download", style={"font-weight": "bold"}),
+            html.Form(
+                id='export-form', children=[
+                    dcc.Dropdown(options=[dict(label=v, value=v) for v in list('abc')], multi=True,
+                                 style={"width": "300px", 'display': 'inline-block', 'verticalAlign': 'top'},
+                                 placeholder="Select mulitple..."),
+                    # dcc.Input(name="PresetList", id="presetList", list='presets', style={"width": "300px"}),
+                    html.Button('Download', id='submit_export-form', )
+                ],
+                method='post',
+                # action='/download?Collection={tag}&C'
+            ),
+            dt.DataTable(
+                id='table',
+                data=get_table(tag, substructure).to_dict('records') if tag is not None else [],
+                columns=[dict(name="image", id="image", hideable=True, presentation="markdown"),
+                         dict(name="can", id="can", hideable=True),
+                         dict(name='DFT functional', id="DFT_functional", hideable=True),
+                         dict(name='DFT basis set', id="DFT_basis_set", hideable=True),
+                         dict(name="num_conformers", id="num_conformers", hideable=True),
+                         dict(name="max_num_conformers", id="max_num_conformers", hideable=True),
+                         dict(name="descriptors", id="descriptors", hideable=True, presentation="markdown")
+                         ],
+                dropdown={'descriptors': {
+                    'options': [{'label': value, 'value': name} for name, value in
+                                zip(list('abc'), ['10', '20', '30'])]}},
+                editable=False,
+                hidden_columns=['max_num_conformers'],
+                page_size=10, page_action="native",
+                sort_action="native",
+                sort_mode="multi",
+                filter_action="native",
+            ),
+        ]) if tag is not None else html.Div(),
     ])
 
 
