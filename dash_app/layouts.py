@@ -10,36 +10,58 @@ db = db_connect()
 
 def layout_table(tag, substructure, message=""):
     return html.Div(children=[
+
         html.Div(id="hidden_div_for_redirect_callback", hidden=True),
+
         html.H3('Autoqchem DFT descriptors database'),
 
         html.Datalist(id='collections',
                       children=[html.Option(label=f"{len(db.distinct('can', {'metadata.tag': tag}))} molecules",
                                             value=tag)
                                 for tag in list(db.distinct('metadata.tag'))]),
-        html.Datalist(id='presets', children=[html.Option(label=val, value=val) for val in list('abc')]),
 
-        html.Label("Please specify molecule query parameters", style={"font-weight": "bold"}),
+        html.Datalist(id='conf_options',
+                      children=[html.Option(label=desc, value=tag)
+                                for desc, tag in zip(['Boltzman Average', 'Lowest Energy Conformer',
+                                                      'Highest Energy Conformer', 'Arithmetic Average',
+                                                      'Standard Deviation', 'Random'],
+                                                     ['boltzmann', 'max', 'min', 'mean', 'std', 'any'])]),
+
         html.Form(id='query-form', children=[
             dcc.Input(name="Collection", id="collection", placeholder="Choose molecule collection...",
-                      list='collections', style={"width": "300px"}, persistence=True),
+                      list='collections', style={"width": "300px"}, persistence=True,
+                      value=tag),
             dcc.Input(name="Substructure", id="substructure",
-                      placeholder="Filter on SMARTS substructure...", style={"width": "300px"}, persistence=True),
-            html.Button('Submit', id='submit_query-form')]),
+                      placeholder="Filter on SMARTS substructure...", style={"width": "300px"}, persistence=True,
+                      value=substructure),
+            html.Button('Select', id='submit_query-form', style={"width": "150px"})]),
+
         html.P(message) if message else html.Div(),
+
         html.Div(children=[
-            html.Label("Please select descriptors presets for download", style={"font-weight": "bold"}),
-            html.Form(
-                id='export-form', children=[
-                    dcc.Dropdown(options=[dict(label=v, value=v) for v in list('abc')], multi=True,
-                                 style={"width": "300px", 'display': 'inline-block', 'verticalAlign': 'top'},
-                                 placeholder="Select mulitple..."),
-                    # dcc.Input(name="PresetList", id="presetList", list='presets', style={"width": "300px"}),
-                    html.Button('Download', id='submit_export-form', )
-                ],
-                method='post',
-                # action='/download?Collection={tag}&C'
-            ),
+            html.Details(children=[
+                html.Summary("Download descriptors"),
+                html.Form(
+                    id='export-form', children=[
+                        dcc.Dropdown(
+                            id='dropdownPresetOptions',
+                            options=[dict(label=l, value=v)
+                                     for l, v in zip(['Global', 'Min Max Atomic',
+                                                      'Substructure Atomic'],
+                                                     ['global', 'min_max', 'substructure'])],
+                            multi=True,
+                            style={"width": "300px", 'display': 'inline-block', 'verticalAlign': 'top'},
+                            placeholder="Select descriptor presets...",
+                        ),
+                        dcc.Input(name="PresetOptions", id="inputPresetOptions", style={'display': 'none'}),
+                        dcc.Input(name="ConformerOptions", id="conformerOptions", list='conf_options',
+                                  style={"width": "300px", "display": "inline-block", 'verticalAlign': 'top'},
+                                  placeholder="Select conformer option..."),
+                        html.Button('Download', id='submit_export-form', style={"width": "150px"})
+                    ],
+                    method='post',
+                )
+            ]),
             dt.DataTable(
                 id='table',
                 data=get_table(tag, substructure).to_dict('records') if tag is not None else [],

@@ -6,11 +6,10 @@ import flask
 import pandas as pd
 from dash.dependencies import Input, Output
 
-from autoqchem.db_functions import pybel
+from autoqchem.db_functions import pybel, descriptors
 from dash_app.app import app, server
-from dash_app.layouts import layout_table, layout_descriptors
 from dash_app.functions import app_path
-
+from dash_app.layouts import layout_table, layout_descriptors
 
 app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
@@ -42,18 +41,44 @@ def display_page(pathname, search):
         return '404'
 
 
+@app.callback(Output('inputPresetOptions', 'value'),
+              [Input('dropdownPresetOptions', 'value')])
+def pass_value(v):
+    if v is not None:
+        return ",".join(v)
+    else:
+        return ""
+
+
 @app.server.route('/', methods=['POST'])
 def on_post():
-    print(flask.request.url, flask.request.form)
-
+    # fetch query items from url
     url_items = [item.split("=") for item in flask.request.url.split('?')[1].split("&")]
     items_dict = {key: unquote(value) for key, value in url_items}
+    # fetch form items from form
+    items_dict.update(flask.request.form)
+    items_dict['PresetOptions'] = items_dict['PresetOptions'].split(",")
+    if "ConformerOptions" not in items_dict:
+        items_dict['ConformerOptions'] = "max"
 
+    # TODO remove files that are no longer being used for extraction
+
+    # extract the descriptors (this can take long)
+    data = descriptors(items_dict['Collection'],
+                       items_dict['PresetOptions'],
+                       items_dict['ConformerOptions'],
+                       substructure=items_dict['Substructure'])
+
+    # save to path
     path = f"{app_path}/static/user_desc/descriptors.xlsx"
+    with pd.ExcelWriter(path) as writer:
+        if data:
+            for key, df in data.items():
+                df.to_excel(writer, sheet_name=key)
+        else:
+            pd.DataFrame().to_excel(writer, sheet_name="Sheet1")
 
-    df = pd.DataFrame([1, 2, 3])
-    df.to_excel(path)
-
+    # serve file
     return flask.send_file(path, as_attachment=True)
 
 
