@@ -14,17 +14,19 @@ conda activate autoqchem
 # install mainstream python packages using conda
 conda install jupyter pandas scipy matplotlib pymongo pyyaml fabric xlrd appdirs
 
-# install openbabel python bindings
+# Chem packages
+
+# install openbabel (for OSX/Linux this installs the full package, for Windows only the bindings
+# to the openbabel Windows installation)
 conda install -c conda-forge openbabel=2.4.1
+
+
 
 # install imolecule (package to display 3D molecules within jupyter notebooks)
 pip install imolecule==0.1.13
 
 # pull autoqchem from github
 git clone https://github.com/PrincetonUniversity/auto-qchem.git some_directory
-
-# go to directory where autoqchem is installed
-# edit the path of the local working directory (that's where gaussian and slurm files will temporarily reside)
 
 # with your conda environment active and in autoqchem root directory install the package executing
 python setup.py install
