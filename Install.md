@@ -44,7 +44,5 @@ python setup.py install
 
 et voila!
 
-### Verify the installation and proper functions
-
 
 
