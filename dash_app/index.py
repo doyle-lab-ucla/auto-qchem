@@ -1,3 +1,5 @@
+import os
+import time
 from urllib.parse import unquote
 
 import dash_core_components as dcc
@@ -61,7 +63,16 @@ def on_post():
     if "ConformerOptions" not in items_dict:
         items_dict['ConformerOptions'] = "max"
 
-    # TODO remove files that are no longer being used for extraction
+    # remove unused files in the dir
+    for f in os.listdir(f"{app_path}/static/user_desc/"):
+        fpath = f"{app_path}/static/user_desc/{f}"
+        try:
+            # windows trick, if a file can be renamed, it's free for removal
+            os.rename(fpath, fpath)
+            os.remove(fpath)
+        except OSError:
+            # cannot remove file, oh well, let it stay there
+            pass
 
     # extract the descriptors (this can take long)
     data = descriptors(items_dict['Collection'],
@@ -70,7 +81,8 @@ def on_post():
                        substructure=items_dict['Substructure'])
 
     # save to path
-    path = f"{app_path}/static/user_desc/descriptors.xlsx"
+    ts = str(time.time()).replace(".", "")
+    path = f"{app_path}/static/user_desc/descriptors_{ts}.xlsx"
     with pd.ExcelWriter(path) as writer:
         if data:
             for key, df in data.items():
