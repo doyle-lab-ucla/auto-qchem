@@ -1,1 +1,2 @@
-Welcome to auto-qchem!
+# Welcome to auto-qchem!
+
