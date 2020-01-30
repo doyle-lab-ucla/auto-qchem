@@ -28,7 +28,7 @@ def image_3d(can, geom):
 
 
 def get_table(tag, substructure):
-    df = db_can_summary(tag=tag, substructure=substructure)
+    df = db_select_molecules(tag=tag, substructure=substructure)
     # make a link, as data pass db _id of any conformer (limitation on what to pass in the link)
     # the link action will fetch all conformers and reweight them
     df['descriptors'] = df['_ids'].map(lambda ids: f'''|[descriptors](/descriptors/{str(ids[0])})|\n|:----:|''')
