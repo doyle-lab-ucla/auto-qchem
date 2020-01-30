@@ -1,10 +1,12 @@
 import logging
 import pybel
 
+import numpy as np
 import pandas as pd
 import pymongo
 
 from autoqchem.helper_classes import config
+from autoqchem.helper_functions import add_numbers_to_repeated_items
 
 logger = logging.getLogger(__name__)
 
@@ -23,11 +25,15 @@ def db_connect() -> pymongo.collection.Collection:
     return db['autoqchem']['dft_descriptors']
 
 
-def db_can_summary(tag="", substructure="", db_query={}) -> pd.DataFrame:
+def db_select_molecules(tag="", substructure="", db_query={}) -> pd.DataFrame:
     """Get a summary frame of records in the database for a given tag
 
     :param tag: metadata.tag of the db records
     :type tag: str
+    :param substructure: substructure SMARTS string
+    :type substructure: str
+    :param db_query: additional MongoDB type query, use only if familiar with MongoDB query language and \
+    teh database record structure
     :return: pandas.core.frame.DataFrame
     """
 
@@ -69,16 +75,74 @@ def db_can_summary(tag="", substructure="", db_query={}) -> pd.DataFrame:
 
     # substructure search
     if substructure:
-        pattern = pybel.Smarts(substructure)
-        if pattern is not None:
+        try:
+            pattern = pybel.Smarts(substructure)
             agg['pybel_mol'] = agg['can'].map(lambda can: pybel.readstring("smi", can))
             agg = agg[agg['pybel_mol'].map(lambda mol: bool(pattern.findall(mol)))]
             agg = agg.drop('pybel_mol', axis=1)
-        else:
-            logger.warning(f"Pattern '{substructure}' could not be initialized by rdkit. "
-                           f"Please verify the smiles string.")
+        except IOError:
+            logger.warning(f"Substructure '{substructure}' is an invalid SMARTS pattern.")
 
     return agg
+
+
+def descriptors(tag, presets, conf_option, substructure="") -> dict:
+    """Retrieve DFT descriptors from the database
+
+    :param tag: metadata.tag of the db records
+    :type tag: str
+    :param presets: list of descriptor presets from 'global' (molecule level descriptors), \
+    'min_max' (min and max for each atomic descriptor across the molecule), 'substructure' \
+    (atomic descriptors for each atom in the substrucre)
+    :type presets: list
+    :param conf_option: conformer averaging options: 'boltzmann' (Boltzmann average), \
+    'max' (conformer with highest weight), 'mean' (arithmetic average), 'min' (conformer with smallest weight), \
+    'any' (any single conformer), 'std' (std dev. over conformers)
+    :type conf_option: str
+    :param substructure: substructure SMARTS string
+    :type substructure: str
+    :return:
+    """
+
+    mol_df = db_select_molecules(tag=tag, substructure=substructure)
+    descs_df = mol_df.set_index('can')['_ids'].map(lambda l: descriptors_from_list_of_ids(l, conf_option=conf_option))
+
+    data = {}
+
+    if 'global' in presets:
+        dg = pd.concat([d['descriptors'] for can, d in descs_df.iteritems()], axis=1)
+        dg.columns = descs_df.index
+        data['global'] = dg.T
+
+    if 'min_max' in presets:
+        dmin = pd.concat([d['atom_descriptors'].min() for can, d in descs_df.iteritems()], axis=1)
+        dmax = pd.concat([d['atom_descriptors'].min() for can, d in descs_df.iteritems()], axis=1)
+        dmin.columns = descs_df.index
+        dmax.columns = descs_df.index
+        data['min'] = dmin.T
+        data['max'] = dmax.T
+
+    if 'substructure' in presets and substructure:
+        sub = pybel.Smarts(substructure)
+        # these matches are numbered from 1, so subtract one from them
+        matches = descs_df.index.map(lambda c: sub.findall(pybel.readstring("smi", c))[0])
+        matches = matches.map(lambda x: (np.array(x) - 1).tolist())
+
+        # fetch atom labels for this smarts using the first molecule
+        sub_labels = pd.Series(descs_df.iloc[0]['labels']).loc[matches[0]].tolist()
+        sub_labels = add_numbers_to_repeated_items(sub_labels)
+
+        # create a fream with descriptors large structure in one column, and substructure match indices in the second columne
+        tmp_df = descs_df.to_frame('descs')
+        tmp_df['matches'] = matches
+
+        for i, label in enumerate(sub_labels):
+            data[label] = pd.concat([row['descs']['atom_descriptors'].loc[row['matches'][i]]
+                                     for c, row in tmp_df.iterrows()], axis=1)
+            data[label].columns = descs_df.index
+            data[label] = data[label].T
+
+    return data
 
 
 def _pandatize_record(record) -> dict:
@@ -105,7 +169,7 @@ def _pandatize_record(record) -> dict:
     return record
 
 
-def descriptors_from_can(can, tag, conf_option='boltzmann') -> dict:
+def descriptors_from_can(can, tag, conf_option) -> dict:
     """Get and average descriptors for a given can string and metadata.tag
 
     :param can: canonical smiles
@@ -115,6 +179,7 @@ def descriptors_from_can(can, tag, conf_option='boltzmann') -> dict:
     :param conf_option: conformer averaging options: 'boltzmann' (Boltzmann average), \
      'max' (conformer with highest weight), 'mean' (arithmetic average), 'min' (conformer with smallest weight), \
      'any' (any single conformer), 'std' (std dev. over conformers)
+    :type conf_option: str
     :return: dict
     """
 
@@ -124,7 +189,7 @@ def descriptors_from_can(can, tag, conf_option='boltzmann') -> dict:
     return descriptors_from_list_of_ids(ids, conf_option=conf_option)
 
 
-def descriptors_from_list_of_ids(ids, conf_option='boltzmann') -> dict:
+def descriptors_from_list_of_ids(ids, conf_option='max') -> dict:
     """Get and average descriptors using a list of db ids.
 
     :param ids: list of db id's that correspond to a given molecule
