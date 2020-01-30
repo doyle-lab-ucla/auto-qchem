@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<!--[if IE 8]>
+<html class="no-js lt-ie9" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en"> <!--<![endif]-->
+<head>
+    <meta charset="utf-8">
+
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+    <title>db_functions module &mdash; autoqchem 0.1 documentation</title>
+
+
+    <script src="_static/js/modernizr.min.js" type="text/javascript"></script>
+
+
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"
+            type="text/javascript"></script>
+    <script src="_static/jquery.js" type="text/javascript"></script>
+    <script src="_static/underscore.js" type="text/javascript"></script>
+    <script src="_static/doctools.js" type="text/javascript"></script>
+    <script src="_static/language_data.js" type="text/javascript"></script>
+
+    <script src="_static/js/theme.js" type="text/javascript"></script>
+
+
+    <link href="_static/css/theme.css" rel="stylesheet" type="text/css"/>
+    <link href="_static/pygments.css" rel="stylesheet" type="text/css"/>
+    <link href="genindex.html" rel="index" title="Index"/>
+    <link href="search.html" rel="search" title="Search"/>
+    <link href="descriptor_functions.html" rel="next" title="descriptor_functions"/>
+    <link href="slurm_manager.html" rel="prev" title="slurm_manager class"/>
+</head>
+
+<body class="wy-body-for-nav">
+
+
+<div class="wy-grid-for-nav">
+
+    <nav class="wy-nav-side" data-toggle="wy-nav-shift">
+        <div class="wy-side-scroll">
+            <div class="wy-side-nav-search">
+
+
+                <a class="icon icon-home" href="index.html"> autoqchem
+
+
+                </a>
+
+
+                <div role="search">
+                    <form action="search.html" class="wy-form" id="rtd-search-form" method="get">
+                        <input name="q" placeholder="Search docs" type="text"/>
+                        <input name="check_keywords" type="hidden" value="yes"/>
+                        <input name="area" type="hidden" value="default"/>
+                    </form>
+                </div>
+
+
+            </div>
+
+            <div aria-label="main navigation" class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation">
+
+
+                <p class="caption"><span class="caption-text">Contents:</span></p>
+                <ul class="current">
+                    <li class="toctree-l1 current"><a class="reference internal" href="modules.html">autoqchem</a>
+                        <ul class="current">
+                            <li class="toctree-l2"><a class="reference internal" href="molecule.html">molecule class</a>
+                            </li>
+                            <li class="toctree-l2"><a class="reference internal" href="slurm_manager.html">slurm_manager
+                                class</a></li>
+                            <li class="toctree-l2 current"><a class="current reference internal" href="#">db_functions
+                                module</a></li>
+                            <li class="toctree-l2"><a class="reference internal" href="descriptor_functions.html">descriptor_functions</a>
+                            </li>
+                            <li class="toctree-l2"><a class="reference internal" href="gaussian_input_generator.html">gaussian_input_generator
+                                class</a></li>
+                            <li class="toctree-l2"><a class="reference internal" href="gaussian_log_extractor.html">gaussian_log_extractor
+                                class</a></li>
+                            <li class="toctree-l2"><a class="reference internal" href="openbabel_functions.html">openbabel_functions</a>
+                            </li>
+                            <li class="toctree-l2"><a class="reference internal" href="helper_classes.html">helper_classes</a>
+                            </li>
+                            <li class="toctree-l2"><a class="reference internal" href="helper_functions.html">helper_functions</a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+
+
+            </div>
+        </div>
+    </nav>
+
+    <section class="wy-nav-content-wrap" data-toggle="wy-nav-shift">
+
+
+        <nav aria-label="top navigation" class="wy-nav-top">
+
+            <i class="fa fa-bars" data-toggle="wy-nav-top"></i>
+            <a href="index.html">autoqchem</a>
+
+        </nav>
+
+
+        <div class="wy-nav-content">
+
+            <div class="rst-content">
+
+
+                <div aria-label="breadcrumbs navigation" role="navigation">
+
+                    <ul class="wy-breadcrumbs">
+
+                        <li><a href="index.html">Docs</a> &raquo;</li>
+
+                        <li><a href="modules.html">autoqchem</a> &raquo;</li>
+
+                        <li>db_functions module</li>
+
+
+                        <li class="wy-breadcrumbs-aside">
+
+
+                            <a href="_sources/db_functions.rst.txt" rel="nofollow"> View page source</a>
+
+
+                        </li>
+
+                    </ul>
+
+
+                    <hr/>
+                </div>
+                <div class="document" itemscope="itemscope" itemtype="http://schema.org/Article" role="main">
+                    <div itemprop="articleBody">
+
+                        <div class="section" id="module-db_functions">
+                            <span id="db-functions-module"></span>
+                            <h1>db_functions module<a class="headerlink" href="#module-db_functions"
+                                                      title="Permalink to this headline">¶</a></h1>
+                            <dl class="function">
+                                <dt id="db_functions.db_connect">
+                                    <code class="sig-prename descclassname">db_functions.</code><code
+                                        class="sig-name descname">db_connect</code><span class="sig-paren">(</span><span
+                                        class="sig-paren">)</span> &#x2192; pymongo.collection.Collection<a
+                                        class="headerlink" href="#db_functions.db_connect"
+                                        title="Permalink to this definition">¶</a></dt>
+                                <dd><p>Create a connection to the database and return the table (Collection).</p>
+                                    <dl class="field-list simple">
+                                        <dt class="field-odd">Returns</dt>
+                                        <dd class="field-odd"><p>pymongo.collection.Collection</p>
+                                        </dd>
+                                    </dl>
+                                </dd>
+                            </dl>
+
+                            <dl class="function">
+                                <dt id="db_functions.db_select_molecules">
+                                    <code class="sig-prename descclassname">db_functions.</code><code
+                                        class="sig-name descname">db_select_molecules</code><span
+                                        class="sig-paren">(</span><em class="sig-param">tag=''</em>, <em
+                                        class="sig-param">substructure=''</em>, <em
+                                        class="sig-param">db_query={}</em><span class="sig-paren">)</span> &#x2192;
+                                    pandas.core.frame.DataFrame<a class="headerlink"
+                                                                  href="#db_functions.db_select_molecules"
+                                                                  title="Permalink to this definition">¶</a></dt>
+                                <dd><p>Get a summary frame of records in the database for a given tag</p>
+                                    <dl class="field-list simple">
+                                        <dt class="field-odd">Parameters</dt>
+                                        <dd class="field-odd">
+                                            <ul class="simple">
+                                                <li><p><strong>tag</strong> (<em>str</em>) – metadata.tag of the db
+                                                    records</p></li>
+                                                <li><p><strong>substructure</strong> (<em>str</em>) – substructure
+                                                    SMARTS string</p></li>
+                                                <li><p><strong>db_query</strong> – additional MongoDB type query, use
+                                                    only if familiar with MongoDB query language and teh database record
+                                                    structure</p></li>
+                                            </ul>
+                                        </dd>
+                                        <dt class="field-even">Returns</dt>
+                                        <dd class="field-even"><p>pandas.core.frame.DataFrame</p>
+                                        </dd>
+                                    </dl>
+                                </dd>
+                            </dl>
+
+                            <dl class="function">
+                                <dt id="db_functions.descriptors">
+                                    <code class="sig-prename descclassname">db_functions.</code><code
+                                        class="sig-name descname">descriptors</code><span class="sig-paren">(</span><em
+                                        class="sig-param">tag</em>, <em class="sig-param">presets</em>, <em
+                                        class="sig-param">conf_option</em>, <em
+                                        class="sig-param">substructure=''</em><span class="sig-paren">)</span> &#x2192;
+                                    dict<a class="headerlink" href="#db_functions.descriptors"
+                                           title="Permalink to this definition">¶</a></dt>
+                                <dd><p>Retrieve DFT descriptors from the database</p>
+                                    <dl class="field-list simple">
+                                        <dt class="field-odd">Parameters</dt>
+                                        <dd class="field-odd">
+                                            <ul class="simple">
+                                                <li><p><strong>tag</strong> (<em>str</em>) – metadata.tag of the db
+                                                    records</p></li>
+                                                <li><p><strong>presets</strong> (<em>list</em>) – list of descriptor
+                                                    presets from ‘global’ (molecule level descriptors), ‘min_max’ (min
+                                                    and max for each atomic descriptor across the molecule),
+                                                    ‘substructure’ (atomic descriptors for each atom in the substrucre)
+                                                </p></li>
+                                                <li><p><strong>conf_option</strong> (<em>str</em>) – conformer averaging
+                                                    options: ‘boltzmann’ (Boltzmann average), ‘max’ (conformer with
+                                                    highest weight), ‘mean’ (arithmetic average), ‘min’ (conformer with
+                                                    smallest weight), ‘any’ (any single conformer), ‘std’ (std dev. over
+                                                    conformers)</p></li>
+                                                <li><p><strong>substructure</strong> (<em>str</em>) – substructure
+                                                    SMARTS string</p></li>
+                                            </ul>
+                                        </dd>
+                                        <dt class="field-even">Returns</dt>
+                                        <dd class="field-even"><p></p>
+                                        </dd>
+                                    </dl>
+                                </dd>
+                            </dl>
+
+                            <dl class="function">
+                                <dt id="db_functions.descriptors_from_can">
+                                    <code class="sig-prename descclassname">db_functions.</code><code
+                                        class="sig-name descname">descriptors_from_can</code><span
+                                        class="sig-paren">(</span><em class="sig-param">can</em>, <em class="sig-param">tag</em>,
+                                    <em class="sig-param">conf_option</em><span class="sig-paren">)</span> &#x2192; dict<a
+                                        class="headerlink" href="#db_functions.descriptors_from_can"
+                                        title="Permalink to this definition">¶</a></dt>
+                                <dd><p>Get and average descriptors for a given can string and metadata.tag</p>
+                                    <dl class="field-list simple">
+                                        <dt class="field-odd">Parameters</dt>
+                                        <dd class="field-odd">
+                                            <ul class="simple">
+                                                <li><p><strong>can</strong> (<em>str</em>) – canonical smiles</p></li>
+                                                <li><p><strong>tag</strong> (<em>str</em>) – metadata.tag of the db
+                                                    records</p></li>
+                                                <li><p><strong>conf_option</strong> (<em>str</em>) – conformer averaging
+                                                    options: ‘boltzmann’ (Boltzmann average), ‘max’ (conformer with
+                                                    highest weight), ‘mean’ (arithmetic average), ‘min’ (conformer with
+                                                    smallest weight), ‘any’ (any single conformer), ‘std’ (std dev. over
+                                                    conformers)</p></li>
+                                            </ul>
+                                        </dd>
+                                        <dt class="field-even">Returns</dt>
+                                        <dd class="field-even"><p>dict</p>
+                                        </dd>
+                                    </dl>
+                                </dd>
+                            </dl>
+
+                            <dl class="function">
+                                <dt id="db_functions.descriptors_from_list_of_ids">
+                                    <code class="sig-prename descclassname">db_functions.</code><code
+                                        class="sig-name descname">descriptors_from_list_of_ids</code><span
+                                        class="sig-paren">(</span><em class="sig-param">ids</em>, <em class="sig-param">conf_option='max'</em><span
+                                        class="sig-paren">)</span> &#x2192; dict<a class="headerlink"
+                                                                                   href="#db_functions.descriptors_from_list_of_ids"
+                                                                                   title="Permalink to this definition">¶</a>
+                                </dt>
+                                <dd><p>Get and average descriptors using a list of db ids.</p>
+                                    <dl class="field-list simple">
+                                        <dt class="field-odd">Parameters</dt>
+                                        <dd class="field-odd">
+                                            <ul class="simple">
+                                                <li><p><strong>ids</strong> (<em>list</em>) – list of db id’s that
+                                                    correspond to a given molecule</p></li>
+                                                <li><p><strong>conf_option</strong> (<em>str</em>) – conformer averaging
+                                                    options: ‘boltzmann’ (Boltzmann average), ‘max’ (conformer with
+                                                    highest weight), ‘mean’ (arithmetic average), ‘min’ (conformer with
+                                                    smallest weight), ‘any’ (any single conformer), ‘std’ (std dev. over
+                                                    conformers)</p></li>
+                                            </ul>
+                                        </dd>
+                                        <dt class="field-even">Returns</dt>
+                                        <dd class="field-even"><p>dict</p>
+                                        </dd>
+                                    </dl>
+                                </dd>
+                            </dl>
+
+                        </div>
+
+
+                    </div>
+
+                </div>
+                <footer>
+
+                    <div aria-label="footer navigation" class="rst-footer-buttons" role="navigation">
+
+                        <a accesskey="n" class="btn btn-neutral float-right" href="descriptor_functions.html" rel="next"
+                           title="descriptor_functions">Next <span class="fa fa-arrow-circle-right"></span></a>
+
+
+                        <a accesskey="p" class="btn btn-neutral float-left" href="slurm_manager.html" rel="prev"
+                           title="slurm_manager class"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+
+                    </div>
+
+
+                    <hr/>
+
+                    <div role="contentinfo">
+                        <p>
+                            &copy; Copyright 2020, Andrzej Zuranski
+
+                        </p>
+                    </div>
+                    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
+                        href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a
+                        href="https://readthedocs.org">Read the Docs</a>.
+
+                </footer>
+
+            </div>
+        </div>
+
+    </section>
+
+</div>
+
+
+<script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+
+</script>
+
+
+</body>
+</html>
