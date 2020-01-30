@@ -116,7 +116,7 @@ def descriptors(tag, presets, conf_option, substructure="") -> dict:
 
     if 'min_max' in presets:
         dmin = pd.concat([d['atom_descriptors'].min() for can, d in descs_df.iteritems()], axis=1)
-        dmax = pd.concat([d['atom_descriptors'].min() for can, d in descs_df.iteritems()], axis=1)
+        dmax = pd.concat([d['atom_descriptors'].max() for can, d in descs_df.iteritems()], axis=1)
         dmin.columns = descs_df.index
         dmax.columns = descs_df.index
         data['min'] = dmin.T
