@@ -110,7 +110,7 @@ def yes_or_no(question) -> bool:
 
 
 def add_numbers_to_repeated_items(items_list) -> list:
-    """
+    """Add numeric consecutive labels to repeated items in a list.
 
     :param items_list: list of strings
     :return: list
