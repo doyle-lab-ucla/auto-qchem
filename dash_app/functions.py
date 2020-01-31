@@ -2,7 +2,10 @@ from autoqchem.db_functions import *
 from autoqchem.molecule import *
 
 app_path = "C:/Users/Andrzej/Software/github/auto-qchem/dash_app"
+
+
 # app_path = "C:/Users/AndrzejZuranski/Dropbox/DataX_PU/github/auto-qchem/dash_app"
+
 
 def image(can):
     hash_str = hashlib.md5(can.encode()).hexdigest()
@@ -11,20 +14,6 @@ def image(can):
         mol = input_to_OBMol(can, input_type="string", input_format="can")
         OBMol_to_file(mol, "svg", f"{app_path}/static/{hash_str}.svg")
     return f"/static/{hash_str}.svg"
-
-
-def image_3d(can, geom):
-    mol = input_to_OBMol(can, input_type="string", input_format="can")
-    mol.AddHydrogens()
-
-    # adjust geometry
-    for atom in pybel.ob.OBMolAtomIter(mol):
-        pos = geom.iloc[atom.GetIdx() - 1]
-        atom.SetVector(pos.X, pos.Y, pos.Z)
-
-    pm = pybel.Molecule(mol)
-    pybel.ipython_3d = True
-    return pm._repr_html_()
 
 
 def get_table(tag, substructure):

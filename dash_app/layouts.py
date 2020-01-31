@@ -22,10 +22,7 @@ def layout_table(tag, substructure, message=""):
 
         html.Datalist(id='conf_options',
                       children=[html.Option(label=desc, value=tag)
-                                for desc, tag in zip(['Boltzman Average', 'Lowest Energy Conformer',
-                                                      'Highest Energy Conformer', 'Arithmetic Average',
-                                                      'Standard Deviation', 'Random'],
-                                                     ['boltzmann', 'max', 'min', 'mean', 'std', 'any'])]),
+                                for desc, tag in zip(conf_options_long, conf_options)]),
 
         html.Form(id='query-form', children=[
             dcc.Input(name="Collection", id="collection", placeholder="Choose molecule collection...",
@@ -45,10 +42,8 @@ def layout_table(tag, substructure, message=""):
                     id='export-form', children=[
                         dcc.Dropdown(
                             id='dropdownPresetOptions',
-                            options=[dict(label=l, value=v)
-                                     for l, v in zip(['Global', 'Min Max Atomic',
-                                                      'Substructure Atomic'],
-                                                     ['global', 'min_max', 'substructure'])],
+                            options=[dict(label=lab, value=val)
+                                     for lab, val in zip(desc_presets_long, desc_presets)],
                             multi=True,
                             style={"width": "300px", 'display': 'inline-block', 'verticalAlign': 'top'},
                             placeholder="Select descriptor presets...",

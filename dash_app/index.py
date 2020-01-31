@@ -60,8 +60,6 @@ def on_post():
     # fetch form items from form
     items_dict.update(flask.request.form)
     items_dict['PresetOptions'] = items_dict['PresetOptions'].split(",")
-    if "ConformerOptions" not in items_dict:
-        items_dict['ConformerOptions'] = "max"
 
     # remove unused files in the dir
     for f in os.listdir(f"{app_path}/static/user_desc/"):
