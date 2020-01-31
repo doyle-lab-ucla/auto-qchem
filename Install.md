@@ -8,7 +8,9 @@ https://github.com/openbabel/openbabel/releases/download/openbabel-2-4-1/OpenBab
 
 Install the miniconda with python=3.7 suitable for your OS: [miniconda installation webpage](https://docs.conda.io/en/latest/miniconda.html)
 
-In anaconda prompt (Windows) or terminal (MacOS) create a conda environment executing. You can use a different environment name, in this instructions we will use ```autoqchem```
+In anaconda prompt (Windows) or terminal (MacOS) create a conda environment. You can use a different environment name, in this instructions we will use ```autoqchem```.
+For Windows 'Anaconda Powershell Prompt' has more functionality than 'Anaconda Prompt', e.g. tab-completion, but either
+one works fine.
 ```bash
 conda create --name autoqchem python=3.7
 ```
@@ -34,7 +36,10 @@ Install imolecule (allows 3d rotateable renderings within jupyter), a specific v
 python -m pip install imolecule==0.1.13
 ```
 
-Clone autoqchem from github, if you don't have git, please install git for your OS [git installation webpage](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git). Note that the last argument to this command is a local directory to which auto-qchem will be installed, please update it to a suitable one. For the purpose of this instructions I will use ```some_directory```
+Clone autoqchem from github. If you don't have ```git```, please install ```git``` for your OS [git installation webpage](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git). Note that
+ the last argument to the command below is a local directory to which auto-qchem will be installed, please update it to 
+ a suitable one. It can be anywhere, but it needs to either be empty or not yet existing. For the purpose of this instructions I will use ```some_directory```.
+  A good example would be ```~/software/github/auto-qchem```.
 ```bash
 git clone https://github.com/PrincetonUniversity/auto-qchem.git some_directory
 ```
@@ -44,7 +49,20 @@ cd some_directory/auto-qchem
 python setup.py install
 ```
 
-et voila!
+That's it!
 
+### Verify the installation
+Verify the installation by running a special template notebook ```framework_functionality_test.ipynb```. It doesn't do a whole lot, but 
+runs through some key functions.
+
+Navigate to notebooks directory
+```bash
+cd some_directory/notebooks
+```
+Fire up jupyter-notebook
+```bash
+jupyter-notebook framework_functionality_test.ipynb
+```
+Run the notebook!
 
 
