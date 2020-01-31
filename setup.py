@@ -12,11 +12,10 @@ setup(
     description='auto-qchem',
     install_requires=['numpy',
                       'pandas',
+                      'pyyaml',
                       'scipy',
-                      'yaml',
                       'fabric',
                       'paramiko',
-                      'openbabel',
                       'pymongo',
                       'appdirs']
 )
