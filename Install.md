@@ -21,7 +21,7 @@ conda activate autoqchem
 
 Install mainstream python packages
 ```bash
-conda install jupyter pandas scipy matplotlib pymongo pyyaml fabric xlrd appdirs
+conda install jupyter pandas scipy matplotlib pymongo pyyaml fabric xlrd appdirs openpyxl
 ```
 Answer "y" to the questions. If you'd like to automatically say yes to all question you can
 add ```-y``` at the end of the command, e.g. ```conda install jupyter -y```
