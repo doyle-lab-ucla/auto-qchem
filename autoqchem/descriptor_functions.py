@@ -25,11 +25,11 @@ def occupied_volume(geometry_df, atom_idx, r, mesh_density=30) -> float:
     """
 
     # make sure mesh_density is not outrageous
-    MAX_MESH_DENSITY = 100
-    if mesh_density > MAX_MESH_DENSITY:
-        mesh_density = MAX_MESH_DENSITY
+    max_mesh_density = 100
+    if mesh_density > max_mesh_density:
+        mesh_density = max_mesh_density
         logger.warning(f"Mesh density {mesh_density} is larger than allowed "
-                       f"max of {MAX_MESH_DENSITY}. Using {MAX_MESH_DENSITY} instead.")
+                       f"max of {max_mesh_density}. Using {max_mesh_density} instead.")
 
     # fetch Van der Waals radii for atoms, r
     atom_r = geometry_df['AN'].map(GetVdwRad)

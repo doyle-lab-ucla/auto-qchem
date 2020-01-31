@@ -26,7 +26,7 @@ class gaussian_input_generator(object):
         else:
             basis_set = config['gaussian']['light_basis_set']
 
-        # create gaussian tasks tupel
+        # create gaussian tasks tuple
         theory = config['gaussian']['theory']
 
         if workflow_type == "equilibrium":

@@ -10,6 +10,12 @@ from autoqchem.helper_functions import add_numbers_to_repeated_items
 
 logger = logging.getLogger(__name__)
 
+desc_presets = ['global', 'min_max', 'substructure']
+desc_presets_long = ['Global', 'Min Max Atomic', 'Substructure Atomic']
+conf_options = ['boltzmann', 'max', 'min', 'mean', 'std', 'any']
+conf_options_long = ['Boltzman Average', 'Lowest Energy Conformer', 'Highest Energy Conformer', 'Arithmetic Average',
+                     'Standard Deviation', 'Random']
+
 
 def db_connect() -> pymongo.collection.Collection:
     """Create a connection to the database and return the table (Collection).
@@ -93,7 +99,7 @@ def descriptors(tag, presets, conf_option, substructure="") -> dict:
     :type tag: str
     :param presets: list of descriptor presets from 'global' (molecule level descriptors), \
     'min_max' (min and max for each atomic descriptor across the molecule), 'substructure' \
-    (atomic descriptors for each atom in the substrucre)
+    (atomic descriptors for each atom in the substructure)
     :type presets: list
     :param conf_option: conformer averaging option: 'boltzmann' (Boltzmann average), \
     'max' (conformer with highest weight), 'mean' (arithmetic average), 'min' (conformer with smallest weight), \
@@ -103,6 +109,21 @@ def descriptors(tag, presets, conf_option, substructure="") -> dict:
     :type substructure: str
     :return:
     """
+
+    # don't bother with extraction if there are not presets nor conf_option
+    if not presets or not conf_option:
+        logger.warning(f"One of options 'presets' or 'conf_option' is empty. Not extracting.")
+        return {}
+
+    # check that presets are ok
+    if not all(p in desc_presets for p in presets):
+        logger.warning(f"One of the presets in {presets} is not from allowed list {desc_presets}. Not extracting.")
+        return {}
+
+    # check that conf option is ok
+    if conf_option not in conf_options:
+        logger.warning(f"Conf_option {conf_option} is not one of the allowed options {conf_options}. Not extracting.")
+        return {}
 
     mol_df = db_select_molecules(tag=tag, substructure=substructure)
     descs_df = mol_df.set_index('can')['_ids'].map(lambda l: descriptors_from_list_of_ids(l, conf_option=conf_option))
@@ -132,7 +153,8 @@ def descriptors(tag, presets, conf_option, substructure="") -> dict:
         sub_labels = pd.Series(descs_df.iloc[0]['labels']).loc[matches[0]].tolist()
         sub_labels = add_numbers_to_repeated_items(sub_labels)
 
-        # create a fream with descriptors large structure in one column, and substructure match indices in the second columne
+        # create a frame with descriptors large structure in one column, and substructure match
+        # indices in the second column
         tmp_df = descs_df.to_frame('descs')
         tmp_df['matches'] = matches
 
@@ -201,11 +223,10 @@ def descriptors_from_list_of_ids(ids, conf_option='max') -> dict:
     :return: dict
     """
 
-    # validate conf_option
-    if conf_option not in ['boltzmann', 'min', 'max', 'mean', 'std', 'any']:
-        logger.warning(f"Provided option for reweighting {conf_option} is not one of 'boltzmann',"
-                       f" 'min', 'max', 'mean', 'std', 'any'.")
-        return
+    # check that conf option is ok
+    if conf_option not in conf_options:
+        logger.warning(f"Conf_option {conf_option} is not one of the allowed options {conf_options}. Not extracting.")
+        return {}
 
     # connect to db
     table = db_connect()
@@ -234,12 +255,13 @@ def descriptors_from_list_of_ids(ids, conf_option='max') -> dict:
         # return pandatized record for a chosen id
         return _pandatize_record(table.find_one({"_id": _id}))
 
+    rec = {}
     if conf_option in ['boltzmann', 'mean', 'std']:
         # fetch db records for these _ids
         cursor = table.find({"_id": {"$in": ids}})
         recs = [_pandatize_record(record) for record in cursor]
+        rec.update({"can": recs[0]['can'], "labels": recs[0]['labels']})
 
-        rec = {"can": recs[0]['can'], "labels": recs[0]['labels']}
         keys_to_reweight = ['descriptors', 'atom_descriptors', 'modes', 'transitions']
 
         for key in keys_to_reweight:
