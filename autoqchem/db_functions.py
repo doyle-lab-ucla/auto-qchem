@@ -10,8 +10,8 @@ from autoqchem.helper_functions import add_numbers_to_repeated_items
 
 logger = logging.getLogger(__name__)
 
-desc_presets = ['global', 'min_max', 'substructure']
-desc_presets_long = ['Global', 'Min Max Atomic', 'Substructure Atomic']
+desc_presets = ['global', 'min_max', 'substructure', 'transitions']
+desc_presets_long = ['Global', 'Min Max Atomic', 'Substructure Atomic', "Excited State Transitions"]
 conf_options = ['boltzmann', 'max', 'min', 'mean', 'std', 'any']
 conf_options_long = ['Boltzman Average', 'Lowest Energy Conformer', 'Highest Energy Conformer', 'Arithmetic Average',
                      'Standard Deviation', 'Random']
@@ -142,6 +142,15 @@ def descriptors(tag, presets, conf_option, substructure="") -> dict:
         dmax.columns = descs_df.index
         data['min'] = dmin.T
         data['max'] = dmax.T
+
+    if 'transitions' in presets:
+        # select top 3 transitions by oscillation strength
+        ts = pd.concat([d['transitions'].sort_values("ES_osc_strength",
+                                                     ascending=False).head(3).reset_index(drop=True).unstack()
+                        for can, d in descs_df.iteritems()], axis=1)
+        ts.index = ts.index.map(lambda i: "_".join(map(str, i)))
+        ts.columns = descs_df.index
+        data['transitions'] = ts.T
 
     if 'substructure' in presets and substructure:
         sub = pybel.Smarts(substructure)
