@@ -7,7 +7,8 @@ logger = logging.getLogger(__name__)
 class gaussian_input_generator(object):
     """Generator of gaussian input files class"""
 
-    def __init__(self, molecule, workflow_type, directory):
+    def __init__(self, molecule, workflow_type, directory, theory, light_basis_set,
+                 heavy_basis_set, generic_basis_set, max_light_atomic_number):
         """Initialize input generator for a given molecule.
 
         :param molecule: molecule object
@@ -20,14 +21,21 @@ class gaussian_input_generator(object):
 
         self.directory = directory
         self.molecule = molecule
+        # group elements into light and heavy
+        light_elements, heavy_elements = self.molecule.get_light_and_heavy_elements(max_light_atomic_number)
+        self.heavy_block = ""
 
-        if self.molecule.heavy_elements:
-            basis_set = config['gaussian']['generic_basis_set']
+        if heavy_elements:
+            basis_set = generic_basis_set
+            self.heavy_block += f"{' '.join(light_elements + ['0'])}\n"
+            self.heavy_block += f"{light_basis_set}\n****\n"
+            self.heavy_block += f"{' '.join(heavy_elements + ['0'])}\n"
+            self.heavy_block += f"{heavy_basis_set}\n****\n"
+            self.heavy_block += f"\n"
+            self.heavy_block += f"{' '.join(heavy_elements + ['0'])}\n"
+            self.heavy_block += f"{heavy_basis_set}\n"
         else:
-            basis_set = config['gaussian']['light_basis_set']
-
-        # create gaussian tasks tuple
-        theory = config['gaussian']['theory']
+            basis_set = light_basis_set
 
         if workflow_type == "equilibrium":
             self.tasks = (
@@ -81,13 +89,10 @@ class gaussian_input_generator(object):
                                 fs_conf_name,
                                 resource_block,
                                 coords_block,
-                                self.molecule.light_elements,
-                                self.molecule.heavy_elements,
                                 self.molecule.mol.GetTotalCharge(),
                                 self.molecule.mol.GetTotalSpinMultiplicity())
 
-    def _generate_file(self, tasks, name, fs_name, resource_block, coords_block,
-                       light_elements, heavy_elements, charge, multiplicity) -> None:
+    def _generate_file(self, tasks, name, fs_name, resource_block, coords_block, charge, multiplicity) -> None:
         """
 
         :param tasks: tuple of Gaussian tasks
@@ -100,16 +105,6 @@ class gaussian_input_generator(object):
         :param charge: molecule charge
         :param multiplicity: molecule multiplicity
         """
-
-        heavy_block = ""
-        if self.molecule.heavy_elements:
-            heavy_block += f"{' '.join(light_elements + ['0'])}\n"
-            heavy_block += f"{config['gaussian']['light_basis_set']}\n****\n"
-            heavy_block += f"{' '.join(heavy_elements + ['0'])}\n"
-            heavy_block += f"{config['gaussian']['heavy_basis_set']}\n****\n"
-            heavy_block += f"\n"
-            heavy_block += f"{' '.join(heavy_elements + ['0'])}\n"
-            heavy_block += f"{config['gaussian']['heavy_basis_set']}\n"
 
         output = ""
 
@@ -132,8 +127,7 @@ class gaussian_input_generator(object):
                 output += f"# {task}\n"
                 output += f"\n"
 
-            if self.molecule.heavy_elements:
-                output += heavy_block
+            output += self.heavy_block  # this is an empty string if no heavy elements are in the molecule
 
         output += f"\n\n"
 

@@ -62,7 +62,14 @@ class slurm_manager(object):
             self.connection.run(f"mkdir -p {self.remote_dir}")
             logger.info(f"Connected to {self.host} as {self.user}.")
 
-    def create_jobs_for_molecule(self, molecule, workflow_type="equilibrium") -> None:
+    def create_jobs_for_molecule(self,
+                                 molecule,
+                                 workflow_type="equilibrium",
+                                 theory="APFD",
+                                 light_basis_set="6-31G*",
+                                 heavy_basis_set="LANL2DZ",
+                                 generic_basis_set="genecp",
+                                 max_light_atomic_number=36) -> None:
         """Generate slurm jobs for a molecule. Gaussian input files are also generated.
 
         :param molecule: molecule object
@@ -73,7 +80,8 @@ class slurm_manager(object):
 
         # create gaussian files
         molecule_workdir = os.path.join(self.workdir, molecule.fs_name)
-        gig = gaussian_input_generator(molecule, workflow_type, molecule_workdir)
+        gig = gaussian_input_generator(molecule, workflow_type, molecule_workdir, theory, light_basis_set,
+                                       heavy_basis_set, generic_basis_set, max_light_atomic_number)
         gig.create_gaussian_files()
 
         # create slurm files
@@ -230,7 +238,7 @@ class slurm_manager(object):
         incomplete_jobs_to_resubmit = {}
 
         if not incomplete_jobs:
-            logger.info("There are no failed jobs to resubmit.")
+            logger.info("There are no incomplete jobs to resubmit.")
 
         for key, job in incomplete_jobs.items():
 

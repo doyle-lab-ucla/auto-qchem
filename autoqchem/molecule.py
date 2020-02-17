@@ -62,8 +62,6 @@ class molecule(object):
         self._generate_conformers(max_num_conformers)
         self.max_num_conformers = max_num_conformers
 
-        # group elements into light and heavy (do it after gen3D to include hydrogen)
-        self._get_light_and_heavy_elements(config['gaussian']['max_light_atomic_number'])
 
         # find central atoms
         self._find_central_atoms()
@@ -155,15 +153,17 @@ class molecule(object):
 
         logger.info(f"Conformer Search generated {self.mol.NumConformers()} conformations of {self.can} molecule")
 
-    def _get_light_and_heavy_elements(self, max_light_atomic_number) -> None:
+    def get_light_and_heavy_elements(self, max_light_atomic_number) -> tuple:
         """Group molecule elements into light and heavy.
 
         :param max_light_atomic_number: maximum atomic number classified as light
+        :return: light, heavy element lists
         """
 
         atomic_nums = set(atom.GetAtomicNum() for atom in pybel.ob.OBMolAtomIter(self.mol))
-        self.light_elements = [GetSymbol(n) for n in atomic_nums if n <= max_light_atomic_number]
-        self.heavy_elements = [GetSymbol(n) for n in atomic_nums if n > max_light_atomic_number]
+        light_elements = [GetSymbol(n) for n in atomic_nums if n <= max_light_atomic_number]
+        heavy_elements = [GetSymbol(n) for n in atomic_nums if n > max_light_atomic_number]
+        return light_elements, heavy_elements
 
     def _adjust_geometries(self, min_fragment_dist) -> None:
         """Adjust molecule fragment geometries such that the minimum separation
