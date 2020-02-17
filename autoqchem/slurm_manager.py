@@ -83,6 +83,11 @@ class slurm_manager(object):
         gig = gaussian_input_generator(molecule, workflow_type, molecule_workdir, theory, light_basis_set,
                                        heavy_basis_set, generic_basis_set, max_light_atomic_number)
         gig.create_gaussian_files()
+        gaussian_config = {'theory': theory,
+                           'light_basis_set': light_basis_set,
+                           'heavy_basis_set': heavy_basis_set,
+                           'generic_basis_set': generic_basis_set,
+                           'max_light_atomic_number': max_light_atomic_number}
 
         # create slurm files
         for gjf_file in glob.glob(f"{molecule_workdir}/*.gjf"):
@@ -94,6 +99,7 @@ class slurm_manager(object):
                             conformation=int(base_name.split("_conf_")[1]),
                             max_num_conformers=gig.molecule.max_num_conformers,
                             tasks=gig.tasks,
+                            config=gaussian_config,
                             job_id=-1,  # job_id (not assigned yet)
                             directory=gig.directory,  # filesystem path
                             base_name=base_name,  # filesystem basename
@@ -183,11 +189,11 @@ class slurm_manager(object):
             logger.info(f"{done_jobs} jobs finished successfully (all Gaussian steps finished normally)."
                         f" {len(finished_jobs) - done_jobs} jobs failed.")
 
-    def _retrieve_single_job(self, job):
-        """
+    def _retrieve_single_job(self, job) -> slurm_status:
+        """Retrieve single job from remote host and check its status
 
-        :param job:
-        :return:
+        :param job: job
+        :return: :py:meth:`~helper_classes.helper_classes.slurm_status`, resulting status
         """
 
         try:  # try to fetch the file
@@ -250,35 +256,29 @@ class slurm_manager(object):
             job_log = f"{job.directory}/{job.base_name}.log"
             job_gjf = f"{job.directory}/{job.base_name}.gjf"
 
-            # option 1 replace geometry
-            try:
-                le = gaussian_log_extractor(job_log)
-                # old coords block
-                with open(job_gjf, "r") as f:
-                    file_string = f.read()
-                old_coords_block = re.search(f"\w+\s+({float_or_int_regex})"
-                                             f"\s+({float_or_int_regex})"
-                                             f"\s+({float_or_int_regex}).*?\n\n",
-                                             file_string, re.DOTALL).group(0)
+            # replace geometry
+            le = gaussian_log_extractor(job_log)
+            # old coords block
+            with open(job_gjf, "r") as f:
+                file_string = f.read()
+            old_coords_block = re.search(f"\w+\s+({float_or_int_regex})"
+                                         f"\s+({float_or_int_regex})"
+                                         f"\s+({float_or_int_regex}).*?\n\n",
+                                         file_string, re.DOTALL).group(0)
 
-                # new coords block
-                coords = le.geom[list('XYZ')]
-                coords.insert(0, 'Atom', le.labels)
-                coords_block = "\n".join(map(" ".join, coords.values.astype(str))) + "\n\n"
+            # new coords block
+            coords = le.geom[list('XYZ')]
+            coords.insert(0, 'Atom', le.labels)
+            coords_block = "\n".join(map(" ".join, coords.values.astype(str))) + "\n\n"
 
-                # make sure they are the same length and replace
-                assert len(old_coords_block.splitlines()) == len(coords_block.splitlines())
-                file_string = file_string.replace(old_coords_block, coords_block)
-                with open(job_gjf, "w") as f:
-                    f.write(file_string)
+            # make sure they are the same length and replace
+            assert len(old_coords_block.splitlines()) == len(coords_block.splitlines())
+            file_string = file_string.replace(old_coords_block, coords_block)
+            with open(job_gjf, "w") as f:
+                f.write(file_string)
 
-                logger.info("Log file retrieved. Substituting last checked geometry in the new input file.")
-                incomplete_jobs_to_resubmit[key] = job
-
-            except (FileNotFoundError, LookupError):  # no log file or log file truncated
-                logger.warning(f"No log file or log file is truncated. Please fix the errors in .gjf or .sh files"
-                               f"manually and resubmit using "
-                               f"self._submit_jobs_from_jobs_dict(self.get_jobs(slurm_status.failed)")
+            logger.info("Substituting last checked geometry in the new input file.")
+            incomplete_jobs_to_resubmit[key] = job
 
         self.submit_jobs_from_jobs_dict(incomplete_jobs_to_resubmit)
 
@@ -364,10 +364,14 @@ class slurm_manager(object):
 
         # loop over the conformers
         conformations = []
+        configs = []
         for key in keys:
             # fetch job, verify that there are not can issues (just in case)
             job = self.jobs[key]
             assert job.can == can
+
+            # append job configs
+            configs.append(job.config)
 
             # extract descriptors for this conformer from log file
             log = f"{job.directory}/{job.base_name}.log"
@@ -382,10 +386,10 @@ class slurm_manager(object):
         weights = np.exp(-free_energies / (k_in_kcal_per_mol_K * T))
         weights /= weights.sum()
 
-        for weight, conformation in zip(weights, conformations):
+        for weight, conformation, config in zip(weights, conformations, configs):
             data = {'can': can,
                     'metadata': {
-                        'gaussian_config': config['gaussian'],
+                        'gaussian_config': config,
                         'gaussian_tasks': tasks,
                         'tag': tag,
                         'max_num_conformers': max_conf,

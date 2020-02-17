@@ -33,6 +33,8 @@ class slurm_job:
     :type: max_num_conformers: int
     :param tasks: gaussian tasks tuple
     :type tasks: tuple
+    :param config: gaussian configuration parameters dictionary
+    :type config: dict
     :param job_id: job id on the remote host
     :type job_id: int
     :param directory: job local directory
@@ -52,6 +54,7 @@ class slurm_job:
     conformation: int
     max_num_conformers: int
     tasks: tuple
+    config: dict
 
     # slurm variables
     job_id: int
