@@ -82,12 +82,20 @@ class slurm_manager(object):
         molecule_workdir = os.path.join(self.workdir, molecule.fs_name)
         gig = gaussian_input_generator(molecule, workflow_type, molecule_workdir, theory, light_basis_set,
                                        heavy_basis_set, generic_basis_set, max_light_atomic_number)
-        gig.create_gaussian_files()
         gaussian_config = {'theory': theory,
                            'light_basis_set': light_basis_set,
                            'heavy_basis_set': heavy_basis_set,
                            'generic_basis_set': generic_basis_set,
                            'max_light_atomic_number': max_light_atomic_number}
+
+        # DB check if the same molecule with the same gaussian configuration already exists
+        tags = db_check_exists(molecule.can, gaussian_config)
+        if tags:
+            logger.warning(f"Molecule {molecule.can} already exists with the same Gaussian config under tags {tags}."
+                           f" Not creating jobs.")
+            return
+
+        gig.create_gaussian_files()
 
         # create slurm files
         for gjf_file in glob.glob(f"{molecule_workdir}/*.gjf"):

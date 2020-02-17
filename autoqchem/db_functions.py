@@ -31,6 +31,21 @@ def db_connect() -> pymongo.collection.Collection:
     return db['autoqchem']['dft_descriptors']
 
 
+def db_check_exists(can, gaussian_config) -> list:
+    """Check if a molecule is already present in the database with the same Gaussian config (theory, basis_sets, etc.)
+
+    :param can: canonical smiles
+    :type can: str
+    :param gaussian_config: gaussian config dictionary
+    :type gaussian_config: dict
+    :return: list of tags that are associated with the molecule
+    """
+
+    table = db_connect()
+    results = table.distinct("metadata", {"can": can, "metadata.gaussian_config": gaussian_config, })
+    return [r['tag'] for r in results]
+
+
 def db_select_molecules(tag="", substructure="", db_query={}) -> pd.DataFrame:
     """Get a summary frame of records in the database for a given tag
 
