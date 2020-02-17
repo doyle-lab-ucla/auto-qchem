@@ -84,7 +84,7 @@ def layout_table(tag, substructure, message=""):
 
 def layout_descriptors(id):
     id_info = db.find_one(ObjectId(id), {'can': 1, 'metadata.tag': 1})
-    desc = descriptors_from_can(id_info['can'], id_info['metadata']['tag'], conf_option='max')
+    desc = descriptors_from_can(id_info['can'], id_info['metadata']['tag'], conf_option='boltzmann')
 
     d = desc['descriptors'].to_frame().T
 
