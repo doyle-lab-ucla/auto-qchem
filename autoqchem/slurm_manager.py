@@ -218,20 +218,21 @@ class slurm_manager(object):
 
         return job.status
 
-    def resubmit_failed_jobs(self) -> None:
-        """Resubmit jobs that failed. If the job has failed but a log file has been retrieved, then \
-        the last geometry will be used for the next submission. If the log file could not be \
-        retrieved or is truncated, the job input files will need to be fixed manually and submitted using the \
+    def resubmit_incomplete_jobs(self) -> None:
+        """Resubmit jobs that are incomplete. If the job has failed because the optimization has not completed \
+        and a log file has been retrieved, then \
+        the last geometry will be used for the next submission. For failed jobs \
+         the job input files will need to be fixed manually and submitted using the \
         function :py:meth:`~slurm_manager.slurm_manager.submit_jobs_from_jobs_dict`.\
          Maximum number of allowed submission of the same job is 3."""
 
-        failed_jobs = self.get_jobs(slurm_status.failed)
-        failed_jobs_to_resubmit = {}
+        incomplete_jobs = self.get_jobs(slurm_status.incomplete)
+        incomplete_jobs_to_resubmit = {}
 
-        if not failed_jobs:
+        if not incomplete_jobs:
             logger.info("There are no failed jobs to resubmit.")
 
-        for key, job in failed_jobs.items():
+        for key, job in incomplete_jobs.items():
 
             # put a limit on resubmissions
             if job.n_submissions >= 3:
@@ -264,14 +265,14 @@ class slurm_manager(object):
                     f.write(file_string)
 
                 logger.info("Log file retrieved. Substituting last checked geometry in the new input file.")
-                failed_jobs_to_resubmit[key] = job
+                incomplete_jobs_to_resubmit[key] = job
 
             except (FileNotFoundError, LookupError):  # no log file or log file truncated
                 logger.warning(f"No log file or log file is truncated. Please fix the errors in .gjf or .sh files"
                                f"manually and resubmit using "
                                f"self._submit_jobs_from_jobs_dict(self.get_jobs(slurm_status.failed)")
 
-        self.submit_jobs_from_jobs_dict(failed_jobs_to_resubmit)
+        self.submit_jobs_from_jobs_dict(incomplete_jobs_to_resubmit)
 
     def upload_done_molecules_to_db(self, tag, RMSD_threshold=0.01, symmetry=True) -> None:
         """Upload done molecules to db. Molecules are considered done when all jobs for a given \
