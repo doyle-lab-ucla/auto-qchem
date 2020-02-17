@@ -162,39 +162,61 @@ class slurm_manager(object):
 
         # get finished jobs
         finished_jobs = {name: job for name, job in self.jobs.items() if job.job_id in finished_ids}
-        failed_jobs, done_jobs = {}, {}
+        done_jobs = 0
 
         if finished_jobs:
             logger.info(f"Retrieving log files of finished jobs.")
-            for name, job in finished_jobs.items():
-                try:
-                    log_file = self.connection.get(f"{self.remote_dir}/{job.base_name}.log",
-                                                   local=f"{job.directory}/{job.base_name}.log")
-                    with open(log_file.local) as f:
-                        log = f.read()
-                    job.n_success_tasks = len(re.findall("Normal termination", log))
-
-                    n_steps = len(job.tasks)
-                    if job.n_success_tasks == n_steps:
-                        job.status = slurm_status.done
-                        done_jobs[name] = job
-                    else:
-                        job.status = slurm_status.failed
-                        failed_jobs[name] = job
-                        logger.info(f"Job {job.base_name} failed - {job.n_success_tasks}/{n_steps} completed.")
-                except FileNotFoundError:
-                    job.status = slurm_status.failed
-                    failed_jobs[name] = job
-                    logger.warning(f"Job {job.base_name} failed  - could not retrieve log file.")
-
-                # clean up files on the remote site
-                with self.connection.cd(self.remote_dir):
-                    self.connection.run(f"rm slurm-{job.job_id}.out")
-                    self.connection.run(f"rm {job.base_name}.*")
+            for job in finished_jobs.values():
+                status = self._retrieve_single_job(job)
+                if status.value == slurm_status.done.value:
+                    done_jobs += 1
 
             self._cache()
-            logger.info(f"{len(done_jobs)} jobs finished successfully (all Gaussian steps finished normally)."
-                        f" {len(failed_jobs)} jobs failed.")
+            logger.info(f"{done_jobs} jobs finished successfully (all Gaussian steps finished normally)."
+                        f" {len(finished_jobs) - done_jobs} jobs failed.")
+
+    def _retrieve_single_job(self, job):
+        """
+
+        :param job:
+        :return:
+        """
+
+        try:  # try to fetch the file
+            log_file = self.connection.get(f"{self.remote_dir}/{job.base_name}.log",
+                                           local=f"{job.directory}/{job.base_name}.log")
+
+            # initialize the log extractor, it will try to read basic info from the file
+            le = gaussian_log_extractor(log_file.local)
+            if len(job.tasks) == le.n_tasks:
+                job.status = slurm_status.done
+            else:
+                job.status = slurm_status.failed
+                logger.warning(f"Job {job.base_name} failed - uncaught error, check log file {log_file.local} "
+                               f"for details.")
+
+        except FileNotFoundError:
+            job.status = slurm_status.failed
+            logger.warning(f"Job {job.base_name} failed  - could not retrieve log file. Cannot resubmit.")
+
+        except NoGeometryException:
+            job.status = slurm_status.failed
+            logger.warning(f"Job {job.base_name} failed - the log file does not contain geometry. Cannot resubmit.")
+
+        except NegativeFrequencyException:
+            job.status = slurm_status.incomplete
+            logger.warning(f"Job {job.base_name} incomplete - log file contains negative frequencies. Resubmit job.")
+
+        except OptimizationIncompleteException:
+            job.status = slurm_status.incomplete
+            logger.warning(f"Job {job.base_name} incomplete - geometry optimization did not complete.")
+
+        # clean up files on the remote site
+        with self.connection.cd(self.remote_dir):
+            self.connection.run(f"rm slurm-{job.job_id}.out")
+            self.connection.run(f"rm {job.base_name}.*")
+
+        return job.status
 
     def resubmit_failed_jobs(self) -> None:
         """Resubmit jobs that failed. If the job has failed but a log file has been retrieved, then \

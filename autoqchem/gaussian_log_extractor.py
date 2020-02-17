@@ -6,6 +6,23 @@ logger = logging.getLogger(__name__)
 float_or_int_regex = "[-+]?[0-9]*\.[0-9]+|[0-9]+"
 
 
+class NegativeFrequencyException(Exception):
+    """Raised when a negative frequency is found in the Gaussian log file. The geometry did not converge,
+    and the job shall be resubmitted."""
+    pass
+
+
+class NoGeometryException(Exception):
+    """Raised when Gaussian does not contain geometry information. Job failed early and cannot be fixed by
+    resubmission."""
+    pass
+
+
+class OptimizationIncompleteException(Exception):
+    """Raised when the optimization has not completed successfully."""
+    pass
+
+
 class gaussian_log_extractor(object):
     """"""
 
@@ -27,13 +44,23 @@ class gaussian_log_extractor(object):
         self.modes = None
         self.mode_vectors = None
         self.transitions = None
+        self.n_tasks = len(re.findall("Normal termination", self.log))
 
         self._split_parts()  # split parts
         try:
             self._get_atom_labels()  # fetch atom labels
             self._get_geometry()  # fetch geometries for each log section
         except IndexError:
-            raise LookupError("Log file is truncated. Cannot read atom labels and geometry.")
+            raise NoGeometryException
+
+        try:
+            self._get_frequencies_and_moment_vectors()  # fetch vibration table and vectors
+            freqs = [*map(float, self.modes['Frequencies'])]  # extract frequencies
+        except TypeError:
+            raise OptimizationIncompleteException
+
+        if [*filter(lambda x: x < 0., freqs)]:  # check for negative frequencies
+            raise NegativeFrequencyException
 
     def get_descriptors(self) -> dict:
         """Extract and retrieve all descriptors as a dictionary.
@@ -63,7 +90,6 @@ class gaussian_log_extractor(object):
 
         logger.debug(f"Extracting descriptors.")
         self._compute_occupied_volumes()  # compute buried volumes
-        self._get_frequencies_and_moment_vectors()  # fetch vibration table and vectors
         self._get_freq_part_descriptors()  # fetch descriptors from frequency section
         self._get_td_part_descriptors()  # fetch descriptors from TD section
 
@@ -121,7 +147,7 @@ class gaussian_log_extractor(object):
 
         logger.debug("Extracting vibrational frequencies and moment vectors.")
         if 'freq' not in self.parts:
-            logger.warning("Output file does not have a 'freq' part. Cannot extract frequencies.")
+            logger.info("Output file does not have a 'freq' part. Cannot extract frequencies.")
             return
 
         # regex logic: text between "Harmonic... normal coordinates and Thermochemistry, preceeded by a line of "---"
@@ -164,7 +190,7 @@ class gaussian_log_extractor(object):
 
         logger.debug("Extracting frequency section descriptors")
         if 'freq' not in self.parts:
-            logger.warning("Output file does not have a 'freq' section. Cannot extract descriptors.")
+            logger.info("Output file does not have a 'freq' section. Cannot extract descriptors.")
             return
 
         text = self.parts['freq']
@@ -240,7 +266,7 @@ class gaussian_log_extractor(object):
 
         logger.debug("Extracting TD section descriptors")
         if 'TD' not in self.parts:
-            logger.warning("Output file does not have a 'TD' section. Cannot extract descriptors.")
+            logger.info("Output file does not have a 'TD' section. Cannot extract descriptors.")
             return
 
         text = self.parts['TD']

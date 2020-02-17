@@ -18,6 +18,7 @@ class slurm_status(enum.IntEnum):
     submitted = 2  #: jobs has been submitted to slurm on remote host
     done = 3  #: job finished successfully (all gaussian steps finished) and have been retrieved from host
     failed = 4  #: job failed
+    incomplete = 5  #: job is incomplete, it should be resubmitted
 
 
 @dataclass
