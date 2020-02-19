@@ -1,37 +1,41 @@
 # Auto-QChem Database User Guide
 
+Auto-QChem stores molecular descriptors in a MongoDB type database. A small web-based user-interface has been
+ create to facilitate extractions of descriptors from the database into ```.xlsx``` files for further analysis.
+
 ### 1. Query available molecules
 
-Navigate to landing page [link](http://128.112.127.147)
+Navigate to the [landing page](http://128.112.127.147)
 
 ![landing page](images/landing_page.png)
 
 #### 1.1 Query Form
 
 ##### a) Fields
-Query form has 2 fields, both optional:
-* __Select tags (multiple choice)__ - tags are used to mark a collection of molecules,
-if you select multiple tags, molecules for all tags will be displayed. If left blank
-all molecules will be displayed
-* __SMARTS substructure__ - queries the structures using the SMARTS query (SMILES strings
+Query form has 2 fields, both are optional:
+* __Select tags (multiple choice)__ - each molecule in the DB has an associated tag (or a list of tags), they
+are used to mark specific collections of molecules. If you select multiple tags, molecules 
+for all tags will be displayed. If left blank
+all molecules in the DB will be queried
+* __SMARTS substructure__ - queries the molecules for a substructre using the SMARTS query (SMILES strings
 are a subset of SMARTS), quick reference to the SMARTS query language can be looked up 
-here: [https://www.daylight.com/dayhtml_tutorials/languages/smarts/index.html](https://www.daylight.com/dayhtml_tutorials/languages/smarts/index.html) 
+here [https://www.daylight.com/dayhtml_tutorials/languages/smarts/index.html](https://www.daylight.com/dayhtml_tutorials/languages/smarts/index.html) 
 
 ##### b) Buttons
 There are two buttons ```Query``` and ```Export```.
  * __Query__ - queries the DB and displays the table of queried molecules
- * __Export__ - shall be used after the ```Query```, it will download the displayed 
- table as an ```.xlsx``` file.
+ * __Export__ - downloads the displayed table as an ```.xlsx``` file, shall be used after hitting ```Query``` 
+
  
- Below a result of an example query on a datasets with 1166 molecules, with SMARTS query for anhydrides.
+ Result of an example query on a single tag with 1166 molecules, and with SMARTS query for anhydrides:
  ![query result](images/query_result.png)
  
  
  #### 1.2 Descriptors Lookup
  
- For each entry in the table a link to a descriptors lookup called ```descriptors``` is available in the rightmost 
- column. It will display the the qchem descriptors for that particule molecule. If the molecule contains multiple
- conformations, a "Boltzmann" average of all descriptors is shown.
+ For each entry in the table a link to a descriptors lookup called is available in the rightmost 
+ column. It will display the the QChem descriptors for the given molecule. If the molecule contains multiple
+ conformations, the "Boltzmann" average of all descriptors is shown.
  
  ![descriptors lookup](images/descriptors_lookup.png)
  
@@ -54,11 +58,11 @@ All fields are required
     * __SubstructureAtomic__ - atomic level descriptors for each of the atoms in the SMARTS substrcture used for
      filtering
     * __SubstructureCore__ - atomic level descriptors for the common core of atoms within the dataset, the common
-    core is determined using the MCS procedure from rdkit 
-    [reference](https://www.rdkit.org/docs/source/rdkit.Chem.MCS.html)
-    If substructure has been used for filtering, the common core will include the substructure
+    core is determined using the [MCS procedure](https://www.rdkit.org/docs/source/rdkit.Chem.MCS.html) from rdkit.
+    If substructure has been used for filtering, the common core will also include the substructure and potentially
+    more atoms.
     * __Transitions__ - top 10 excited state transitions ordered by their oscillation strength
-* __Conformer option (single choice)__ - choose from the following options:
+* __Conformer option (single choice)__ - choose one of the following options:
     * __Boltzmann__ - Boltzmann average
     * __Max__ - lowest energy conformer (maximum weight conformer)
     * __Min__ - highest energy conformer (minimum weight conformer)
@@ -68,6 +72,6 @@ All fields are required
 
 ##### b) Buttons
     
-* __Download__ - download the descriptors to an ```.xlsx``` file. Note: when extracting descriptors for many molecules
-this operation can take up to few minutes, depending on the server load.
+* __Download__ - download the descriptors to an ```.xlsx``` file. Note: when extracting descriptors for hundreds of
+ molecules this operation can take up to few minutes, depending on the server load.
      
