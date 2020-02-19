@@ -10,7 +10,7 @@ from dash.dependencies import Input, Output
 
 from autoqchem.db_functions import pybel, descriptors
 from dash_app.app import app, server
-from dash_app.functions import app_path
+from dash_app.functions import app_path, get_table
 from dash_app.layouts import layout_table, layout_descriptors
 
 app.layout = html.Div([
@@ -29,12 +29,13 @@ def display_page(pathname, search):
         if search:
             items = [item.split("=") for item in search.split('?')[1].split("&")]
             items_dict = {key: unquote(value) for key, value in items}
+            items_dict['tags'] = list(filter(None, items_dict['tags'].split(",")))
             try:
-                if items_dict['Substructure'] != "":
-                    pybel.Smarts(items_dict['Substructure'])
-                return layout_table(items_dict['Collection'], items_dict['Substructure'])
+                if items_dict['substructure'] != "":
+                    pybel.Smarts(items_dict['substructure'])
+                return layout_table(items_dict['tags'], items_dict['substructure'])
             except OSError as e:
-                return layout_table(None, None, message=f"Substructure '{items_dict['Substructure']}'"
+                return layout_table(None, None, message=f"Substructure '{items_dict['substructure']}'"
                                                         f" is an invalid SMARTS pattern.")
     elif pathname.startswith(f"/descriptors/"):
         id = pathname.split('/')[-1]
@@ -45,8 +46,17 @@ def display_page(pathname, search):
 
 @app.callback(Output('inputPresetOptions', 'value'),
               [Input('dropdownPresetOptions', 'value')])
-def pass_value(v):
+def pass_value1(v):
     if v is not None:
+        return ",".join(v)
+    else:
+        return ""
+
+
+@app.callback(Output('tags', 'value'),
+              [Input('tags_dropdown', 'value')])
+def pass_value2(v):
+    if v:
         return ",".join(v)
     else:
         return ""
@@ -59,7 +69,7 @@ def on_post():
     items_dict = {key: unquote(value) for key, value in url_items}
     # fetch form items from form
     items_dict.update(flask.request.form)
-    items_dict['PresetOptions'] = items_dict['PresetOptions'].split(",")
+    items_dict['tags'] = list(filter(None, items_dict['tags'].split(",")))
 
     # remove unused files in the dir
     for f in os.listdir(f"{app_path}/static/user_desc/"):
@@ -72,15 +82,26 @@ def on_post():
             # cannot remove file, oh well, let it stay there
             pass
 
-    # extract the descriptors (this can take long)
-    data = descriptors(items_dict['Collection'],
-                       items_dict['PresetOptions'],
-                       items_dict['ConformerOptions'],
-                       substructure=items_dict['Substructure'])
-
-    # save to path
+    # get timestamp
     ts = str(time.time()).replace(".", "")
-    path = f"{app_path}/static/user_desc/descriptors_{ts}.xlsx"
+
+    if 'export' in items_dict:
+        print("I need to export this")
+        path = f"{app_path}/static/user_desc/summary_{ts}.xlsx"
+        df = get_table(tags=items_dict['tags'], substructure=items_dict['substructure'])
+        data = {'summary': df.drop(['image', 'descriptors', 'tag'], axis=1)}
+
+    elif ('PresetOptions' in items_dict) and ('ConformerOptions' in items_dict):
+        path = f"{app_path}/static/user_desc/descriptors_{ts}.xlsx"
+        items_dict['PresetOptions'] = items_dict['PresetOptions'].split(",")
+        # extract the descriptors (this can take long)
+        data = descriptors(items_dict['tags'],
+                           items_dict['PresetOptions'],
+                           items_dict['ConformerOptions'],
+                           substructure=items_dict['substructure'])
+    else:
+        return
+
     with pd.ExcelWriter(path) as writer:
         if data:
             for key, df in data.items():

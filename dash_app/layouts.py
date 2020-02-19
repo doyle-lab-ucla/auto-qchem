@@ -1,38 +1,49 @@
 import dash_core_components as dcc
 import dash_html_components as html
 import dash_table as dt
-from bson.objectid import ObjectId
 
 from dash_app.functions import *
 
-db = db_connect()
 
+def layout_table(tags, substructure, message=""):
+    tags_coll = db_connect('tags')
 
-def layout_table(tag, substructure, message=""):
     return html.Div(children=[
 
-        html.Div(id="hidden_div_for_redirect_callback", hidden=True),
-
         html.H3('Autoqchem DFT descriptors database'),
-
-        html.Datalist(id='collections',
-                      children=[html.Option(label=f"{len(db.distinct('can', {'metadata.tag': tag}))} molecules",
-                                            value=tag)
-                                for tag in list(db.distinct('metadata.tag'))]),
 
         html.Datalist(id='conf_options',
                       children=[html.Option(label=desc, value=tag)
                                 for desc, tag in zip(conf_options_long, conf_options)]),
 
-        html.Form(id='query-form', children=[
-            dcc.Input(name="Collection", id="collection", placeholder="Choose molecule collection...",
-                      list='collections', style={"width": "300px"}, persistence=True,
-                      value=tag),
-            dcc.Input(name="Substructure", id="substructure",
-                      placeholder="Filter on SMARTS substructure...", style={"width": "300px"}, persistence=True,
-                      value=substructure),
-            html.Button('Select', id='submit_query-form', style={"width": "150px"})]),
+        html.Form(id='query-form', style={'display': 'inline-block'}, children=[
+            dcc.Dropdown(
+                id='tags_dropdown',
+                options=[dict(label=f"{tag} ({len(tags_coll.distinct('molecule_id', {'tag': tag}))} molecules)"
+                              , value=tag)
+                         for tag in list(tags_coll.distinct('tag'))],
+                multi=True,
+                style={"width": "300px", 'display': 'inline-block', 'verticalAlign': 'top'},
+                placeholder="Select tags...",
+                persistence=True,
+            ),
+            dcc.Input(name="tags", id="tags", style={'display': 'none'}),
+            dcc.Input(name="substructure", id="substructure",
+                      placeholder="Filter on SMARTS substructure...", style={"width": "300px",
+                                                                             'verticalAlign': 'top',
+                                                                             'display': 'inline-block'},
+                      persistence=False,
+                      value=substructure
+                      ),
+            html.Button('Query', id='submit_query-form', style={"width": "150px", 'display': 'inline-block',
+                                                                "background": "#F0F8FF"}),
+        ], ),
 
+        html.Form(id='export-summary-form', style={'display': 'inline-block'}, method='post', children=[
+            dcc.Input(name="export", id='export', style={'display': 'none'}),
+            html.Button('Export', id='submit_export-summary-form', style={"width": "150px", "background": "#F0F8FF"})
+        ]
+                  ),
         html.P(message) if message else html.Div(),
 
         html.Div(children=[
@@ -45,60 +56,60 @@ def layout_table(tag, substructure, message=""):
                             options=[dict(label=lab, value=val)
                                      for lab, val in zip(desc_presets_long, desc_presets)],
                             multi=True,
-                            style={"width": "300px", 'display': 'inline-block', 'verticalAlign': 'top'},
+                            style={"width": "300px", 'verticalAlign': 'top', },
                             placeholder="Select descriptor presets...",
                         ),
                         dcc.Input(name="PresetOptions", id="inputPresetOptions", style={'display': 'none'}),
                         dcc.Input(name="ConformerOptions", id="conformerOptions", list='conf_options',
-                                  style={"width": "300px", "display": "inline-block", 'verticalAlign': 'top'},
+                                  style={"width": "300px", 'verticalAlign': 'top'},
                                   placeholder="Select conformer option..."),
-                        html.Button('Download', id='submit_export-form', style={"width": "150px"})
+                        html.Br(),
+                        html.Button('Download', id='submit_export-form',
+                                    style={"width": "150px", "background": "#F0F8FF"})
                     ],
                     method='post',
                 )
             ]),
             dt.DataTable(
                 id='table',
-                data=get_table(tag, substructure).to_dict('records') if tag is not None else [],
-                columns=[dict(name="image", id="image", hideable=True, presentation="markdown"),
-                         dict(name="can", id="can", hideable=True),
-                         dict(name='DFT functional', id="DFT_functional", hideable=True),
-                         dict(name='DFT basis set', id="DFT_basis_set", hideable=True),
-                         dict(name="num_conformers", id="num_conformers", hideable=True),
-                         dict(name="max_num_conformers", id="max_num_conformers", hideable=True),
-                         dict(name="descriptors", id="descriptors", hideable=True, presentation="markdown")
-                         ],
-                dropdown={'descriptors': {
-                    'options': [{'label': value, 'value': name} for name, value in
-                                zip(list('abc'), ['10', '20', '30'])]}},
+                data=get_table(tags, substructure).to_dict('records'),
+                columns=[dict(name=c, id=c, hideable=False,
+                              presentation="markdown" if c in ['image', 'descriptors'] else "input") for c in
+                         ['image', 'can', 'tags', 'theory', 'light_basis_set', 'heavy_basis_set',
+                          'generic_basis_set', 'max_light_atomic_number', 'num_conformers',
+                          'max_num_conformers', 'descriptors']],
                 editable=False,
-                hidden_columns=['max_num_conformers'],
-                page_size=10, page_action="native",
+                page_size=20, page_action="native",
                 sort_action="native",
                 sort_mode="multi",
                 filter_action="native",
             ),
-        ]) if tag is not None else html.Div(),
+        ]) if tags is not None else html.Div(),
     ])
 
 
 def layout_descriptors(id):
-    id_info = db.find_one(ObjectId(id), {'can': 1, 'metadata.tag': 1})
-    desc = descriptors_from_can(id_info['can'], id_info['metadata']['tag'], conf_option='boltzmann')
+    feats_coll = db_connect('qchem_descriptors')
+    mols_coll = db_connect('molecules')
 
+    can = mols_coll.find_one(ObjectId(id), {'can': 1})['can']
+    feat_ids = list(feats_coll.find({'molecule_id': ObjectId(id)}, {'_id': 1}))
+    feat_ids = [item['_id'] for item in feat_ids]
+
+    desc = descriptors_from_list_of_ids(feat_ids, conf_option='boltzmann')
     d = desc['descriptors'].to_frame().T
 
     df_atom = desc['atom_descriptors']
     df_atom.insert(0, 'label', desc['labels'])
-    df_atom.insert(0, 'atom_idx', range(int(desc['descriptors']['number_of_atoms'])))
+    df_atom.insert(0, 'atom_idx', range(df_atom.shape[0]))
 
     vib = desc['modes']
     trans = desc['transitions']
 
     return html.Div(children=[
 
-        html.H3(f"Descriptors for {id_info['can']}"),
-        html.Img(src=image(id_info['can'])),
+        html.H3(f"Descriptors for {can}"),
+        html.Img(src=image(can)),
         dt.DataTable(data=d.to_dict('records'),
                      columns=[{'name': c, 'id': c, 'hideable': True} for c in d.columns]),
         html.Label("Atom-Level Descriptors:", style={"font-weight": "bold"}),
@@ -118,5 +129,4 @@ def layout_descriptors(id):
                      sort_action='native',
                      filter_action='native'
                      ),
-
     ])

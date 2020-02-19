@@ -16,10 +16,16 @@ def image(can):
     return f"/static/{hash_str}.svg"
 
 
-def get_table(tag, substructure):
-    df = db_select_molecules(tag=tag, substructure=substructure)
-    # make a link, as data pass db _id of any conformer (limitation on what to pass in the link)
-    # the link action will fetch all conformers and reweight them
-    df['descriptors'] = df['_ids'].map(lambda ids: f'''|[descriptors](/descriptors/{str(ids[0])})|\n|:----:|''')
+def get_table(tags, substructure):
+    df = db_select_molecules(tags=tags, substructure=substructure)
+    if df.empty:
+        return df
     df['image'] = df.can.map(image).map(lambda path: f"![]({path})")
-    return df.drop(['weights', '_ids'], axis=1)
+    df['descriptors'] = df['molecule_id'].map(lambda i: f'''|[descriptors](/descriptors/{str(i)})|\n|:----:|''')
+    df['tags'] = df['tag'].map(lambda t: t.__repr__()[1:-1])
+
+    df_metadata = pd.DataFrame(list(df.metadata))
+    df_gaussian_config = pd.DataFrame(list(df_metadata.gaussian_config))
+    df = pd.concat([df, df_gaussian_config, df_metadata['max_num_conformers']], axis=1)
+    df = df.loc[:, ~df.columns.duplicated()]  # deduplicate columns
+    return df.drop(['molecule_id', 'metadata', '_ids'], axis=1)
