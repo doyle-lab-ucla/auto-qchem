@@ -5,7 +5,7 @@ slurm:
     ram_per_processor: 2
 
 mongoDB:
-    host: "128.112.123.54"
+    host: "128.112.127.147"
     port: 27017
     user: "autoqchem"
     password: "dftworks"
