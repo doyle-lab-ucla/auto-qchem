@@ -65,7 +65,11 @@ def pass_value2(v):
 @app.server.route('/', methods=['POST'])
 def on_post():
     # fetch query items from url
-    url_items = [item.split("=") for item in flask.request.url.split('?')[1].split("&")]
+    try:
+        # check if there are url items to make a query
+        url_items = [item.split("=") for item in flask.request.url.split('?')[1].split("&")]
+    except IndexError:
+        return ('', 204)
     items_dict = {key: unquote(value) for key, value in url_items}
     # fetch form items from form
     items_dict.update(flask.request.form)

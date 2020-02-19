@@ -10,7 +10,7 @@ def layout_table(tags, substructure, message=""):
 
     return html.Div(children=[
 
-        html.H3('Autoqchem DFT descriptors database'),
+        html.H3('Auto-QChem DB'),
 
         html.Datalist(id='conf_options',
                       children=[html.Option(label=desc, value=tag)
