@@ -187,6 +187,15 @@
                                         </dd>
                                     </dl>
 
+                                    <dl class="attribute">
+                                        <dt id="helper_classes.slurm_status.incomplete">
+                                            <code class="sig-name descname">incomplete</code><em class="property"> =
+                                            5</em><a class="headerlink" href="#helper_classes.slurm_status.incomplete"
+                                                     title="Permalink to this definition">¶</a></dt>
+                                        <dd><p>job is incomplete, it should be resubmitted</p>
+                                        </dd>
+                                    </dl>
+
                                 </dd>
                             </dl>
 
@@ -196,12 +205,14 @@
                                         class="sig-name descname">slurm_job</code><span class="sig-paren">(</span><em
                                         class="sig-param">can: str</em>, <em class="sig-param">conformation: int</em>,
                                     <em class="sig-param">max_num_conformers: int</em>, <em class="sig-param">tasks:
-                                    tuple</em>, <em class="sig-param">job_id: int</em>, <em class="sig-param">directory:
-                                    str</em>, <em class="sig-param">base_name: str</em>, <em class="sig-param">status:
-                                    helper_classes.slurm_status</em>, <em class="sig-param">n_submissions: int</em>, <em
-                                        class="sig-param">n_success_tasks: int</em><span class="sig-paren">)</span><a
-                                        class="headerlink" href="#helper_classes.slurm_job"
-                                        title="Permalink to this definition">¶</a></dt>
+                                    tuple</em>, <em class="sig-param">config: dict</em>, <em class="sig-param">job_id:
+                                    int</em>, <em class="sig-param">directory: str</em>, <em class="sig-param">base_name:
+                                    str</em>, <em class="sig-param">status: helper_classes.slurm_status</em>, <em
+                                        class="sig-param">n_submissions: int</em>, <em class="sig-param">n_success_tasks:
+                                    int</em><span class="sig-paren">)</span><a class="headerlink"
+                                                                               href="#helper_classes.slurm_job"
+                                                                               title="Permalink to this definition">¶</a>
+                                </dt>
                                 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span
                                         class="pre">object</span></code></p>
                                     <p>Dataclass for slurm job.</p>
@@ -216,6 +227,8 @@
                                                     generated for the molecule</p></li>
                                                 <li><p><strong>tasks</strong> (<em>tuple</em>) – gaussian tasks tuple
                                                 </p></li>
+                                                <li><p><strong>config</strong> (<em>dict</em>) – gaussian configuration
+                                                    parameters dictionary</p></li>
                                                 <li><p><strong>job_id</strong> (<em>int</em>) – job id on the remote
                                                     host</p></li>
                                                 <li><p><strong>directory</strong> (<em>str</em>) – job local directory

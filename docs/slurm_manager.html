@@ -186,7 +186,10 @@
                                         <dt id="slurm_manager.slurm_manager.create_jobs_for_molecule">
                                             <code class="sig-name descname">create_jobs_for_molecule</code><span
                                                 class="sig-paren">(</span><em class="sig-param">molecule</em>, <em
-                                                class="sig-param">workflow_type='equilibrium'</em><span
+                                                class="sig-param">workflow_type='equilibrium'</em>, <em
+                                                class="sig-param">theory='APFD'</em>, <em class="sig-param">light_basis_set='6-31G*'</em>,
+                                            <em class="sig-param">heavy_basis_set='LANL2DZ'</em>, <em class="sig-param">generic_basis_set='genecp'</em>,
+                                            <em class="sig-param">max_light_atomic_number=36</em><span
                                                 class="sig-paren">)</span> &#x2192; None<a class="headerlink"
                                                                                            href="#slurm_manager.slurm_manager.create_jobs_for_molecule"
                                                                                            title="Permalink to this definition">¶</a>
@@ -251,19 +254,19 @@
                                     </dl>
 
                                     <dl class="method">
-                                        <dt id="slurm_manager.slurm_manager.resubmit_failed_jobs">
-                                            <code class="sig-name descname">resubmit_failed_jobs</code><span
+                                        <dt id="slurm_manager.slurm_manager.resubmit_incomplete_jobs">
+                                            <code class="sig-name descname">resubmit_incomplete_jobs</code><span
                                                 class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a
                                                 class="headerlink"
-                                                href="#slurm_manager.slurm_manager.resubmit_failed_jobs"
+                                                href="#slurm_manager.slurm_manager.resubmit_incomplete_jobs"
                                                 title="Permalink to this definition">¶</a></dt>
-                                        <dd><p>Resubmit jobs that failed. If the job has failed but a log file has been
-                                            retrieved, then the last geometry will be used for the next submission. If
-                                            the log file could not be retrieved or is truncated, the job input files
-                                            will need to be fixed manually and submitted using the function <a
-                                                    class="reference internal"
-                                                    href="#slurm_manager.slurm_manager.submit_jobs_from_jobs_dict"
-                                                    title="slurm_manager.slurm_manager.submit_jobs_from_jobs_dict"><code
+                                        <dd><p>Resubmit jobs that are incomplete. If the job has failed because the
+                                            optimization has not completed and a log file has been retrieved, then the
+                                            last geometry will be used for the next submission. For failed jobs the job
+                                            input files will need to be fixed manually and submitted using the function
+                                            <a class="reference internal"
+                                               href="#slurm_manager.slurm_manager.submit_jobs_from_jobs_dict"
+                                               title="slurm_manager.slurm_manager.submit_jobs_from_jobs_dict"><code
                                                     class="xref py py-meth docutils literal notranslate"><span
                                                     class="pre">submit_jobs_from_jobs_dict()</span></code></a>. Maximum
                                             number of allowed submission of the same job is 3.</p>

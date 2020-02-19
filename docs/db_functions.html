@@ -141,12 +141,41 @@
                             <h1>db_functions module<a class="headerlink" href="#module-db_functions"
                                                       title="Permalink to this headline">¶</a></h1>
                             <dl class="function">
+                                <dt id="db_functions.db_check_exists">
+                                    <code class="sig-prename descclassname">db_functions.</code><code
+                                        class="sig-name descname">db_check_exists</code><span class="sig-paren">(</span><em
+                                        class="sig-param">can</em>, <em class="sig-param">gaussian_config</em>, <em
+                                        class="sig-param">max_num_conformers</em><span class="sig-paren">)</span>
+                                    &#x2192; tuple<a class="headerlink" href="#db_functions.db_check_exists"
+                                                     title="Permalink to this definition">¶</a></dt>
+                                <dd><p>Check if a molecule is already present in the database with the same Gaussian
+                                    config (theory, basis_sets, etc.)</p>
+                                    <dl class="field-list simple">
+                                        <dt class="field-odd">Parameters</dt>
+                                        <dd class="field-odd">
+                                            <ul class="simple">
+                                                <li><p><strong>can</strong> (<em>str</em>) – canonical smiles</p></li>
+                                                <li><p><strong>gaussian_config</strong> (<em>dict</em>) – gaussian
+                                                    config dictionary</p></li>
+                                            </ul>
+                                        </dd>
+                                        <dt class="field-even">Returns</dt>
+                                        <dd class="field-even"><p>exists(bool), list of tags that are associated with
+                                            the molecule if it exists</p>
+                                        </dd>
+                                    </dl>
+                                </dd>
+                            </dl>
+
+                            <dl class="function">
                                 <dt id="db_functions.db_connect">
                                     <code class="sig-prename descclassname">db_functions.</code><code
-                                        class="sig-name descname">db_connect</code><span class="sig-paren">(</span><span
-                                        class="sig-paren">)</span> &#x2192; pymongo.collection.Collection<a
-                                        class="headerlink" href="#db_functions.db_connect"
-                                        title="Permalink to this definition">¶</a></dt>
+                                        class="sig-name descname">db_connect</code><span class="sig-paren">(</span><em
+                                        class="sig-param">collection='molecules'</em><span class="sig-paren">)</span>
+                                    &#x2192; pymongo.collection.Collection<a class="headerlink"
+                                                                             href="#db_functions.db_connect"
+                                                                             title="Permalink to this definition">¶</a>
+                                </dt>
                                 <dd><p>Create a connection to the database and return the table (Collection).</p>
                                     <dl class="field-list simple">
                                         <dt class="field-odd">Returns</dt>
@@ -160,24 +189,20 @@
                                 <dt id="db_functions.db_select_molecules">
                                     <code class="sig-prename descclassname">db_functions.</code><code
                                         class="sig-name descname">db_select_molecules</code><span
-                                        class="sig-paren">(</span><em class="sig-param">tag=''</em>, <em
-                                        class="sig-param">substructure=''</em>, <em
-                                        class="sig-param">db_query={}</em><span class="sig-paren">)</span> &#x2192;
+                                        class="sig-paren">(</span><em class="sig-param">tags=[]</em>, <em
+                                        class="sig-param">substructure=''</em><span class="sig-paren">)</span> &#x2192;
                                     pandas.core.frame.DataFrame<a class="headerlink"
                                                                   href="#db_functions.db_select_molecules"
                                                                   title="Permalink to this definition">¶</a></dt>
-                                <dd><p>Get a summary frame of records in the database for a given tag</p>
+                                <dd><p>Get a summary frame of molecules in the database</p>
                                     <dl class="field-list simple">
                                         <dt class="field-odd">Parameters</dt>
                                         <dd class="field-odd">
                                             <ul class="simple">
-                                                <li><p><strong>tag</strong> (<em>str</em>) – metadata.tag of the db
-                                                    records</p></li>
+                                                <li><p><strong>tags</strong> (<em>list</em>) – a list of tags of the db
+                                                    records (if multiple an ‘OR’ is taken)</p></li>
                                                 <li><p><strong>substructure</strong> (<em>str</em>) – substructure
                                                     SMARTS string</p></li>
-                                                <li><p><strong>db_query</strong> – additional MongoDB type query, use
-                                                    only if familiar with MongoDB query language and the database record
-                                                    structure</p></li>
                                             </ul>
                                         </dd>
                                         <dt class="field-even">Returns</dt>
@@ -191,7 +216,7 @@
                                 <dt id="db_functions.descriptors">
                                     <code class="sig-prename descclassname">db_functions.</code><code
                                         class="sig-name descname">descriptors</code><span class="sig-paren">(</span><em
-                                        class="sig-param">tag</em>, <em class="sig-param">presets</em>, <em
+                                        class="sig-param">tags</em>, <em class="sig-param">presets</em>, <em
                                         class="sig-param">conf_option</em>, <em
                                         class="sig-param">substructure=''</em><span class="sig-paren">)</span> &#x2192;
                                     dict<a class="headerlink" href="#db_functions.descriptors"
@@ -219,36 +244,6 @@
                                         </dd>
                                         <dt class="field-even">Returns</dt>
                                         <dd class="field-even"><p></p>
-                                        </dd>
-                                    </dl>
-                                </dd>
-                            </dl>
-
-                            <dl class="function">
-                                <dt id="db_functions.descriptors_from_can">
-                                    <code class="sig-prename descclassname">db_functions.</code><code
-                                        class="sig-name descname">descriptors_from_can</code><span
-                                        class="sig-paren">(</span><em class="sig-param">can</em>, <em class="sig-param">tag</em>,
-                                    <em class="sig-param">conf_option</em><span class="sig-paren">)</span> &#x2192; dict<a
-                                        class="headerlink" href="#db_functions.descriptors_from_can"
-                                        title="Permalink to this definition">¶</a></dt>
-                                <dd><p>Get and average descriptors for a given can string and metadata.tag</p>
-                                    <dl class="field-list simple">
-                                        <dt class="field-odd">Parameters</dt>
-                                        <dd class="field-odd">
-                                            <ul class="simple">
-                                                <li><p><strong>can</strong> (<em>str</em>) – canonical smiles</p></li>
-                                                <li><p><strong>tag</strong> (<em>str</em>) – metadata.tag of the db
-                                                    records</p></li>
-                                                <li><p><strong>conf_option</strong> (<em>str</em>) – conformer averaging
-                                                    option: ‘boltzmann’ (Boltzmann average), ‘max’ (conformer with
-                                                    highest weight), ‘mean’ (arithmetic average), ‘min’ (conformer with
-                                                    smallest weight), ‘any’ (any single conformer), ‘std’ (std dev. over
-                                                    conformers)</p></li>
-                                            </ul>
-                                        </dd>
-                                        <dt class="field-even">Returns</dt>
-                                        <dd class="field-even"><p>dict</p>
                                         </dd>
                                     </dl>
                                 </dd>
