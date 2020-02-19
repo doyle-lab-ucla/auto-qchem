@@ -89,9 +89,9 @@ class slurm_manager(object):
                            'max_light_atomic_number': max_light_atomic_number}
 
         # DB check if the same molecule with the same gaussian configuration already exists
-        tags = db_check_exists(molecule.can, gaussian_config)
-        if tags:
-            logger.warning(f"Molecule {molecule.can} already exists with the same Gaussian config under tags {tags}."
+        exists, tags = db_check_exists(molecule.can, gaussian_config, molecule.max_num_conformers)
+        if exists:
+            logger.warning(f"Molecule {molecule.can} already exists with the same Gaussian config with tags {tags}."
                            f" Not creating jobs.")
             return
 
@@ -319,12 +319,6 @@ class slurm_manager(object):
 
         logger.info(f"There are {len(done_cans)} finished molecules {done_cans}.")
 
-        # create db connection
-        db = pymongo.MongoClient(config['mongoDB']['host'],
-                                 username=config['mongoDB']['user'],
-                                 password=config['mongoDB']['password'],
-                                 port=config['mongoDB']['port'])
-
         # select jobs for done molecules
         done_can_jobs = self.get_jobs(can=done_cans)
         jobs_df = pd.DataFrame([job.__dict__ for job in done_can_jobs.values()], index=done_can_jobs.keys())
@@ -343,13 +337,11 @@ class slurm_manager(object):
                 can_keys_to_keep = [key for i, key in enumerate(keys) if i not in duplicates]
             else:
                 can_keys_to_keep = keys
-            self._upload_can_to_db(db, can, tasks, can_keys_to_keep, tag, max_n_conf)
+            self._upload_can_to_db(can, tasks, can_keys_to_keep, tag, max_n_conf)
 
-        # cleanup
-        db.close()
         self.remove_jobs(done_can_jobs)
 
-    def _upload_can_to_db(self, db, can, tasks, keys, tag, max_conf) -> None:
+    def _upload_can_to_db(self, can, tasks, keys, tag, max_conf) -> None:
         """Uploading single molecule conformers to database.
 
         :param db: database client
@@ -394,20 +386,32 @@ class slurm_manager(object):
         weights = np.exp(-free_energies / (k_in_kcal_per_mol_K * T))
         weights /= weights.sum()
 
-        for weight, conformation, config in zip(weights, conformations, configs):
-            data = {'can': can,
-                    'metadata': {
-                        'gaussian_config': config,
-                        'gaussian_tasks': tasks,
-                        'tag': tag,
-                        'max_num_conformers': max_conf,
-                    },
+        mols_coll = db_connect('molecules')
+        tags_coll = db_connect('tags')
+        feats_coll = db_connect('qchem_descriptors')
+
+        # check that all configs are the same
+        assert len(set([config.__repr__() for config in configs])) == 1
+
+        # create molecule record and insert it
+        mol_data = {'can': can, 'metadata': {'gaussian_config': configs[0], 'gaussian_tasks': tasks,
+                                             'max_num_conformers': max_conf}}
+        ret = mols_coll.insert_one(mol_data)
+        mol_id = ret.inserted_id
+
+        # insert tag record
+        tags_coll.insert_one({'tag': tag, 'molecule_id': mol_id})
+
+        for weight, conformation in zip(weights, conformations):
+            # startup data structure
+            data = {'molecule_id': mol_id,
                     'weight': weight}
+
             # update with descriptors
             data.update(conformation)
 
             # db insertion
-            db['autoqchem']['dft_descriptors'].insert_one(data)
+            feats_coll.insert_one(data)
         logger.info(f"Uploaded descriptors to DB for smiles: {can}, number of conformers: {len(conformations)}.")
 
     def get_jobs(self, status=None, can=None) -> dict:
