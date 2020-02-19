@@ -1,7 +1,7 @@
 # Auto-QChem Database User Guide
 
 Auto-QChem stores molecular descriptors in a MongoDB type database. A small web-based user-interface has been
- create to facilitate extractions of descriptors from the database into ```.xlsx``` files for further analysis.
+ created to facilitate extractions of descriptors from the database into ```.xlsx``` files for further analysis.
 
 ### 1. Query available molecules
 
