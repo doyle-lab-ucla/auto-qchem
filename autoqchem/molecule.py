@@ -23,22 +23,24 @@ class molecule(object):
 
     def __init__(self,
                  input,
+                 isotopes_as_labels=False,
+                 max_num_conformers=1,
                  input_type="string",
                  input_format='smi',
                  gen3D_option='best',
-                 max_num_conformers=1,
                  min_fragment_dist=2,
                  ):
         """
         Initialize the OBMol molecule, generate initial 3D geometry and do conformer search.
 
         :param input: string or file path
-        :param input_type: "string" or "file", in line with the input
-        :param input_format: any format supported by OpenBabel, e.g. 'smi', 'cdx', 'pdb', etc.
-        :param gen3D_option: "best", "medium", "fast" or "gen2D" (no 3D generation)
+        :param isotopes_as_labels: a flag to treat isotopes in the smiles string as atomic labels
         :param max_num_conformers: maximum number of conformers to generate, use 1 (default) for no conformer search, \
         a reasonable number of conformations to use is 30. Conformations are generated with genetic algorithm \
         using pybel.ob.OBConformerSearch class.
+        :param input_type: "string" or "file", in line with the input
+        :param input_format: any format supported by OpenBabel, e.g. 'smi', 'cdx', 'pdb', etc.
+        :param gen3D_option: "best", "medium", "fast" or "gen2D" (no 3D generation)
         :param min_fragment_dist: minimum distance between molecular fragments for salts, no more than 2 \
         molecular fragments are supported
         """
@@ -62,9 +64,11 @@ class molecule(object):
         self._generate_conformers(max_num_conformers)
         self.max_num_conformers = max_num_conformers
 
-
         # find central atoms
         self._find_central_atoms()
+
+        # save isotopes as labels flag
+        self.isotopes_as_labels = isotopes_as_labels
 
         # extra steps for molecules with multiple fragments
         if len(self.centers) == 2:

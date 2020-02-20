@@ -64,8 +64,8 @@ class gaussian_input_generator(object):
         os.makedirs(self.directory, exist_ok=True)
 
         # resources configuration
-        n_processors = min(config['slurm']['max_processors'],
-                           self.molecule.mol.NumAtoms() // config['slurm']['atoms_per_processor'])
+        n_processors = max(1, min(config['slurm']['max_processors'],
+                                  self.molecule.mol.NumAtoms() // config['slurm']['atoms_per_processor']))
         ram = n_processors * config['slurm']['ram_per_processor']
         resource_block = f"%nprocshared={n_processors}\n%Mem={ram}GB\n"
 
@@ -78,8 +78,11 @@ class gaussian_input_generator(object):
 
             # coordinates block
             geom_df = self.molecule.get_geometry(conf_id)
-            geom_df['Iso_String'] = geom_df['Isotope'].astype(str).map(lambda s: f"(Iso={s})")
-            geom_df['Atom'] += geom_df['Iso_String'].where(geom_df['Isotope'] > 0, '')
+            if self.molecule.isotopes_as_labels:
+                geom_df['Atom'] += geom_df['Isotope'].astype(str).where(geom_df['Isotope'] > 0, '')
+            else:
+                geom_df['Iso_String'] = geom_df['Isotope'].astype(str).map(lambda s: f"(Iso={s})")
+                geom_df['Atom'] += geom_df['Iso_String'].where(geom_df['Isotope'] > 0, '')
             geom_np_array = geom_df[['Atom', 'X', 'Y', 'Z']].astype(str).values
             coords_block = "\n".join(map(" ".join, geom_np_array))
 
