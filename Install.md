@@ -45,7 +45,7 @@ git clone https://github.com/PrincetonUniversity/auto-qchem.git some_directory
 ```
 Navigate to the directory where auto-qchem github repository is installed (a file ```setup.py``` should be present in that directory) and run the setup script
 ```bash
-cd some_directory/auto-qchem
+cd some_directory
 python setup.py install
 ```
 
