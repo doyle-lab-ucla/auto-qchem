@@ -145,9 +145,10 @@
                                     <em class="property">class </em><code
                                         class="sig-prename descclassname">molecule.</code><code
                                         class="sig-name descname">molecule</code><span class="sig-paren">(</span><em
-                                        class="sig-param">input</em>, <em class="sig-param">input_type='string'</em>,
-                                    <em class="sig-param">input_format='smi'</em>, <em class="sig-param">gen3D_option='best'</em>,
-                                    <em class="sig-param">max_num_conformers=1</em>, <em class="sig-param">min_fragment_dist=2</em><span
+                                        class="sig-param">input</em>, <em
+                                        class="sig-param">isotopes_as_labels=False</em>, <em class="sig-param">max_num_conformers=1</em>,
+                                    <em class="sig-param">input_type='string'</em>, <em class="sig-param">input_format='smi'</em>,
+                                    <em class="sig-param">gen3D_option='best'</em>, <em class="sig-param">min_fragment_dist=2</em><span
                                         class="sig-paren">)</span><a class="headerlink" href="#molecule.molecule"
                                                                      title="Permalink to this definition">¶</a></dt>
                                 <dd><p>Wrapper class for openbabel.OBMol class</p>
@@ -155,9 +156,9 @@
                                         <dt id="molecule.molecule.__init__">
                                             <code class="sig-name descname">__init__</code><span
                                                 class="sig-paren">(</span><em class="sig-param">input</em>, <em
-                                                class="sig-param">input_type='string'</em>, <em class="sig-param">input_format='smi'</em>,
-                                            <em class="sig-param">gen3D_option='best'</em>, <em class="sig-param">max_num_conformers=1</em>,
-                                            <em class="sig-param">min_fragment_dist=2</em><span
+                                                class="sig-param">isotopes_as_labels=False</em>, <em class="sig-param">max_num_conformers=1</em>,
+                                            <em class="sig-param">input_type='string'</em>, <em class="sig-param">input_format='smi'</em>,
+                                            <em class="sig-param">gen3D_option='best'</em>, <em class="sig-param">min_fragment_dist=2</em><span
                                                 class="sig-paren">)</span><a class="headerlink"
                                                                              href="#molecule.molecule.__init__"
                                                                              title="Permalink to this definition">¶</a>
@@ -169,17 +170,19 @@
                                                 <dd class="field-odd">
                                                     <ul class="simple">
                                                         <li><p><strong>input</strong> – string or file path</p></li>
+                                                        <li><p><strong>isotopes_as_labels</strong> – a flag to treat
+                                                            isotopes in the smiles string as atomic labels</p></li>
+                                                        <li><p><strong>max_num_conformers</strong> – maximum number of
+                                                            conformers to generate, use 1 (default) for no conformer
+                                                            search, a reasonable number of conformations to use is 30.
+                                                            Conformations are generated with genetic algorithm using
+                                                            pybel.ob.OBConformerSearch class.</p></li>
                                                         <li><p><strong>input_type</strong> – “string” or “file”, in line
                                                             with the input</p></li>
                                                         <li><p><strong>input_format</strong> – any format supported by
                                                             OpenBabel, e.g. ‘smi’, ‘cdx’, ‘pdb’, etc.</p></li>
                                                         <li><p><strong>gen3D_option</strong> – “best”, “medium”, “fast”
                                                             or “gen2D” (no 3D generation)</p></li>
-                                                        <li><p><strong>max_num_conformers</strong> – maximum number of
-                                                            conformers to generate, use 1 (default) for no conformer
-                                                            search, a reasonable number of conformations to use is 30.
-                                                            Conformations are generated with genetic algorithm using
-                                                            pybel.ob.OBConformerSearch class.</p></li>
                                                         <li><p><strong>min_fragment_dist</strong> – minimum distance
                                                             between molecular fragments for salts, no more than 2
                                                             molecular fragments are supported</p></li>
