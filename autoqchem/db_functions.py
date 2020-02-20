@@ -1,21 +1,30 @@
 import logging
 import pybel
+import re
 
 import numpy as np
 import pandas as pd
 import pymongo
 from bson.objectid import ObjectId
+from rdkit import Chem
+from rdkit.Chem import rdFMCS
 
 from autoqchem.helper_classes import config
 from autoqchem.helper_functions import add_numbers_to_repeated_items
 
 logger = logging.getLogger(__name__)
 
-desc_presets = ['global', 'min_max', 'substructure', 'transitions']
-desc_presets_long = ['Global', 'Min Max Atomic', 'Substructure Atomic', "Excited State Transitions"]
+desc_presets = ['global', 'min_max', 'core', 'labeled', 'transitions']
+desc_presets_long = ['Global', 'Min Max Atomic', 'Substructure Core', 'Substructred Labeled',
+                     "Excited State Transitions"]
 conf_options = ['boltzmann', 'max', 'min', 'mean', 'std', 'any']
 conf_options_long = ['Boltzman Average', 'Lowest Energy Conformer', 'Highest Energy Conformer', 'Arithmetic Average',
                      'Standard Deviation', 'Random']
+
+
+class InconsistentLabelsException(Exception):
+    """Raised when a set of molecules is inconsistently labeled"""
+    pass
 
 
 def db_connect(collection="molecules") -> pymongo.collection.Collection:
@@ -154,16 +163,19 @@ def descriptors(tags, presets, conf_option, substructure="") -> dict:
     if 'transitions' in presets:
         # select top 3 transitions by oscillation strength
         ts = pd.concat([d['transitions'].sort_values("ES_osc_strength",
-                                                     ascending=False).head(3).reset_index(drop=True).unstack()
+                                                     ascending=False).head(10).reset_index(drop=True).unstack()
                         for can, d in descs_df.iteritems()], axis=1)
         ts.index = ts.index.map(lambda i: "_".join(map(str, i)))
         ts.columns = descs_df.index
         data['transitions'] = ts.T
 
-    if 'substructure' in presets and substructure:
-        sub = pybel.Smarts(substructure)
+    if 'core' in presets:
+        rd_mols = [Chem.MolFromSmiles(c) for c in mol_df['can'].tolist()]
+        core_smarts = rdFMCS.FindMCS(rd_mols).smartsString
+        core = pybel.Smarts(core_smarts)
+
         # these matches are numbered from 1, so subtract one from them
-        matches = descs_df.index.map(lambda c: sub.findall(pybel.readstring("smi", c))[0])
+        matches = descs_df.index.map(lambda c: core.findall(pybel.readstring("smi", c))[0])
         matches = matches.map(lambda x: (np.array(x) - 1).tolist())
 
         # fetch atom labels for this smarts using the first molecule
@@ -181,6 +193,33 @@ def descriptors(tags, presets, conf_option, substructure="") -> dict:
             data[label].columns = descs_df.index
             data[label] = data[label].T
 
+    if 'labeled' in presets:
+        # extract the positions of the labeled atoms in the atom lists for each molecule
+        labels = descs_df.map(lambda d: [re.sub("\D", "", l) for l in d['labels']])
+        labels = labels.map(lambda ls: [(index, l) for index, l in enumerate(ls) if l])
+        labels = labels.map(lambda ls: sorted(ls, key=lambda l: l[1]))
+
+        # verify that the atomic labels are consistent across all molecules
+        atom_numbers = labels.map(lambda ls: [l[1] for l in ls])
+        atom_numbers_dedup = atom_numbers.map(tuple).drop_duplicates()
+        if len(atom_numbers_dedup) == 1:
+            matches = labels.map(lambda ls: [l[0] for l in ls])
+
+            # create a frame with descriptors large structure in one column, and substructure match
+            # indices in the second column
+            tmp_df = descs_df.to_frame('descs')
+            tmp_df['matches'] = matches
+
+            for i, label in enumerate(atom_numbers_dedup.iloc[0]):
+                label = 'A' + label
+                data[label] = pd.concat([row['descs']['atom_descriptors'].loc[row['matches'][i]]
+                                         for c, row in tmp_df.iterrows()], axis=1)
+                data[label].columns = descs_df.index
+                data[label] = data[label].T
+        else:
+            # TODO propagate this into the interface
+            logger.warning("Atomic labels are inconsistent. Not all molecules have the same set of labeled atoms")
+            raise InconsistentLabelsException
     return data
 
 
