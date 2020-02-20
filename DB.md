@@ -53,14 +53,15 @@ All fields are required
 
 * __Descriptor Presets (multiple choice)__ - the following presets are available, choose as many as needed:
     * __Global__ - molecule level descriptors, e.g. homo energy, dipole moment, molecular weight, etc.
-    * __MinMaxAtomic__ - atomic level descriptors minimum and maximum over the atoms within the molecule, e.g. 
+    * __Min Max Atomic__ - atomic level descriptors minimum and maximum over the atoms within the molecule, e.g. 
     buried volume, Mulliken charge, NMR shift, etc.
-    * __SubstructureAtomic__ - atomic level descriptors for each of the atoms in the SMARTS substrcture used for
-     filtering
-    * __SubstructureCore__ - atomic level descriptors for the common core of atoms within the dataset, the common
+    * __Substructure Core__ - atomic level descriptors for the common core of atoms within the dataset, the common
     core is determined using the [MCS procedure](https://www.rdkit.org/docs/source/rdkit.Chem.MCS.html) from rdkit.
-    If substructure has been used for filtering, the common core will also include the substructure and potentially
+    If substructure has been used for filtering, the common core will include the substructure and potentially
     more atoms.
+    * __Substructure Labeled__ - atomic level descriptors for labeled molecules. The labels must be consistent, i.e.
+    each molecule must have exactly the same labels, for example 1,2,3,4, the labelled elements can
+    be different, only the numbering scheme shall be consistent.
     * __Transitions__ - top 10 excited state transitions ordered by their oscillation strength
 * __Conformer option (single choice)__ - choose one of the following options:
     * __Boltzmann__ - Boltzmann average
