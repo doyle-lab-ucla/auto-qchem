@@ -8,7 +8,7 @@ import flask
 import pandas as pd
 from dash.dependencies import Input, Output
 
-from autoqchem.db_functions import pybel, descriptors
+from autoqchem.db_functions import pybel, descriptors, InconsistentLabelsException
 from dash_app.app import app, server
 from dash_app.functions import app_path, get_table
 from dash_app.layouts import layout_table, layout_descriptors
@@ -99,12 +99,15 @@ def on_post():
         path = f"{app_path}/static/user_desc/descriptors_{ts}.xlsx"
         items_dict['PresetOptions'] = items_dict['PresetOptions'].split(",")
         # extract the descriptors (this can take long)
-        data = descriptors(items_dict['tags'],
-                           items_dict['PresetOptions'],
-                           items_dict['ConformerOptions'],
-                           substructure=items_dict['substructure'])
+        try:
+            data = descriptors(items_dict['tags'],
+                               items_dict['PresetOptions'],
+                               items_dict['ConformerOptions'],
+                               substructure=items_dict['substructure'])
+        except InconsistentLabelsException as e:
+            return ('Molecules in the set have inconsistent labels', 200)
     else:
-        return
+        return ('', 204)
 
     with pd.ExcelWriter(path) as writer:
         if data:
