@@ -235,8 +235,8 @@ class slurm_manager(object):
 
         # clean up files on the remote site
         with self.connection.cd(self.remote_dir):
-            self.connection.run(f"rm slurm-{job.job_id}.out")
             try:
+                self.connection.run(f"rm slurm-{job.job_id}.out")
                 self.connection.run(f"rm {job.base_name}.*")
             except Exception as e:
                 logger.debug("No files left, don't crash here!")
