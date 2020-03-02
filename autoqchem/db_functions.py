@@ -217,7 +217,6 @@ def descriptors(tags, presets, conf_option, substructure="") -> dict:
                 data[label].columns = descs_df.index
                 data[label] = data[label].T
         else:
-            # TODO propagate this into the interface
             logger.warning("Atomic labels are inconsistent. Not all molecules have the same set of labeled atoms")
             raise InconsistentLabelsException
     return data
