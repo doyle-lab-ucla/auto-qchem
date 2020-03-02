@@ -76,7 +76,20 @@ class slurm_manager(object):
         :param molecule: molecule object
         :type molecule: molecule
         :param workflow_type: Gaussian workflow type, allowed types are: 'equilibrium' or 'transition_state'
+        :param wall_time: wall time of the job in HH:MM:SS format
         :type workflow_type: str
+        :param theory: Gaussian theory functional
+        :type theory: str
+        :param light_basis_set: basis set to use for light elements
+        :type light_basis_set: str
+        :param heavy_basis_set: basis set to use for heavy elements
+        :type heavy_basis_set: str
+        :param generic_basis_set: basis set to use for generic elements
+        :type generic_basis_set: str
+        :param max_light_atomic_number: maximum atomic number for light elements
+        :type max_light_atomic_number: int
+        :param wall_time: wall time of the job in HH:MM:SS format
+        :type wall_time: str
         """
 
         # create gaussian files
@@ -250,7 +263,11 @@ class slurm_manager(object):
         the last geometry will be used for the next submission. For failed jobs \
          the job input files will need to be fixed manually and submitted using the \
         function :py:meth:`~slurm_manager.slurm_manager.submit_jobs_from_jobs_dict`.\
-         Maximum number of allowed submission of the same job is 3."""
+         Maximum number of allowed submission of the same job is 3.
+
+        :param wall_time: wall time of the job in HH:MM:SS format
+        :return: None
+        """
 
         incomplete_jobs = self.get_jobs(slurm_status.incomplete)
         incomplete_jobs_to_resubmit = {}
@@ -519,6 +536,7 @@ class slurm_manager(object):
 
         :param base_name: base name of the Gaussian file
         :param directory: directory location of the Gaussian file
+        :param wall_time: wall time of the job in HH:MM:SS format
         """
 
         # get information from gaussian file needed for submission
