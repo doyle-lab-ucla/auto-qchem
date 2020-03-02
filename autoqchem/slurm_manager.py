@@ -39,7 +39,7 @@ class slurm_manager(object):
 
         self.host = host
         self.user = user
-        self.remote_dir = f"/home/{self.user}/gaussian"
+        self.remote_dir = f"/scratch/network/{self.user}/gaussian"
         self.connection = None
 
     def connect(self) -> None:
@@ -69,7 +69,8 @@ class slurm_manager(object):
                                  light_basis_set="6-31G*",
                                  heavy_basis_set="LANL2DZ",
                                  generic_basis_set="genecp",
-                                 max_light_atomic_number=36) -> None:
+                                 max_light_atomic_number=36,
+                                 wall_time='23:59:00') -> None:
         """Generate slurm jobs for a molecule. Gaussian input files are also generated.
 
         :param molecule: molecule object
@@ -101,7 +102,7 @@ class slurm_manager(object):
         for gjf_file in glob.glob(f"{molecule_workdir}/*.gjf"):
 
             base_name = os.path.basename(os.path.splitext(gjf_file)[0])
-            self._create_slurm_file_from_gaussian_file(base_name, molecule_workdir)
+            self._create_slurm_file_from_gaussian_file(base_name, molecule_workdir, wall_time)
             # create job structure
             job = slurm_job(can=molecule.can,
                             conformation=int(base_name.split("_conf_")[1]),
@@ -213,38 +214,37 @@ class slurm_manager(object):
             if len(job.tasks) == le.n_tasks:
                 job.status = slurm_status.done
             else:
-                job.status = slurm_status.failed
-                logger.warning(f"Job {job.base_name} failed - uncaught error, check log file {log_file.local} "
-                               f"for details.")
+                try:  # look for more specific exception
+                    le.check_for_exceptions()
+
+                except NoGeometryException:
+                    job.status = slurm_status.failed
+                    logger.warning(
+                        f"Job {job.base_name} failed - the log file does not contain geometry. Cannot resubmit.")
+
+                except NegativeFrequencyException:
+                    job.status = slurm_status.incomplete
+                    logger.warning(
+                        f"Job {job.base_name} incomplete - log file contains negative frequencies. Resubmit job.")
+
+                except OptimizationIncompleteException:
+                    job.status = slurm_status.incomplete
+                    logger.warning(f"Job {job.base_name} incomplete - geometry optimization did not complete.")
+
+                else:
+                    job.status = slurm_status.incomplete
+                    logger.warning(f"Job {job.base_name} incomplete.")
 
         except FileNotFoundError:
             job.status = slurm_status.failed
             logger.warning(f"Job {job.base_name} failed  - could not retrieve log file. Cannot resubmit.")
 
-        except NoGeometryException:
-            job.status = slurm_status.failed
-            logger.warning(f"Job {job.base_name} failed - the log file does not contain geometry. Cannot resubmit.")
-
-        except NegativeFrequencyException:
-            job.status = slurm_status.incomplete
-            logger.warning(f"Job {job.base_name} incomplete - log file contains negative frequencies. Resubmit job.")
-
-        except OptimizationIncompleteException:
-            job.status = slurm_status.incomplete
-            logger.warning(f"Job {job.base_name} incomplete - geometry optimization did not complete.")
-
-        # clean up files on the remote site
-        with self.connection.cd(self.remote_dir):
-            try:
-                self.connection.run(f"rm slurm-{job.job_id}.out")
-                self.connection.run(f"rm {job.base_name}.*")
-            except Exception as e:
-                logger.debug("No files left, don't crash here!")
-                pass
+        # clean up files on the remote site - do not cleanup anything, the /scratch/network cleans
+        # up files that are older than 15 days
 
         return job.status
 
-    def resubmit_incomplete_jobs(self) -> None:
+    def resubmit_incomplete_jobs(self, wall_time="24:59:00") -> None:
         """Resubmit jobs that are incomplete. If the job has failed because the optimization has not completed \
         and a log file has been retrieved, then \
         the last geometry will be used for the next submission. For failed jobs \
@@ -270,6 +270,8 @@ class slurm_manager(object):
 
             # replace geometry
             le = gaussian_log_extractor(job_log)
+            le._get_atom_labels()
+            le._get_geometry()
             # old coords block
             with open(job_gjf, "r") as f:
                 file_string = f.read()
@@ -279,9 +281,9 @@ class slurm_manager(object):
                                          file_string, re.DOTALL).group(0)
 
             # new coords block
-            coords = le.geom[list('XYZ')]
+            coords = le.geom[list('XYZ')].applymap(lambda x: f"{x:.6f}")
             coords.insert(0, 'Atom', le.labels)
-            coords_block = "\n".join(map(" ".join, coords.values.astype(str))) + "\n\n"
+            coords_block = "\n".join(map(" ".join, coords.values)) + "\n\n"
 
             # make sure they are the same length and replace
             assert len(old_coords_block.splitlines()) == len(coords_block.splitlines())
@@ -290,6 +292,18 @@ class slurm_manager(object):
                 f.write(file_string)
 
             logger.info("Substituting last checked geometry in the new input file.")
+
+            # replacing wall time
+            job_sh = f"{job.directory}/{job.base_name}.sh"
+            with open(job_sh, "r") as f:
+                file_string = f.read()
+            old_wall_time = re.search(f"#SBATCH -t (\d\d:\d\d:\d\d)", file_string).group(1)
+            file_string = file_string.replace(old_wall_time, wall_time)
+            with open(job_sh, "w") as f:
+                f.write(file_string)
+            convert_crlf_to_lf(job_sh)
+
+            logger.info(f"Substituting wall_time with new value: {wall_time}")
             incomplete_jobs_to_resubmit[key] = job
 
         self.submit_jobs_from_jobs_dict(incomplete_jobs_to_resubmit)
@@ -342,8 +356,6 @@ class slurm_manager(object):
             else:
                 can_keys_to_keep = keys
             self._upload_can_to_db(can, tasks, can_keys_to_keep, tag, max_n_conf)
-
-        self.remove_jobs(done_can_jobs)
 
     def _upload_can_to_db(self, can, tasks, keys, tag, max_conf) -> None:
         """Uploading single molecule conformers to database.
@@ -502,7 +514,7 @@ class slurm_manager(object):
 
         cleanup_empty_dirs(self.workdir)
 
-    def _create_slurm_file_from_gaussian_file(self, base_name, directory) -> None:
+    def _create_slurm_file_from_gaussian_file(self, base_name, directory, wall_time) -> None:
         """Generate a single slurm submission file based on the Gaussian input file.
 
         :param base_name: base name of the Gaussian file
@@ -522,22 +534,14 @@ class slurm_manager(object):
         output += f"#!/bin/bash\n"
         output += f"#SBATCH -N 1\n" \
                   f"#SBATCH --ntasks-per-node={n_processors}\n" \
-                  f"#SBATCH -t {config['slurm']['wall_time']}\n" \
+                  f"#SBATCH -t {wall_time}\n" \
                   f"#SBATCH --constraint={constraint}\n\n"
         if host == "adroit":
             output += f"module load gaussian/g16\n\n"
         output += f"input={base_name}\n\n"
-        output += f"# create scratch directory for the job\n" \
-                  f"export GAUSS_SCRDIR=/scratch/${{USER}}/${{SLURM_JOB_ID}}\n" \
-                  f"tempdir=${{GAUSS_SCRDIR}}\n" \
-                  f"mkdir -p ${{tempdir}}\n\n"
-        output += f"# copy input file to scratch directory\n" \
-                  f"cp ${{SLURM_SUBMIT_DIR}}/${{input}}.gjf ${{tempdir}}\n\n"
         output += f"# run the code \n" \
-                  f"cd ${{tempdir}}\n" \
+                  f"cd {self.remote_dir}\n" \
                   f"g16 ${{input}}.gjf\n\n"
-        output += f"# copy output\n" \
-                  f"cp ${{input}}.log ${{SLURM_SUBMIT_DIR}}"
 
         sh_file_path = f"{directory}/{base_name}.sh"
         with open(sh_file_path, "w") as f:

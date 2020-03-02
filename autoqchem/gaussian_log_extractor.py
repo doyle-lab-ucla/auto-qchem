@@ -47,20 +47,26 @@ class gaussian_log_extractor(object):
         self.n_tasks = len(re.findall("Normal termination", self.log))
 
         self._split_parts()  # split parts
+
+    def check_for_exceptions(self):
+        """Go through the log file and look for known exceptions, truncated file, negative frequencies,
+        incomplete optimization, and raise a corresponding exception
+
+        :return: None
+        """
         try:
             self._get_atom_labels()  # fetch atom labels
             self._get_geometry()  # fetch geometries for each log section
         except IndexError:
-            raise NoGeometryException
+            raise NoGeometryException()
 
         try:
             self._get_frequencies_and_moment_vectors()  # fetch vibration table and vectors
             freqs = [*map(float, self.modes['Frequencies'])]  # extract frequencies
-        except TypeError:
-            raise OptimizationIncompleteException
-
-        if [*filter(lambda x: x < 0., freqs)]:  # check for negative frequencies
-            raise NegativeFrequencyException
+            if [*filter(lambda x: x < 0., freqs)]:  # check for negative frequencies
+                raise NegativeFrequencyException()
+        except TypeError:  # no frequencies
+            raise OptimizationIncompleteException()
 
     def get_descriptors(self) -> dict:
         """Extract and retrieve all descriptors as a dictionary.
@@ -89,7 +95,10 @@ class gaussian_log_extractor(object):
         and td part descriptors"""
 
         logger.debug(f"Extracting descriptors.")
+        self._get_atom_labels()  # atom labels
+        self._get_geometry()  # geometry
         self._compute_occupied_volumes()  # compute buried volumes
+        self._get_frequencies_and_moment_vectors()
         self._get_freq_part_descriptors()  # fetch descriptors from frequency section
         self._get_td_part_descriptors()  # fetch descriptors from TD section
 
