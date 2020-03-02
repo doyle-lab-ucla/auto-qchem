@@ -76,7 +76,6 @@ class slurm_manager(object):
         :param molecule: molecule object
         :type molecule: molecule
         :param workflow_type: Gaussian workflow type, allowed types are: 'equilibrium' or 'transition_state'
-        :param wall_time: wall time of the job in HH:MM:SS format
         :type workflow_type: str
         :param theory: Gaussian theory functional
         :type theory: str
