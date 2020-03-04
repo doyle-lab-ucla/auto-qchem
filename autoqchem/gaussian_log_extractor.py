@@ -55,8 +55,8 @@ class gaussian_log_extractor(object):
         :return: None
         """
         try:
-            self._get_atom_labels()  # fetch atom labels
-            self._get_geometry()  # fetch geometries for each log section
+            self.get_atom_labels()  # fetch atom labels
+            self.get_geometry()  # fetch geometries for each log section
         except IndexError:
             raise NoGeometryException()
 
@@ -95,14 +95,14 @@ class gaussian_log_extractor(object):
         and td part descriptors"""
 
         logger.debug(f"Extracting descriptors.")
-        self._get_atom_labels()  # atom labels
-        self._get_geometry()  # geometry
+        self.get_atom_labels()  # atom labels
+        self.get_geometry()  # geometry
         self._compute_occupied_volumes()  # compute buried volumes
         self._get_frequencies_and_moment_vectors()
         self._get_freq_part_descriptors()  # fetch descriptors from frequency section
         self._get_td_part_descriptors()  # fetch descriptors from TD section
 
-    def _get_atom_labels(self) -> None:
+    def get_atom_labels(self) -> None:
         """Find the the z-matrix and collect atom labels."""
 
         # regex logic, fetch part between "Multiplicity =\d\n" and a double line
@@ -110,7 +110,7 @@ class gaussian_log_extractor(object):
         z_matrix = re.findall("Multiplicity = \d\n(.*?)\n\s*\n", self.log, re.DOTALL)[0]
         self.labels = [items[0] for items in map(str.split, z_matrix.split('\n'))]
 
-    def _get_geometry(self) -> None:
+    def get_geometry(self) -> None:
         """Extract geometry dataframe from the log."""
 
         # regex logic: find parts between "Standard orientation.*X Y Z" and "Rotational constants"

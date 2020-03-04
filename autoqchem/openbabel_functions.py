@@ -59,6 +59,8 @@ def OBMol_from_done_slurm_job(slurm_job) -> pybel.ob.OBMol:
 
     assert slurm_job.status.value == slurm_status.done.value
     le = gaussian_log_extractor(f"{slurm_job.directory}/{slurm_job.base_name}.log")
+    le.get_atom_labels()
+    le.get_geometry()
     # create OBMol from can
     mol = input_to_OBMol(slurm_job.can, input_type="string", input_format="can")
     mol.AddHydrogens()

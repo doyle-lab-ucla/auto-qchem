@@ -286,8 +286,8 @@ class slurm_manager(object):
 
             # replace geometry
             le = gaussian_log_extractor(job_log)
-            le._get_atom_labels()
-            le._get_geometry()
+            le.get_atom_labels()
+            le.get_geometry()
             # old coords block
             with open(job_gjf, "r") as f:
                 file_string = f.read()
