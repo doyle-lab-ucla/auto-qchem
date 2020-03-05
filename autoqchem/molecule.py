@@ -59,6 +59,8 @@ class molecule(object):
         # add 4 hash digits of its canonical smiles in case of collisions of formulas
         self.fs_name = f"{self.mol.GetFormula()}_{hashlib.md5(self.can.encode()).hexdigest()[:4]}"
 
+        # TODO a chemical name would be good to have for lookups (smiles strings are long and hard to handle)
+
         # generate initial geometry and conformations
         self._generate_geometry(gen3D_option)
         self._generate_conformers(max_num_conformers)
