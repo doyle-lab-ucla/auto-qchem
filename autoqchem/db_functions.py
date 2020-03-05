@@ -2,7 +2,6 @@ import logging
 import pybel
 import re
 
-import numpy as np
 import pandas as pd
 import pymongo
 from bson.objectid import ObjectId
@@ -11,6 +10,7 @@ from rdkit.Chem import rdFMCS
 
 from autoqchem.helper_classes import config
 from autoqchem.helper_functions import add_numbers_to_repeated_items
+from autoqchem.openbabel_functions import OBMol_to_string, input_to_OBMol
 
 logger = logging.getLogger(__name__)
 
@@ -170,26 +170,44 @@ def descriptors(tags, presets, conf_option, substructure="") -> dict:
         data['transitions'] = ts.T
 
     if 'core' in presets:
-        rd_mols = [Chem.MolFromSmiles(c) for c in mol_df['can'].tolist()]
-        core_smarts = rdFMCS.FindMCS(rd_mols).smartsString
-        core = pybel.Smarts(core_smarts)
+        cans = mol_df['can'].tolist()
+        obmols = {can: input_to_OBMol(can, "string", "can") for can in cans}
+        obmols_pdb = {can: OBMol_to_string(obmol, "pdb") for can, obmol in obmols.items()}
+        rd_mols = {can: Chem.MolFromPDBBlock(obmol_pdb) for can, obmol_pdb in obmols_pdb.items()}
 
-        # these matches are numbered from 1, so subtract one from them
-        matches = descs_df.index.map(lambda c: core.findall(pybel.readstring("smi", c))[0])
-        matches = matches.map(lambda x: (np.array(x) - 1).tolist())
+        # run MCS if there is more than 1 molecule
+        if len(rd_mols) > 1:
+            core_smarts = rdFMCS.FindMCS(list(rd_mols.values())).smartsString
+        else:  # otherwise use the entire smiles as smarts string
+            core_smarts = Chem.MolToSmarts(list(rd_mols.values())[0])
 
-        # fetch atom labels for this smarts using the first molecule
-        sub_labels = pd.Series(descs_df.iloc[0]['labels']).loc[matches[0]].tolist()
-        sub_labels = add_numbers_to_repeated_items(sub_labels)
+        # create an rdkit smarts
+        core = Chem.MolFromSmarts(core_smarts)
+
+        # get the first match, if multiple substructure matches exist
+        matches = {can: rd_mols[can].GetSubstructMatches(core)[0] for can in cans}
+        matches = pd.Series(matches).map(list)
 
         # create a frame with descriptors large structure in one column, and substructure match
         # indices in the second column
         tmp_df = descs_df.to_frame('descs')
         tmp_df['matches'] = matches
 
+        # fetch atom labels for this smarts using the first molecule
+        row = tmp_df.iloc[0]
+        row_labels = pd.Series(row['descs']['labels'])
+        row_labels = row_labels[~row_labels.str.startswith('H')]  # need to remove hydrogens
+        sub_labels = row_labels.iloc[row['matches']].tolist()
+        sub_labels = add_numbers_to_repeated_items(sub_labels)
+
         for i, label in enumerate(sub_labels):
-            data[label] = pd.concat([row['descs']['atom_descriptors'].loc[row['matches'][i]]
-                                     for c, row in tmp_df.iterrows()], axis=1)
+            to_concat = []
+            for c, row in tmp_df.iterrows():
+                atom_descs = row['descs']['atom_descriptors']
+                atom_descs['labels'] = row['descs']['labels']
+                atom_descs = atom_descs[~atom_descs['labels'].str.startswith("H")]  # need to remove hydrogens
+                to_concat.append(atom_descs.iloc[row['matches'][i]])
+            data[label] = pd.concat(to_concat, axis=1)
             data[label].columns = descs_df.index
             data[label] = data[label].T
 
