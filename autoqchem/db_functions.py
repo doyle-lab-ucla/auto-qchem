@@ -10,7 +10,6 @@ from rdkit.Chem import rdFMCS
 
 from autoqchem.helper_classes import config
 from autoqchem.helper_functions import add_numbers_to_repeated_items
-from autoqchem.openbabel_functions import OBMol_to_string, input_to_OBMol
 
 logger = logging.getLogger(__name__)
 
@@ -148,13 +147,13 @@ def descriptors(tags, presets, conf_option, substructure="") -> dict:
     data = {}
 
     if 'global' in presets:
-        dg = pd.concat([d['descriptors'] for can, d in descs_df.iteritems()], axis=1)
+        dg = pd.concat([d['descriptors'] for can, d in descs_df.iteritems()], axis=1, sort=True)
         dg.columns = descs_df.index
         data['global'] = dg.T
 
     if 'min_max' in presets:
-        dmin = pd.concat([d['atom_descriptors'].min() for can, d in descs_df.iteritems()], axis=1)
-        dmax = pd.concat([d['atom_descriptors'].max() for can, d in descs_df.iteritems()], axis=1)
+        dmin = pd.concat([d['atom_descriptors'].min() for can, d in descs_df.iteritems()], axis=1, sort=True)
+        dmax = pd.concat([d['atom_descriptors'].max() for can, d in descs_df.iteritems()], axis=1, sort=True)
         dmin.columns = descs_df.index
         dmax.columns = descs_df.index
         data['min'] = dmin.T
@@ -164,16 +163,21 @@ def descriptors(tags, presets, conf_option, substructure="") -> dict:
         # select top 3 transitions by oscillation strength
         ts = pd.concat([d['transitions'].sort_values("ES_osc_strength",
                                                      ascending=False).head(10).reset_index(drop=True).unstack()
-                        for can, d in descs_df.iteritems()], axis=1)
+                        for can, d in descs_df.iteritems()], axis=1, sort=True)
         ts.index = ts.index.map(lambda i: "_".join(map(str, i)))
         ts.columns = descs_df.index
         data['transitions'] = ts.T
 
     if 'core' in presets:
         cans = mol_df['can'].tolist()
-        obmols = {can: input_to_OBMol(can, "string", "can") for can in cans}
-        obmols_pdb = {can: OBMol_to_string(obmol, "pdb") for can, obmol in obmols.items()}
-        rd_mols = {can: Chem.MolFromPDBBlock(obmol_pdb) for can, obmol_pdb in obmols_pdb.items()}
+        rd_mols = {can: Chem.MolFromSmiles(can) for can in cans}
+
+        # occasionally rdkit cannot create a molecule from can that openbabel can
+        # this is typically due to dative bonds, dative
+        for can, rd_mol in rd_mols.items():
+            if rd_mol is None:
+                logger.warning(f"Molecule with can: {can} cannot be constructed directly by rdkit.")
+                rd_mols[can] = Chem.MolFromSmarts(can)  # create it from smarts
 
         # run MCS if there is more than 1 molecule
         if len(rd_mols) > 1:
@@ -207,7 +211,7 @@ def descriptors(tags, presets, conf_option, substructure="") -> dict:
                 atom_descs['labels'] = row['descs']['labels']
                 atom_descs = atom_descs[~atom_descs['labels'].str.startswith("H")]  # need to remove hydrogens
                 to_concat.append(atom_descs.iloc[row['matches'][i]])
-            data[label] = pd.concat(to_concat, axis=1)
+            data[label] = pd.concat(to_concat, axis=1, sort=True)
             data[label].columns = descs_df.index
             data[label] = data[label].T
 
@@ -231,7 +235,7 @@ def descriptors(tags, presets, conf_option, substructure="") -> dict:
             for i, label in enumerate(atom_numbers_dedup.iloc[0]):
                 label = 'A' + label
                 data[label] = pd.concat([row['descs']['atom_descriptors'].loc[row['matches'][i]]
-                                         for c, row in tmp_df.iterrows()], axis=1)
+                                         for c, row in tmp_df.iterrows()], axis=1, sort=True)
                 data[label].columns = descs_df.index
                 data[label] = data[label].T
         else:
