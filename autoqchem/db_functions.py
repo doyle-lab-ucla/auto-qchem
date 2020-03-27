@@ -2,6 +2,7 @@ import logging
 import pybel
 import re
 
+import numpy as np
 import pandas as pd
 import pymongo
 from bson.objectid import ObjectId
@@ -13,8 +14,8 @@ from autoqchem.helper_functions import add_numbers_to_repeated_items
 
 logger = logging.getLogger(__name__)
 
-desc_presets = ['global', 'min_max', 'core', 'labeled', 'transitions']
-desc_presets_long = ['Global', 'Min Max Atomic', 'Substructure Core', 'Substructred Labeled',
+desc_presets = ['global', 'min_max', 'substructure', 'core', 'labeled', 'transitions']
+desc_presets_long = ['Global', 'Min Max Atomic', 'Substructure Atomic', 'Common Core Atomic', 'Labeled Atomic',
                      "Excited State Transitions"]
 conf_options = ['boltzmann', 'max', 'min', 'mean', 'std', 'any']
 conf_options_long = ['Boltzman Average', 'Lowest Energy Conformer', 'Highest Energy Conformer', 'Arithmetic Average',
@@ -167,6 +168,34 @@ def descriptors(tags, presets, conf_option, substructure="") -> dict:
         ts.index = ts.index.map(lambda i: "_".join(map(str, i)))
         ts.columns = descs_df.index
         data['transitions'] = ts.T
+
+    if 'substructure' in presets and substructure:
+        sub = pybel.Smarts(substructure)
+        # these matches are numbered from 1, so subtract one from them
+        matches = descs_df.index.map(lambda c: sub.findall(pybel.readstring("smi", c))[0])
+        matches = matches.map(lambda x: (np.array(x) - 1).tolist())
+
+        # fetch atom labels for this smarts using the first molecule
+        sub_labels = pd.Series(descs_df.iloc[0]['labels']).loc[matches[0]].tolist()
+        sub_labels = add_numbers_to_repeated_items(sub_labels)
+        sub_labels = [f"atom{i + 1}" for i in range(len(matches[0]))]
+
+        # create a frame with descriptors large structure in one column, and substructure match
+        # indices in the second column
+        tmp_df = descs_df.to_frame('descs')
+        tmp_df['matches'] = matches
+
+        for i, label in enumerate(sub_labels):
+            # data[label] = pd.concat([row['descs']['atom_descriptors'].loc[row['matches'][i]]
+            #                         for c, row in tmp_df.iterrows()], axis=1)
+            to_concat = []
+            for c, row in tmp_df.iterrows():
+                atom_descs = row['descs']['atom_descriptors']
+                atom_descs['labels'] = row['descs']['labels']
+                to_concat.append(atom_descs.iloc[row['matches'][i]])
+            data[label] = pd.concat(to_concat, axis=1, sort=True)
+            data[label].columns = descs_df.index
+            data[label] = data[label].T
 
     if 'core' in presets:
         cans = mol_df['can'].tolist()
