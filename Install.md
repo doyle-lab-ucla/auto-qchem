@@ -26,9 +26,10 @@ conda install jupyter pandas scipy matplotlib pymongo pyyaml fabric xlrd appdirs
 Answer "y" to the questions. If you'd like to automatically say yes to all question you can
 add ```-y``` at the end of the command, e.g. ```conda install jupyter -y```
 
-Install openbabel v2.4.1 (v3.0.0 is available, but crashes on many structures)
+Install openbabel v2.4.1 (v3.0.0 is available, but crashes on many structures) and rdkit
 ```bash
 conda install -c conda-forge openbabel=2.4.1
+conda install -c rdkit rdkit
 ```
 
 Install imolecule (allows 3d rotateable renderings within jupyter), a specific version is required here
