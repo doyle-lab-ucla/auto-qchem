@@ -109,6 +109,8 @@ class gaussian_log_extractor(object):
         # break (empty line may contain spaces)
         z_matrix = re.findall("Multiplicity = \d\n(.*?)\n\s*\n", self.log, re.DOTALL)[0]
         self.labels = [items[0] for items in map(str.split, z_matrix.split('\n'))]
+        if self.labels[0].lower() == 'symbolic':
+            self.labels = self.labels[1:]
 
     def get_geometry(self) -> None:
         """Extract geometry dataframe from the log."""
@@ -226,8 +228,17 @@ class gaussian_log_extractor(object):
         ]
 
         for desc in single_value_desc_list:
-            value = re.search(f"{desc['prefix']}({float_or_int_regex})", text, re.DOTALL).group(1)
-            self.descriptors[desc["name"]] = desc['type'](value)
+            for part_name in ['freq', 'opt']:
+                try:
+                    value = re.search(f"{desc['prefix']}({float_or_int_regex})",
+                                      self.parts[part_name],
+                                      re.DOTALL).group(1)
+                    self.descriptors[desc["name"]] = desc['type'](value)
+                except AttributeError:
+                    pass
+            if desc["name"] not in self.descriptors:
+                self.descriptors[desc["name"]] = None
+                logger.warning(f'''Descriptor {desc["name"]} not present in the log file.''')
 
         # stoichiometry
         self.descriptors['stoichiometry'] = re.search("Stoichiometry\s*(\w+)", text).group(1)
@@ -252,12 +263,25 @@ class gaussian_log_extractor(object):
         # Mulliken population
         string = re.search("Mulliken charges.*?\n(.*?)\n\s*Sum of Mulliken", text, re.DOTALL).group(1)
         charges = np.array(list(map(str.split, string.splitlines()))[1:])[:, 2]
+        if len(charges) < len(self.labels):
+            string = re.search("Mulliken atomic charges.*?\n(.*?)\n\s*Sum of Mulliken", text, re.DOTALL).group(1)
+            charges = np.array(list(map(str.split, string.splitlines()))[1:])[:, 2]
         mulliken = pd.Series(charges, name='Mulliken_charge')
 
         # APT charges
-        string = re.search("APT charges.*?\n(.*?)\n\s*Sum of APT", text, re.DOTALL).group(1)
-        charges = np.array(list(map(str.split, string.splitlines()))[1:])[:, 2]
-        apt = pd.Series(charges, name='APT_charge')
+        try:
+            string = re.search("APT charges.*?\n(.*?)\n\s*Sum of APT", text, re.DOTALL).group(1)
+            charges = np.array(list(map(str.split, string.splitlines()))[1:])[:, 2]
+            apt = pd.Series(charges, name='APT_charge')
+        except IndexError:
+            try:
+                string = re.search("APT atomic charges.*?\n(.*?)\n\s*Sum of APT", text, re.DOTALL).group(1)
+                charges = np.array(list(map(str.split, string.splitlines()))[1:])[:, 2]
+                apt = pd.Series(charges, name='APT_charge')
+            except Exception:
+                charges = np.array([0] * len(self.labels))
+                apt = pd.Series(charges, name='APT_charge')
+                logger.warning(f"Log file does not contain APT charges.")
 
         # NPA charges
         string = re.search("Summary of Natural Population Analysis:.*?\n\s-+\n(.*?)\n\s=+\n", text, re.DOTALL).group(1)
