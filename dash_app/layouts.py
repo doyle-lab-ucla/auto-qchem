@@ -75,7 +75,7 @@ def layout_table(tags, substructure, message=""):
                 data=get_table(tags, substructure).to_dict('records'),
                 columns=[dict(name=c, id=c, hideable=False,
                               presentation="markdown" if c in ['image', 'descriptors'] else "input") for c in
-                         ['image', 'can', 'tags', 'theory', 'light_basis_set', 'heavy_basis_set',
+                         ['image', 'can', 'name', 'tags', 'theory', 'light_basis_set', 'heavy_basis_set',
                           'generic_basis_set', 'max_light_atomic_number', 'num_conformers',
                           'max_num_conformers', 'descriptors']],
                 editable=False,
