@@ -19,6 +19,7 @@ class slurm_status(enum.IntEnum):
     done = 3  #: job finished successfully (all gaussian steps finished) and have been retrieved from host
     failed = 4  #: job failed
     incomplete = 5  #: job is incomplete, it should be resubmitted
+    uploaded = 6  #: job has been uploaded to the DB succesfully
 
 
 @dataclass

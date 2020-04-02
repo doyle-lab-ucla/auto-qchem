@@ -33,7 +33,7 @@ class slurm_manager(object):
         self.jobs = {}  # jobs under management
 
         # load jobs under management from cache_file (suppress exceptions, no file, empty file, etc.)
-        with suppress(Exception):
+        with suppress(Exception):  # TODO this isn't very safe because may ignore important exceptions
             with open(self.cache_file, 'rb') as cf:
                 self.jobs = pickle.load(cf)
 
@@ -324,7 +324,7 @@ class slurm_manager(object):
 
         self.submit_jobs_from_jobs_dict(incomplete_jobs_to_resubmit)
 
-    def upload_done_molecules_to_db(self, tag, RMSD_threshold=0.01, symmetry=True) -> None:
+    def upload_done_molecules_to_db(self, tags, RMSD_threshold=0.01, symmetry=True) -> None:
         """Upload done molecules to db. Molecules are considered done when all jobs for a given \
          smiles are in 'done' status. The conformers are deduplicated and uploaded to database using a metadata tag.
 
@@ -371,9 +371,9 @@ class slurm_manager(object):
                 can_keys_to_keep = [key for i, key in enumerate(keys) if i not in duplicates]
             else:
                 can_keys_to_keep = keys
-            self._upload_can_to_db(can, tasks, can_keys_to_keep, tag, max_n_conf)
+            self._upload_can_to_db(can, tasks, can_keys_to_keep, tags, max_n_conf)
 
-    def _upload_can_to_db(self, can, tasks, keys, tag, max_conf) -> None:
+    def _upload_can_to_db(self, can, tasks, keys, tags, max_conf) -> None:
         """Uploading single molecule conformers to database.
 
         :param db: database client
@@ -384,18 +384,21 @@ class slurm_manager(object):
         :type tasks: tuple
         :param keys: list of keys to the self.jobs dictionary to upload
         :type keys: list
-        :param tag: metadata tag
-        :type tag: str
+        :param tags: metadata tag or tags
+        :type tags: str or list
         :param max_conf: max number of conformers used for this molecule
         :type max_conf: int
         """
 
-        # check if the tag is properly provided
-        assert isinstance(tag, str)
-        assert len(tag.strip()) > 0
+        # check if the tag(s) are properly provided
+        assert isinstance(tags, (str, list))
+        if isinstance(tags, str):
+            tags = [tags]
+        assert all(len(t.strip()) > 0 for t in tags)
 
         # loop over the conformers
         conformations = []
+        logs = []
         configs = []
         for key in keys:
             # fetch job, verify that there are not can issues (just in case)
@@ -410,6 +413,7 @@ class slurm_manager(object):
             le = gaussian_log_extractor(log)
             # add descriptors to conformations list
             conformations.append(le.get_descriptors())
+            logs.append(le.log)
 
         # compute weights
         free_energies = np.array(
@@ -418,33 +422,16 @@ class slurm_manager(object):
         weights = np.exp(-free_energies / (k_in_kcal_per_mol_K * T))
         weights /= weights.sum()
 
-        mols_coll = db_connect('molecules')
-        tags_coll = db_connect('tags')
-        feats_coll = db_connect('qchem_descriptors')
-
         # check that all configs are the same
         assert len(set([config.__repr__() for config in configs])) == 1
+        metadata = {'gaussian_config': configs[0], 'gaussian_tasks': tasks, 'max_num_conformers': max_conf}
 
-        # create molecule record and insert it
-        mol_data = {'can': can, 'metadata': {'gaussian_config': configs[0], 'gaussian_tasks': tasks,
-                                             'max_num_conformers': max_conf}}
-        ret = mols_coll.insert_one(mol_data)
-        mol_id = ret.inserted_id
-
-        # insert tag record
-        tags_coll.insert_one({'tag': tag, 'molecule_id': mol_id})
-
-        for weight, conformation in zip(weights, conformations):
-            # startup data structure
-            data = {'molecule_id': mol_id,
-                    'weight': weight}
-
-            # update with descriptors
-            data.update(conformation)
-
-            # db insertion
-            feats_coll.insert_one(data)
-        logger.info(f"Uploaded descriptors to DB for smiles: {can}, number of conformers: {len(conformations)}.")
+        mol_id = db_upload_molecule(can, tags, metadata, weights, conformations, logs)
+        logger.info(f"Uploaded descriptors to DB for smiles: {can}, number of conformers: {len(conformations)},"
+                    f" DB molecule id {mol_id}.")
+        for key in keys:
+            self.jobs[key].status = slurm_status.uploaded
+        self._cache()
 
     def get_jobs(self, status=None, can=None) -> dict:
         """Get a dictionary of jobs, optionally filter by status and canonical smiles.
