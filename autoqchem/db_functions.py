@@ -27,18 +27,80 @@ class InconsistentLabelsException(Exception):
     pass
 
 
-def db_connect(collection="molecules") -> pymongo.collection.Collection:
+def db_connect(collection=None) -> pymongo.collection.Collection:
     """Create a connection to the database and return the table (Collection).
 
     :return: pymongo.collection.Collection
     """
 
-    db = pymongo.MongoClient(config['mongoDB']['host'],
-                             username=config['mongoDB']['user'],
-                             password=config['mongoDB']['password'],
-                             port=config['mongoDB']['port'])
+    cli = pymongo.MongoClient(config['mongoDB']['host'],
+                              username=config['mongoDB']['user'],
+                              password=config['mongoDB']['password'],
+                              port=config['mongoDB']['port'])
+    if collection is None:
+        return cli['autoqchem']
+    else:
+        return cli['autoqchem'][collection]
 
-    return db['autoqchem'][collection]
+
+def db_upload_molecule(can, tags, metadata, weights, conformations, logs) -> ObjectId:
+    """Upload single molecule to DB and all child objects tags, features
+    and log files for its conformations"""
+
+    db = db_connect()
+    mols_coll = db['molecules']
+    tags_coll = db['tags']
+
+    # create molecule record and insert it
+    mol_data = {'can': can, 'metadata': metadata}
+    ret = mols_coll.insert_one(mol_data)
+    mol_id = ret.inserted_id
+
+    # insert tag record
+    for tag in tags:
+        tags_coll.insert_one({'tag': tag, 'molecule_id': mol_id, 'can': can})
+
+    for weight, conformation, log in zip(weights, conformations, logs):
+        db_upload_conformation(mol_id, can, weight, conformation, log, check_mol_exists=False)
+    return mol_id
+
+
+def db_upload_conformation(mol_id, can, weight, conformation, log, check_mol_exists=True):
+    """Upload single conformation features and log file to DB, requires a molecule
+    to be present"""
+
+    db = db_connect()
+    # check if the molecule with a given id exists in the DB
+    mols_coll = db["molecules"]
+    if check_mol_exists:
+        assert mols_coll.find_one({'_id': mol_id}) is not None
+
+    # connect to features and logs collections
+    feats_coll = db['qchem_descriptors']
+    logs_coll = db['log_files']
+
+    data = {'molecule_id': mol_id, 'weight': weight, 'can': can}
+
+    # update with descriptors
+    data.update(conformation)
+
+    # db insertion
+    feats_coll.insert_one(data)
+    logs_coll.insert_one({'molecule_id': mol_id, 'log': log, 'can': can})
+
+
+def db_delete_molecule(mol_id):
+    """Delete molecule from DB, cascade all child objects: tags, features and log files"""
+
+    db = db_connect()
+    if isinstance(mol_id, str):
+        mol_id = ObjectId(mol_id)
+
+    print(mol_id)
+    db['qchem_descriptors'].delete_many({"molecule_id": mol_id})  # features
+    db['log_files'].delete_many({"molecule_id": mol_id})  # log files
+    db['tags'].delete_many({"molecule_id": mol_id})  # tags
+    db['molecules'].delete_one({"_id": mol_id})  # molecule itself
 
 
 def db_select_molecules(tags=[], substructure="") -> pd.DataFrame:
@@ -51,15 +113,18 @@ def db_select_molecules(tags=[], substructure="") -> pd.DataFrame:
     :return: pandas.core.frame.DataFrame
     """
 
-    tags_coll = db_connect('tags')
-    mols_coll = db_connect('molecules')
-    feats_coll = db_connect('qchem_descriptors')
+    db = db_connect()
+    tags_coll = db['tags']
+    mols_coll = db['molecules']
+    feats_coll = db['qchem_descriptors']
 
     tags_cur = tags_coll.find({'tag': {'$in': tags}} if tags else {})
     tags_df = pd.DataFrame(tags_cur)
 
     mols_cur = mols_coll.find({'_id': {'$in': tags_df.molecule_id.tolist()}})
     mols_df = pd.DataFrame(mols_cur)
+    if 'name' not in mols_df.columns:
+        mols_df['name'] = None
 
     if substructure:
         pattern = pybel.Smarts(substructure)
@@ -74,7 +139,7 @@ def db_select_molecules(tags=[], substructure="") -> pd.DataFrame:
     df['metadata_str'] = df['metadata'].map(repr)
     grouped = df.groupby(['can', 'metadata_str'])
     # groupby tags
-    df = pd.concat([grouped['metadata', 'molecule_id'].first(),
+    df = pd.concat([grouped['metadata', 'molecule_id', 'name'].first(),
                     grouped['tag'].apply(list)], axis=1).reset_index().drop('metadata_str', axis=1)
 
     # fetch ids
@@ -95,8 +160,9 @@ def db_check_exists(can, gaussian_config, max_num_conformers) -> tuple:
     :return: exists(bool), list of tags that are associated with the molecule if it exists
     """
 
-    mols_coll = db_connect(collection='molecules')
-    tags_coll = db_connect(collection='tags')
+    db = db_connect()
+    mols_coll = db['molecules']
+    tags_coll = db['tags']
     mol_id = mols_coll.find_one({"can": can,
                                  "metadata.gaussian_config": gaussian_config,
                                  "metadata.max_num_conformers": max_num_conformers},
