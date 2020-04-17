@@ -248,12 +248,25 @@ class gaussian_log_extractor(object):
         # compute the fraction of YES/NO answers
         self.descriptors['converged'] = (np.array(re.findall("(\w+)\n", string)) == 'YES').mean()
 
-        # TODO if multiplicity is more than 1, then both Alph and Beta molecular orbitals will have homo/lumo
         # energies, regex-logic: find all floats in energy block, split by occupied, virtual orbitals
         string = re.search("Population.*?SCF density.*?(\sAlph.*?)\n\s*Condensed", text, re.DOTALL).group(1)
-        energies = [re.findall(f"({float_or_int_regex})", s_part) for s_part in string.split("Alpha virt.", 1)]
-        occupied_energies, unoccupied_energies = [map(float, e) for e in energies]
-        homo, lumo = max(occupied_energies), min(unoccupied_energies)
+        if self.descriptors['multiplicity'] == 1:
+            energies = [re.findall(f"({float_or_int_regex})", s_part) for s_part in string.split("Alpha virt.", 1)]
+            occupied_energies, unoccupied_energies = [map(float, e) for e in energies]
+            homo, lumo = max(occupied_energies), min(unoccupied_energies)
+        elif self.descriptors['multiplicity'] == 3:
+            alpha, beta = re.search("(\s+Alpha\s+occ. .*?)(\s+Beta\s+occ. .*)", string, re.DOTALL).groups()
+            energies_alpha = [re.findall(f"({float_or_int_regex})", s_part) for s_part in alpha.split("Alpha virt.", 1)]
+            energies_beta = [re.findall(f"({float_or_int_regex})", s_part) for s_part in beta.split("Beta virt.", 1)]
+            occupied_energies_alpha, unoccupied_energies_alpha = [map(float, e) for e in energies_alpha]
+            occupied_energies_beta, unoccupied_energies_beta = [map(float, e) for e in energies_beta]
+            homo_alpha, lumo_alpha = max(occupied_energies_alpha), min(unoccupied_energies_alpha)
+            homo_beta, lumo_beta = max(occupied_energies_beta), min(unoccupied_energies_beta)
+            homo, lumo = homo_alpha, lumo_beta
+        else:
+            logger.warning(f"Unsupported multiplicity {self.descriptors['multiplicity']}, cannot compute homo/lumo. "
+                           f"Setting both to 0.")
+            homo, lumo = 0, 0
         self.descriptors['homo_energy'] = homo
         self.descriptors['lumo_energy'] = lumo
         self.descriptors['electronegativity'] = -0.5 * (lumo + homo)
