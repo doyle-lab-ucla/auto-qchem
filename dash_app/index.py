@@ -9,7 +9,7 @@ import pandas as pd
 from dash.dependencies import Input, Output
 
 from autoqchem.db_functions import pybel, descriptors, InconsistentLabelsException
-from dash_app.app import app
+from dash_app.app import app, server
 from dash_app.functions import app_path, get_table
 from dash_app.layouts import layout_table, layout_descriptors
 
