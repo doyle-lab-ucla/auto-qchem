@@ -1,6 +1,6 @@
 import os
 import time
-from urllib.parse import unquote
+from urllib.parse import unquote_plus
 
 import dash_core_components as dcc
 import dash_html_components as html
@@ -9,7 +9,7 @@ import pandas as pd
 from dash.dependencies import Input, Output
 
 from autoqchem.db_functions import pybel, descriptors, InconsistentLabelsException
-from dash_app.app import app, server
+from dash_app.app import app
 from dash_app.functions import app_path, get_table
 from dash_app.layouts import layout_table, layout_descriptors
 
@@ -28,7 +28,7 @@ def display_page(pathname, search):
             return layout_table(None, None)
         if search:
             items = [item.split("=") for item in search.split('?')[1].split("&")]
-            items_dict = {key: unquote(value) for key, value in items}
+            items_dict = {key: unquote_plus(value) for key, value in items}
             items_dict['tags'] = list(filter(None, items_dict['tags'].split(",")))
             try:
                 if items_dict['substructure'] != "":
@@ -70,7 +70,7 @@ def on_post():
         url_items = [item.split("=") for item in flask.request.url.split('?')[1].split("&")]
     except IndexError:
         return ('', 204)
-    items_dict = {key: unquote(value) for key, value in url_items}
+    items_dict = {key: unquote_plus(value) for key, value in url_items}
     # fetch form items from form
     items_dict.update(flask.request.form)
     items_dict['tags'] = list(filter(None, items_dict['tags'].split(",")))
