@@ -39,7 +39,7 @@ class slurm_manager(object):
 
         self.host = host
         self.user = user
-        self.remote_dir = f"/scratch/gpfs/{self.user}/gaussian"
+        self.remote_dir = f"/scratch/{'gpfs' if 'della' in host else 'network'}/{self.user}/gaussian"
         self.connection = None
 
     def connect(self) -> None:
