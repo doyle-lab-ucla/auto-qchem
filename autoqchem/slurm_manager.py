@@ -243,7 +243,11 @@ class slurm_manager(object):
                     job.status = slurm_status.incomplete
                     logger.warning(f"Job {job.base_name} incomplete - geometry optimization did not complete.")
 
-                else:
+                except Exception as e:
+                    job.status = slurm_status.failed
+                    logger.warning(f"Job {job.base_name} failed with unhandled exception: {e}")
+
+                else:  # no exceptions were thrown, but still the job is incomplete
                     job.status = slurm_status.incomplete
                     logger.warning(f"Job {job.base_name} incomplete.")
 
