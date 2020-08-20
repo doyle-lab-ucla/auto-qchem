@@ -421,10 +421,13 @@ def _pandatize_record(record) -> dict:
     record['transitions'] = pd.DataFrame(record['transitions']).astype(float)
     record['atom_descriptors'] = pd.DataFrame(record['atom_descriptors']).astype(float)
 
-    record['mode_vectors'] = pd.DataFrame(record['mode_vectors'])
-    record['mode_vectors']['atom_idx'] = list(range(len(record['labels']))) * 3 * record['modes'].shape[0]
-    record['mode_vectors'] = record['mode_vectors'].set_index(['mode_number', 'axis', 'atom_idx']).unstack(
-        ['mode_number', 'axis'])
-    record['mode_vectors'] = record['mode_vectors'].droplevel(0, axis=1).astype(float)
+    if record['mode_vectors'] is not None:
+        record['mode_vectors'] = pd.DataFrame(record['mode_vectors'])
+        record['mode_vectors']['atom_idx'] = list(range(len(record['labels']))) * 3 * record['modes'].shape[0]
+        record['mode_vectors'] = record['mode_vectors'].set_index(['mode_number', 'axis', 'atom_idx']).unstack(
+            ['mode_number', 'axis'])
+        record['mode_vectors'] = record['mode_vectors'].droplevel(0, axis=1).astype(float)
+    else:
+        record['mode_vectors'] = pd.DataFrame()
 
     return record
