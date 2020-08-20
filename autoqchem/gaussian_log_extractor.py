@@ -108,9 +108,24 @@ class gaussian_log_extractor(object):
         # regex logic, fetch part between "Multiplicity =\d\n" and a double line
         # break (empty line may contain spaces)
         z_matrix = re.findall("Multiplicity = \d\n(.*?)\n\s*\n", self.log, re.DOTALL)[0]
-        self.labels = [items[0] for items in map(str.split, z_matrix.split('\n'))]
-        if self.labels[0].lower() == 'symbolic':
-            self.labels = self.labels[1:]
+        z_matrix = list(map(str.strip, z_matrix.split("\n")))
+        # clean up extra lines if present
+        if z_matrix[0].lower().startswith(('redundant', 'symbolic')):
+            z_matrix = z_matrix[1:]
+        if z_matrix[-1].lower().startswith('recover'):
+            z_matrix = z_matrix[:-1]
+
+        # fetch labels checking either space or comma split
+        self.labels = []
+        for line in z_matrix:
+            space_split = line.split()
+            comma_split = line.split(",")
+            if len(space_split) > 1:
+                self.labels.append(space_split[0])
+            elif len(comma_split) > 1:
+                self.labels.append(comma_split[0])
+            else:
+                raise Exception("Cannot fetch labels from geometry block")
 
     def get_geometry(self) -> None:
         """Extract geometry dataframe from the log."""
@@ -161,40 +176,45 @@ class gaussian_log_extractor(object):
             logger.info("Output file does not have a 'freq' part. Cannot extract frequencies.")
             return
 
-        # regex logic: text between "Harmonic... normal coordinates and Thermochemistry, preceeded by a line of "---"
-        freq_part = re.findall("Harmonic frequencies.*normal coordinates:\s*(\n.*?)\n\n\s-+\n.*Thermochemistry",
-                               self.parts['freq'], re.DOTALL)[0]
+        try:
+            # regex logic: text between "Harmonic... normal coordinates and Thermochemistry, preceeded by a line of "---"
+            freq_part = re.findall("Harmonic frequencies.*normal coordinates:\s*(\n.*?)\n\n\s-+\n.*Thermochemistry",
+                                   self.parts['freq'], re.DOTALL)[0]
 
-        # split each section of text with frequencies
-        # regex logic, each frequency part ends with a \s\d+\n, note: we do not use DOTALL here!
-        freq_sections = re.split("\n.*?\s\d+\n", freq_part)[1:]
+            # split each section of text with frequencies
+            # regex logic, each frequency part ends with a \s\d+\n, note: we do not use DOTALL here!
+            freq_sections = re.split("\n.*?\s\d+\n", freq_part)[1:]
 
-        freq_dfs, vector_dfs = [], []
-        for freq_section in freq_sections:
-            # frequencies
-            freqs = re.findall("\n(\s\w+.*?)\n\s+Atom", freq_section, re.DOTALL)[0]
-            freqs = [text.split("--") for text in freqs.splitlines()]
-            freqs = [[item[0].strip()] + item[1].split() for item in freqs]
-            freqs = np.array(freqs).T.tolist()
-            freq_dfs.append(pd.DataFrame(freqs[1:], columns=[name.replace(".", "") for name in freqs[0]]))
+            freq_dfs, vector_dfs = [], []
+            for freq_section in freq_sections:
+                # frequencies
+                freqs = re.findall("\n(\s\w+.*?)\n\s+Atom", freq_section, re.DOTALL)[0]
+                freqs = [text.split("--") for text in freqs.splitlines()]
+                freqs = [[item[0].strip()] + item[1].split() for item in freqs]
+                freqs = np.array(freqs).T.tolist()
+                freq_dfs.append(pd.DataFrame(freqs[1:], columns=[name.replace(".", "") for name in freqs[0]]))
 
-            # vectors
-            vectors = re.findall("\n(\s+Atom.*)", freq_section, re.DOTALL)[0]
-            vectors = [text.split() for text in vectors.splitlines()]
-            vector_df = pd.DataFrame(vectors[1:], columns=vectors[0])
-            vector_df.drop(["Atom", "AN"], axis=1, inplace=True)
-            vector_dfs.append(vector_df)
+                # vectors
+                vectors = re.findall("\n(\s+Atom.*)", freq_section, re.DOTALL)[0]
+                vectors = [text.split() for text in vectors.splitlines()]
+                vector_df = pd.DataFrame(vectors[1:], columns=vectors[0])
+                vector_df.drop(["Atom", "AN"], axis=1, inplace=True)
+                vector_dfs.append(vector_df)
 
-        # combine into one frame
-        frequencies = pd.concat(freq_dfs)
-        frequencies['mode_number'] = range(1, len(frequencies) + 1)
-        self.modes = frequencies.set_index('mode_number').astype(float)
+            # combine into one frame
+            frequencies = pd.concat(freq_dfs)
+            frequencies['mode_number'] = range(1, len(frequencies) + 1)
+            self.modes = frequencies.set_index('mode_number').astype(float)
 
-        vectors = pd.concat(vector_dfs, axis=1).astype(float)
-        vectors.columns = pd.MultiIndex.from_product([list(range(1, len(frequencies) + 1)), ['X', 'Y', 'Z'], ])
-        vectors.columns.names = ['mode_number', 'axis']
-        vectors = vectors.unstack().reset_index(level=2, drop=True).to_frame('value').reset_index()
-        self.mode_vectors = vectors
+            vectors = pd.concat(vector_dfs, axis=1).astype(float)
+            vectors.columns = pd.MultiIndex.from_product([list(range(1, len(frequencies) + 1)), ['X', 'Y', 'Z'], ])
+            vectors.columns.names = ['mode_number', 'axis']
+            vectors = vectors.unstack().reset_index(level=2, drop=True).to_frame('value').reset_index()
+            self.mode_vectors = vectors
+        except Exception:
+            self.modes = None
+            self.mode_vectors = None
+            logger.warning("Log file does not contain vibrational frequencies")
 
     def _get_freq_part_descriptors(self) -> None:
         """Extract descriptors from frequency part."""
@@ -234,7 +254,7 @@ class gaussian_log_extractor(object):
                                       self.parts[part_name],
                                       re.DOTALL).group(1)
                     self.descriptors[desc["name"]] = desc['type'](value)
-                except AttributeError:
+                except (AttributeError, KeyError):
                     pass
             if desc["name"] not in self.descriptors:
                 self.descriptors[desc["name"]] = None
@@ -244,9 +264,13 @@ class gaussian_log_extractor(object):
         self.descriptors['stoichiometry'] = re.search("Stoichiometry\s*(\w+)", text).group(1)
 
         # convergence, regex-logic: last word in each line should be "YES"
-        string = re.search("(Maximum Force.*?)\sPredicted change", text, re.DOTALL).group(1)
-        # compute the fraction of YES/NO answers
-        self.descriptors['converged'] = (np.array(re.findall("(\w+)\n", string)) == 'YES').mean()
+        try:
+            string = re.search("(Maximum Force.*?)\sPredicted change", text, re.DOTALL).group(1)
+            # compute the fraction of YES/NO answers
+            self.descriptors['converged'] = (np.array(re.findall("(\w+)\n", string)) == 'YES').mean()
+        except Exception:
+            self.descriptors['converged'] = None
+            logger.warning("Log file does not have optimization convergence information")
 
         # energies, regex-logic: find all floats in energy block, split by occupied, virtual orbitals
         string = re.search("Population.*?SCF density.*?(\sAlph.*?)\n\s*Condensed", text, re.DOTALL).group(1)
@@ -286,24 +310,33 @@ class gaussian_log_extractor(object):
             string = re.search("APT charges.*?\n(.*?)\n\s*Sum of APT", text, re.DOTALL).group(1)
             charges = np.array(list(map(str.split, string.splitlines()))[1:])[:, 2]
             apt = pd.Series(charges, name='APT_charge')
-        except IndexError:
+        except (IndexError, AttributeError):
             try:
                 string = re.search("APT atomic charges.*?\n(.*?)\n\s*Sum of APT", text, re.DOTALL).group(1)
                 charges = np.array(list(map(str.split, string.splitlines()))[1:])[:, 2]
                 apt = pd.Series(charges, name='APT_charge')
             except Exception:
-                charges = np.array([0] * len(self.labels))
-                apt = pd.Series(charges, name='APT_charge')
+                apt = pd.Series(name='APT_charge')
                 logger.warning(f"Log file does not contain APT charges.")
 
         # NPA charges
-        string = re.search("Summary of Natural Population Analysis:.*?\n\s-+\n(.*?)\n\s=+\n", text, re.DOTALL).group(1)
-        population = np.array(list(map(str.split, string.splitlines())))[:, 2:]
-        npa = pd.DataFrame(population, columns=['NPA_charge', 'NPA_core', 'NPA_valence', 'NPA_Rydberg', 'NPA_total'])
+        try:
+            string = re.search("Summary of Natural Population Analysis:.*?\n\s-+\n(.*?)\n\s=+\n", text,
+                               re.DOTALL).group(1)
+            population = np.array(list(map(str.split, string.splitlines())))[:, 2:]
+            npa = pd.DataFrame(population,
+                               columns=['NPA_charge', 'NPA_core', 'NPA_valence', 'NPA_Rydberg', 'NPA_total'])
+        except Exception:
+            npa = pd.DataFrame(['NPA_charge', 'NPA_core', 'NPA_valence', 'NPA_Rydberg', 'NPA_total'])
+            logger.warning(f"Log file does not contain NPA charges.")
 
         # NMR
-        string = re.findall(f"Isotropic\s=\s*({float_or_int_regex})\s*Anisotropy\s=\s*({float_or_int_regex})", text)
-        nmr = pd.DataFrame(np.array(string).astype(float), columns=['NMR_shift', 'NMR_anisotropy'])
+        try:
+            string = re.findall(f"Isotropic\s=\s*({float_or_int_regex})\s*Anisotropy\s=\s*({float_or_int_regex})", text)
+            nmr = pd.DataFrame(np.array(string).astype(float), columns=['NMR_shift', 'NMR_anisotropy'])
+        except Exception:
+            nmr = pd.DataFrame(columns=['NMR_shift', 'NMR_anisotropy'])
+            logger.warning(f"Log file does not contain NMR shifts.")
 
         self.atom_freq_descriptors = pd.concat([mulliken, apt, npa, nmr], axis=1)
 
