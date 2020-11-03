@@ -4,10 +4,12 @@ from urllib.parse import unquote_plus
 import dash_core_components as dcc
 import dash_html_components as html
 import flask
+import pandas as pd
 from dash.dependencies import Input, Output
 
-from dash_app.app import app
-from dash_app.functions import *
+from autoqchem.db_functions import pybel, descriptors, InconsistentLabelsException, db_connect
+from dash_app.app import app, server
+from dash_app.functions import app_path, get_table
 from dash_app.layouts import layout_table, layout_descriptors
 
 app.layout = html.Div([
