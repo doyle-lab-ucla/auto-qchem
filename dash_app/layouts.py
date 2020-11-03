@@ -5,48 +5,103 @@ import dash_table as dt
 from dash_app.functions import *
 
 
-def layout_table(tags, substructure, message=""):
+def layout_table(cls, subcls, type, subtype, tags, substructure, message=""):
     tags_coll = db_connect('tags')
+    mols_coll = db_connect('molecules')
+
+    '''
+    filter = {}
+    if cls is not None:
+        filter['metadata.class'] = cls
+    if subcls is not None:
+        filter['metadata.subclass'] = subcls
+    if type is not None:
+        filter['metadata.type'] = type
+    if subtype is not None:
+        filter['metadata.subtype'] = subtype
+
+    if filter:
+        mols_ids = mols_coll.distinct('_id', filter)
+        available_tags = tags_coll.distinct('tag', {'molecule_id': {"$in": mols_ids}})
+    else:
+        available_tags = tags_coll.distinct('tag')
+    '''
 
     return html.Div(children=[
 
-        html.H3('Auto-QChem DB'),
+        dcc.Link(html.H3('Auto-QChem DB'), href="/"),
 
         html.Datalist(id='conf_options',
                       children=[html.Option(label=desc, value=tag)
                                 for desc, tag in zip(conf_options_long, conf_options)]),
 
-        html.Form(id='query-form', style={'display': 'inline-block'}, children=[
-            dcc.Dropdown(
-                id='tags_dropdown',
-                options=[dict(label=f"{tag} ({len(tags_coll.distinct('molecule_id', {'tag': tag}))} molecules)"
-                              , value=tag)
-                         for tag in list(tags_coll.distinct('tag'))],
-                multi=True,
-                style={"width": "300px", 'display': 'inline-block', 'verticalAlign': 'top'},
-                placeholder="Select tags...",
-                persistence=True,
-            ),
-            dcc.Input(name="tags", id="tags", style={'display': 'none'}),
-            dcc.Input(name="substructure", id="substructure",
-                      placeholder="Filter on SMARTS substructure...", style={"width": "300px",
-                                                                             'verticalAlign': 'top',
-                                                                             'display': 'inline-block'},
-                      persistence=False,
-                      value=substructure
+        html.Form(id='query-form',
+                  children=[
+                      dcc.Dropdown(id="cls_dropdown",
+                                   options=[dict(label=cls, value=cls)
+                                            for cls in list(
+                                           mols_coll.distinct('metadata.class')
+                                       )],
+                                   placeholder="Select Class",
+                                   persistence=False),
+                      dcc.Dropdown(id="subcls_dropdown", options=[dict(label=subcls, value=subcls)
+                                                                  for subcls in list(
+                              mols_coll.distinct('metadata.subclass')
+                          )],
+                                   placeholder="Select SubClass",
+                                   persistence=False),
+                      dcc.Dropdown(id="type_dropdown", options=[dict(label=type, value=type)
+                                                                for type in list(
+                              mols_coll.distinct('metadata.type')
+                          )],
+                                   placeholder="Select Type",
+                                   persistence=False),
+                      dcc.Dropdown(id="subtype_dropdown", options=[dict(label=subtype, value=subtype)
+                                                                   for subtype in list(
+                              mols_coll.distinct('metadata.subtype')
+                          )],
+                                   placeholder="Select SubType",
+                                   persistence=False),
+                      dcc.Dropdown(
+                          id='tags_dropdown',
+                          options=[dict(
+                              label=f'''{tag} ({len(tags_coll.distinct("molecule_id", {"tag": tag}))} molecules)''',
+                              value=tag)
+                              for tag in tags_coll.distinct('tag')],
+                          multi=True,
+                          placeholder="Select Tags",
+                          persistence=False,
                       ),
-            html.Button('Query', id='submit_query-form', style={"width": "150px", 'display': 'inline-block',
-                                                                "background": "#F0F8FF"}),
-        ], ),
+                      dcc.Input(name="cls", id="cls", style={'display': 'none'}),
+                      dcc.Input(name="subcls", id="subcls", style={'display': 'none'}),
+                      dcc.Input(name="type", id="type", style={'display': 'none'}),
+                      dcc.Input(name="subtype", id="subtype", style={'display': 'none'}),
+                      dcc.Input(name="tags", id="tags", style={'display': 'none'}),
+                      dcc.Input(name="substructure", id="substructure",
+                                placeholder="Filter w/ SMARTS Substructure",
+                                style={"width": "100%"},
+                                persistence=False,
+                                value=substructure
+                                ),
+                      html.Button('Query', id='submit_query-form',
+                                  style={"width": "50%", "background": "#F0F8FF"}
+                                  ),
+                  ], ),
 
-        html.Form(id='export-summary-form', style={'display': 'inline-block'}, method='post', children=[
-            dcc.Input(name="export", id='export', style={'display': 'none'}),
-            html.Button('Export', id='submit_export-summary-form', style={"width": "150px", "background": "#F0F8FF"})
-        ]
-                  ),
         html.P(message) if message else html.Div(),
 
         html.Div(children=[
+            html.Details(children=[
+                html.Summary("Export Molecule List"),
+                html.Form(id='export-summary-form',
+                          method='post', children=[
+                        dcc.Input(name="export", id='export', style={'display': 'none'}),
+                        html.Button('Export List', id='submit_export-summary-form',
+                                    style={"width": "50%", "background": "#F0F8FF"}
+                                    )
+                    ]
+                          ),
+            ]),
             html.Details(children=[
                 html.Summary("Download descriptors"),
                 html.Form(
@@ -56,26 +111,26 @@ def layout_table(tags, substructure, message=""):
                             options=[dict(label=lab, value=val)
                                      for lab, val in zip(desc_presets_long, desc_presets)],
                             multi=True,
-                            style={"width": "300px", 'verticalAlign': 'top', },
                             placeholder="Select descriptor presets...",
                         ),
                         dcc.Input(name="PresetOptions", id="inputPresetOptions", style={'display': 'none'}),
                         dcc.Input(name="ConformerOptions", id="conformerOptions", list='conf_options',
-                                  style={"width": "300px", 'verticalAlign': 'top'},
+                                  style={"width": "100%"},
                                   placeholder="Select conformer option..."),
                         html.Br(),
                         html.Button('Download', id='submit_export-form',
-                                    style={"width": "150px", "background": "#F0F8FF"})
+                                    style={"width": "50%", "background": "#F0F8FF"})
                     ],
                     method='post',
                 )
             ]),
             dt.DataTable(
                 id='table',
-                data=get_table(tags, substructure).to_dict('records'),
+                data=get_table(cls, subcls, type, subtype, tags, substructure).to_dict('records'),
                 columns=[dict(name=c, id=c, hideable=False,
                               presentation="markdown" if c in ['image', 'descriptors'] else "input") for c in
-                         ['image', 'can', 'name', 'tags', 'theory', 'light_basis_set', 'heavy_basis_set',
+                         ['image', 'can', 'name', 'class', 'subclass', 'type', 'subtype',
+                          'tags', 'theory', 'light_basis_set', 'heavy_basis_set',
                           'generic_basis_set', 'max_light_atomic_number', 'num_conformers',
                           'max_num_conformers', 'descriptors']],
                 editable=False,
@@ -84,7 +139,7 @@ def layout_table(tags, substructure, message=""):
                 sort_mode="multi",
                 filter_action="native",
             ),
-        ]) if tags is not None else html.Div(),
+        ]) if any(filter is not None for filter in (cls, subcls, type, subtype, tags)) else html.Div(),
     ])
 
 

@@ -16,8 +16,9 @@ def image(can):
     return f"/static/{hash_str}.svg"
 
 
-def get_table(tags, substructure):
-    df = db_select_molecules(tags=tags, substructure=substructure)
+def get_table(cls, subcls, type, subtype, tags, substructure):
+    df = db_select_molecules(cls=cls, subcls=subcls, type=type,
+                             subtype=subtype, tags=tags, substructure=substructure)
     if df.empty:
         return df
     df['image'] = df.can.map(image).map(lambda path: f"![]({path})")
@@ -26,6 +27,7 @@ def get_table(tags, substructure):
 
     df_metadata = pd.DataFrame(list(df.metadata))
     df_gaussian_config = pd.DataFrame(list(df_metadata.gaussian_config))
-    df = pd.concat([df, df_gaussian_config, df_metadata['max_num_conformers']], axis=1)
+    df = pd.concat([df, df_gaussian_config, df_metadata[['class', 'subclass', 'type', 'subtype',
+                                                         'max_num_conformers']]], axis=1)
     df = df.loc[:, ~df.columns.duplicated()]  # deduplicate columns
     return df.drop(['molecule_id', 'metadata', '_ids'], axis=1)

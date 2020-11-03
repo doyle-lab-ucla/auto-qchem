@@ -103,7 +103,7 @@ def db_delete_molecule(mol_id):
     db['molecules'].delete_one({"_id": mol_id})  # molecule itself
 
 
-def db_select_molecules(tags=[], substructure="") -> pd.DataFrame:
+def db_select_molecules(cls=None, subcls=None, type=None, subtype=None, tags=[], substructure="") -> pd.DataFrame:
     """Get a summary frame of molecules in the database
 
     :param tags: a list of tags of the db records (if multiple an 'OR' is taken)
@@ -121,7 +121,19 @@ def db_select_molecules(tags=[], substructure="") -> pd.DataFrame:
     tags_cur = tags_coll.find({'tag': {'$in': tags}} if tags else {})
     tags_df = pd.DataFrame(tags_cur)
 
-    mols_cur = mols_coll.find({'_id': {'$in': tags_df.molecule_id.tolist()}})
+    filter = {}
+    if cls != "" and cls is not None:
+        filter['metadata.class'] = cls
+    if subcls != "" and subcls is not None:
+        filter['metadata.subclass'] = subcls
+    if type != "" and type is not None:
+        filter['metadata.type'] = type
+    if subtype != "" and subtype is not None:
+        filter['metadata.subtype'] = subtype
+
+    filter['_id'] = {'$in': tags_df.molecule_id.tolist()}
+
+    mols_cur = mols_coll.find(filter)
     mols_df = pd.DataFrame(mols_cur)
     if 'name' not in mols_df.columns:
         mols_df['name'] = None
@@ -175,7 +187,7 @@ def db_check_exists(can, gaussian_config, max_num_conformers) -> tuple:
     return exists, tags
 
 
-def descriptors(tags, presets, conf_option, substructure="") -> dict:
+def descriptors(cls, subcls, type, subtype, tags, presets, conf_option, substructure="") -> dict:
     """Retrieve DFT descriptors from the database
 
     :param tag: metadata.tag of the db records
@@ -208,7 +220,8 @@ def descriptors(tags, presets, conf_option, substructure="") -> dict:
         logger.warning(f"Conf_option {conf_option} is not one of the allowed options {conf_options}. Not extracting.")
         return {}
 
-    mol_df = db_select_molecules(tags=tags, substructure=substructure)
+    mol_df = db_select_molecules(cls=cls, subcls=subcls, type=type, subtype=subtype,
+                                 tags=tags, substructure=substructure)
     descs_df = mol_df.set_index('can')['_ids'].map(lambda l: descriptors_from_list_of_ids(l, conf_option=conf_option))
 
     data = {}
