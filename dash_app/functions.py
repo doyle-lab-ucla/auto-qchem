@@ -26,6 +26,9 @@ def get_table(cls, subcls, type, subtype, tags, substructure):
     df['tags'] = df['tag'].map(lambda t: t.__repr__()[1:-1])
 
     df_metadata = pd.DataFrame(list(df.metadata))
+    for c in ['class', 'subclass', 'type', 'subtype']:
+        if c not in df_metadata.columns:
+            df_metadata[c] = ''
     df_gaussian_config = pd.DataFrame(list(df_metadata.gaussian_config))
     df = pd.concat([df, df_gaussian_config, df_metadata[['class', 'subclass', 'type', 'subtype',
                                                          'max_num_conformers']]], axis=1)
