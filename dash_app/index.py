@@ -33,6 +33,8 @@ def display_page(pathname, search):
             try:
                 if items_dict['substructure'] != "":
                     pybel.Smarts(items_dict['substructure'])
+                else:
+                    pass
                 return layout_table(items_dict['cls'],
                                     items_dict['subcls'],
                                     items_dict['type'],
