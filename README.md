@@ -2,9 +2,7 @@
 
 ### Quick links
 
-Installation instructions https://github.com/PrincetonUniversity/auto-qchem/blob/master/Install.md
-
-DB interface user guide https://github.com/PrincetonUniversity/auto-qchem/blob/master/DB.md
+Installation instructions https://github.com/PrincetonUniversity/auto-qchem/blob/public/Install.md
 
 Functional documentation https://princetonuniversity.github.io/auto-qchem
 
