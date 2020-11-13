@@ -43,24 +43,28 @@ def layout_table(cls, subcls, type, subtype, tags, substructure, message=""):
                                            mols_coll.distinct('metadata.class')
                                        )],
                                    placeholder="Select Class",
+                                   multi=False,
                                    persistence=False),
                       dcc.Dropdown(id="subcls_dropdown", options=[dict(label=subcls, value=subcls)
                                                                   for subcls in list(
                               mols_coll.distinct('metadata.subclass')
                           )],
                                    placeholder="Select SubClass",
+                                   multi=False,
                                    persistence=False),
                       dcc.Dropdown(id="type_dropdown", options=[dict(label=type, value=type)
                                                                 for type in list(
                               mols_coll.distinct('metadata.type')
                           )],
                                    placeholder="Select Type",
+                                   multi=False,
                                    persistence=False),
                       dcc.Dropdown(id="subtype_dropdown", options=[dict(label=subtype, value=subtype)
                                                                    for subtype in list(
                               mols_coll.distinct('metadata.subtype')
                           )],
                                    placeholder="Select SubType",
+                                   multi=False,
                                    persistence=False),
                       dcc.Dropdown(
                           id='tags_dropdown',
