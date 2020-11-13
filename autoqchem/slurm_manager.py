@@ -70,7 +70,8 @@ class slurm_manager(object):
                                  heavy_basis_set="LANL2DZ",
                                  generic_basis_set="genecp",
                                  max_light_atomic_number=36,
-                                 wall_time='23:59:00') -> None:
+                                 wall_time='23:59:00',
+                                 db_check=False) -> None:
         """Generate slurm jobs for a molecule. Gaussian input files are also generated.
 
         :param molecule: molecule object
@@ -89,6 +90,8 @@ class slurm_manager(object):
         :type max_light_atomic_number: int
         :param wall_time: wall time of the job in HH:MM:SS format
         :type wall_time: str
+        :param db_check: check if the same molecule with the same configuration already exists in the database
+        :type db_check: bool
         """
 
         # create gaussian files
@@ -102,11 +105,12 @@ class slurm_manager(object):
                            'max_light_atomic_number': max_light_atomic_number}
 
         # DB check if the same molecule with the same gaussian configuration already exists
-        exists, tags = db_check_exists(molecule.can, gaussian_config, molecule.max_num_conformers)
-        if exists:
-            logger.warning(f"Molecule {molecule.can} already exists with the same Gaussian config with tags {tags}."
-                           f" Not creating jobs.")
-            return
+        if db_check:
+            exists, tags = db_check_exists(molecule.can, gaussian_config, molecule.max_num_conformers)
+            if exists:
+                logger.warning(f"Molecule {molecule.can} already exists with the same Gaussian config with tags {tags}."
+                               f" Not creating jobs.")
+                return
 
         gig.create_gaussian_files()
 
