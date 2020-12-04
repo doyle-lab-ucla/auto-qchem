@@ -328,7 +328,9 @@ class slurm_manager(object):
 
         self.submit_jobs_from_jobs_dict(incomplete_jobs_to_resubmit)
 
-    def upload_done_molecules_to_db(self, tags, RMSD_threshold=0.01, symmetry=True) -> None:
+    def upload_done_molecules_to_db(self, tags, cls="", subcls="",
+                                    type="", subtype="", RMSD_threshold=0.01, symmetry=True) -> None:
+
         """Upload done molecules to db. Molecules are considered done when all jobs for a given \
          smiles are in 'done' status. The conformers are deduplicated and uploaded to database using a metadata tag.
 
@@ -362,6 +364,7 @@ class slurm_manager(object):
         jobs_df = pd.DataFrame([job.__dict__ for job in done_can_jobs.values()], index=done_can_jobs.keys())
 
         logger.debug(f"Deduplicating conformers if RMSD < {RMSD_threshold}.")
+        meta = {"class": cls, "subclass": subcls, "type": type, "subtype": subtype}
 
         for (can, tasks, max_n_conf), keys in jobs_df.groupby(["can", "tasks", "max_num_conformers"]).groups.items():
 
@@ -375,9 +378,9 @@ class slurm_manager(object):
                 can_keys_to_keep = [key for i, key in enumerate(keys) if i not in duplicates]
             else:
                 can_keys_to_keep = keys
-            self._upload_can_to_db(can, tasks, can_keys_to_keep, tags, max_n_conf)
+            self._upload_can_to_db(can, tasks, meta, can_keys_to_keep, tags, max_n_conf)
 
-    def _upload_can_to_db(self, can, tasks, keys, tags, max_conf) -> None:
+    def _upload_can_to_db(self, can, tasks, meta, keys, tags, max_conf) -> None:
         """Uploading single molecule conformers to database.
 
         :param db: database client
@@ -429,6 +432,7 @@ class slurm_manager(object):
         # check that all configs are the same
         assert len(set([config.__repr__() for config in configs])) == 1
         metadata = {'gaussian_config': configs[0], 'gaussian_tasks': tasks, 'max_num_conformers': max_conf}
+        metadata.update(meta)
 
         mol_id = db_upload_molecule(can, tags, metadata, weights, conformations, logs)
         logger.info(f"Uploaded descriptors to DB for smiles: {can}, number of conformers: {len(conformations)},"
