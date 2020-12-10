@@ -484,12 +484,17 @@ class slurm_manager(object):
         :type jobs: dict
         """
 
+        self.connect()
         for name, job in jobs.items():
             logger.debug(f"Removing job {name}.")
+            # remove local files
             os.remove(f"{job.directory}/{job.base_name}.sh")  # slurm file
             os.remove(f"{job.directory}/{job.base_name}.gjf")  # gaussian file
             if os.path.exists(f"{job.directory}/{job.base_name}.log"):
                 os.remove(f"{job.directory}/{job.base_name}.log")  # log file
+            # remove remote files
+            self.connection.run(f"rm -f {self.remote_dir}/slurm-{job.job_id}.out")
+            self.connection.run(f"rm -f {self.remote_dir}/{job.base_name}*")
             del self.jobs[name]
         self._cache()
 
