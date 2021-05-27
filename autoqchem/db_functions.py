@@ -154,11 +154,17 @@ def db_select_molecules(cls=None, subcls=None, type=None, subtype=None, tags=[],
     df = pd.concat([grouped['metadata', 'molecule_id', 'name'].first(),
                     grouped['tag'].apply(list)], axis=1).reset_index().drop('metadata_str', axis=1)
 
-    # fetch ids
-    df['_ids'] = df['molecule_id'].map(lambda mid: [item['_id'] for item in feats_coll.find(
-        {'molecule_id': ObjectId(mid)}, {'_id': 1})
-                                                    ])
+    # fetch ids and weights
+    feats_cur = feats_coll.find({'molecule_id': {'$in': df.molecule_id.tolist()}},
+                                {'_id': 1, 'weight': 1, 'molecule_id': 1})
+    feats_df = pd.DataFrame(feats_cur)
+    feats_df = feats_df.groupby('molecule_id').agg(list).reset_index()
+    feats_df = feats_df.rename(columns={'_id': '_ids', 'weight': 'weights'})
+
+    # merge into df
+    df = df.merge(feats_df, on='molecule_id')
     df['num_conformers'] = df['_ids'].map(len)
+
     return df
 
 
