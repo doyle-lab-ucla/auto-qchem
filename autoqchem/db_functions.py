@@ -228,6 +228,7 @@ def descriptors(cls, subcls, type, subtype, tags, presets, conf_option, substruc
 
     mol_df = db_select_molecules(cls=cls, subcls=subcls, type=type, subtype=subtype,
                                  tags=tags, substructure=substructure)
+    # TODO making DB queries inside a loop is very inefficient, this code should be reorganized to use single query
     descs_df = mol_df.set_index('can')['_ids'].map(lambda l: descriptors_from_list_of_ids(l, conf_option=conf_option))
 
     data = {}
