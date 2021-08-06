@@ -73,16 +73,12 @@ def update_type_dropdown(cls, subcls, type, subtype):
     if subtype is not None:
         filter['metadata.subtype'] = subtype
 
-    print(filter)
-
     mols_coll = db_connect('molecules')
     tags_coll = db_connect('tags')
     options_cls = [dict(label=type, value=type) for type in list(mols_coll.distinct('metadata.class', filter))]
     options_subcls = [dict(label=type, value=type) for type in list(mols_coll.distinct('metadata.subclass', filter))]
     options_type = [dict(label=type, value=type) for type in list(mols_coll.distinct('metadata.type', filter))]
     options_subtype = [dict(label=type, value=type) for type in list(mols_coll.distinct('metadata.subtype', filter))]
-
-    print(options_cls, options_subcls)
 
     if filter:
         mols_ids = mols_coll.distinct('_id', filter)
@@ -95,7 +91,6 @@ def update_type_dropdown(cls, subcls, type, subtype):
         options_tags = [dict(label=f'''{tag} ({len(tags_coll.distinct("molecule_id", {"tag": tag}))} molecules)''',
                              value=tag) for tag in available_tags]
 
-    print(options_tags)
     return options_cls, options_subcls, options_type, options_subtype, options_tags
 
 
