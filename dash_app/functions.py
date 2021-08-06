@@ -1,7 +1,7 @@
 from autoqchem.db_functions import *
 from autoqchem.molecule import *
 
-app_path = "C:/Users/Andrzej/Software/github/auto-qchem/dash_app"
+app_path = "/home/ubuntu/github/auto-qchem/dash_app"
 
 
 # app_path = "C:/Users/AndrzejZuranski/Dropbox/DataX_PU/github/auto-qchem/dash_app"

@@ -1,5 +1,9 @@
 import logging
-import pybel
+
+try:
+    from openbabel import pybel # ob 3.0.0
+except ImportError: # ob 2.4
+    import pybel
 import re
 
 import numpy as np
