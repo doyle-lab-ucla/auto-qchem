@@ -5,7 +5,7 @@ Auto-QChem stores molecular descriptors in a MongoDB type database. A small web-
 
 ### 1. Query available molecules
 
-Navigate to the [landing page](http://128.112.127.215)
+Navigate to the [autoqchem.org](https://autoqchem.org)
 
 ![landing page](images/landing_page.png)
 
