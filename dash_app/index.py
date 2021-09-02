@@ -25,7 +25,7 @@ app.layout = html.Div([layout_navbar(),
 def display_page(pathname, search):
     if pathname == f"/":
         if not search:
-            return layout_table(None, None, None, None, None, None)
+            return layout_table(None, None)
         if search:
             items = [item.split("=") for item in search.split('?')[1].split("&")]
             items_dict = {key: unquote_plus(value) for key, value in items}
@@ -35,16 +35,12 @@ def display_page(pathname, search):
                     pybel.Smarts(items_dict['substructure'])
                 else:
                     pass
-                return layout_table(items_dict['cls'],
-                                    items_dict['subcls'],
-                                    items_dict['type'],
-                                    items_dict['subtype'],
-                                    items_dict['tags'],
-                                    items_dict['substructure'])
+                return layout_table(items_dict['tags'],
+                                    items_dict['substructure'],
+                                    )
             except OSError as e:
-                return layout_table(None, None, None, None, None, None, None,
-                                    message=f"Substructure '{items_dict['substructure']}'"
-                                            f" is an invalid SMARTS pattern.")
+                return layout_table(None, None, message=f"Substructure '{items_dict['substructure']}'"
+                                                        f" is an invalid SMARTS pattern.")
     elif pathname.startswith(f"/descriptors/"):
         id = pathname.split('/')[-1]
         return layout_descriptors(id)
@@ -170,14 +166,14 @@ def on_post():
     ts = str(time.time()).replace(".", "")
 
     if 'export' in items_dict:
-        print("I need to export this")
         path = f"{app_path}/static/user_desc/summary_{ts}.xlsx"
-        df = get_table(cls=items_dict['cls'],
-                       subcls=items_dict['subcls'],
-                       type=items_dict['type'],
-                       subtype=items_dict['subtype'],
-                       tags=items_dict['tags'],
-                       substructure=items_dict['substructure'])
+        df = get_table(
+            cls=None,
+            subcls=None,
+            type=None,
+            subtype=None,
+            tags=items_dict['tags'],
+            substructure=items_dict['substructure'])
         data = {'summary': df.drop(['image', 'descriptors', 'tag'], axis=1)}
 
     elif ('PresetOptions' in items_dict) and ('ConformerOptions' in items_dict):
@@ -185,14 +181,15 @@ def on_post():
         items_dict['PresetOptions'] = items_dict['PresetOptions'].split(",")
         # extract the descriptors (this can take long)
         try:
-            data = descriptors(cls=items_dict['cls'],
-                               subcls=items_dict['subcls'],
-                               type=items_dict['type'],
-                               subtype=items_dict['subtype'],
-                               tags=items_dict['tags'],
-                               presets=items_dict['PresetOptions'],
-                               conf_option=items_dict['ConformerOptions'],
-                               substructure=items_dict['substructure'])
+            data = descriptors(
+                cls=None,
+                subcls=None,
+                type=None,
+                subtype=None,
+                tags=items_dict['tags'],
+                presets=items_dict['PresetOptions'],
+                conf_option=items_dict['ConformerOptions'],
+                substructure=items_dict['substructure'])
         except InconsistentLabelsException as e:
             return ('Molecules in the set have inconsistent labels', 200)
     else:

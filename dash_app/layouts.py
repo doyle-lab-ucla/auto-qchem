@@ -28,7 +28,7 @@ def layout_navbar():
     return navbar
 
 
-def layout_table(cls, subcls, type, subtype, tags, substructure, message=""):
+def layout_table(tags, substructure, cls=None, subcls=None, type=None, subtype=None, message=""):
     """main layout with a table of molecules"""
 
     tags_coll = db_connect('tags')
