@@ -11,12 +11,12 @@ from dash.dependencies import Input, Output
 from autoqchem.db_functions import pybel, descriptors, InconsistentLabelsException, db_connect
 from dash_app.app import app, server
 from dash_app.functions import app_path, get_table
-from dash_app.layouts import layout_table, layout_descriptors
+from dash_app.layouts import layout_table, layout_descriptors, layout_navbar
 
-app.layout = html.Div([
-    dcc.Location(id='url', refresh=False),
-    html.Div(id='page-content')
-])
+app.layout = html.Div([layout_navbar(),
+                       dcc.Location(id='url', refresh=False),
+                       html.Div(id='page-content')
+                       ])
 
 
 @app.callback(Output('page-content', 'children'),
@@ -101,6 +101,12 @@ def pass_value_preset(v):
         return ",".join(v)
     else:
         return ""
+
+
+@app.callback(Output('inputConformerOptions', 'value'),
+              [Input('dropdownConformerOptions', 'value')])
+def pass_value_conformer(v):
+    return v if v else ""
 
 
 @app.callback(Output('tags', 'value'),
