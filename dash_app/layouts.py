@@ -48,7 +48,7 @@ def layout_table(cls, subcls, type, subtype, tags, substructure, message=""):
                                                                     )],
                                                                 placeholder="Select Class",
                                                                 multi=False,
-                                                                persistence=True,
+                                                                persistence=False,
                                                                 )),
                                                html.Td(
                                                    dcc.Dropdown(id="subcls_dropdown",
@@ -58,7 +58,7 @@ def layout_table(cls, subcls, type, subtype, tags, substructure, message=""):
                                                                     )],
                                                                 placeholder="Select SubClass",
                                                                 multi=False,
-                                                                persistence=True,
+                                                                persistence=False,
                                                                 ))
                                            ]),
                                            html.Tr([
@@ -70,7 +70,7 @@ def layout_table(cls, subcls, type, subtype, tags, substructure, message=""):
                                                                     )],
                                                                 placeholder="Select Type",
                                                                 multi=False,
-                                                                persistence=True)),
+                                                                persistence=False)),
                                                html.Td(
                                                    dcc.Dropdown(id="subtype_dropdown",
                                                                 options=[dict(label=subtype, value=subtype)
@@ -79,7 +79,7 @@ def layout_table(cls, subcls, type, subtype, tags, substructure, message=""):
                                                                     )],
                                                                 placeholder="Select SubType",
                                                                 multi=False,
-                                                                persistence=True)),
+                                                                persistence=False)),
                                            ]),
                                            html.Tr(
                                                html.Td(
@@ -91,7 +91,7 @@ def layout_table(cls, subcls, type, subtype, tags, substructure, message=""):
                                                            for tag in tags_coll.distinct('tag')],
                                                        multi=True,
                                                        placeholder="Select Tags",
-                                                       persistence=True,
+                                                       persistence=False,
                                                    ), colSpan=2)
                                            ),
                                            html.Tr(
@@ -99,7 +99,7 @@ def layout_table(cls, subcls, type, subtype, tags, substructure, message=""):
                                                    dbc.Input(name="substructure", id="substructure",
                                                              placeholder="SMARTS Substructure (optional)",
                                                              style={"width": "100%"},
-                                                             persistence=True,
+                                                             persistence=False,
                                                              value=substructure
                                                              ), colSpan=2)
                                            ),
