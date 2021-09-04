@@ -91,7 +91,7 @@ def layout_table(tags, substructure, cls=None, subcls=None, type=None, subtype=N
                                                            for tag in tags_coll.distinct('tag')],
                                                        multi=True,
                                                        placeholder="Select Tags",
-                                                       persistence=False,
+                                                       persistence=True,
                                                    ), colSpan=2)
                                            ),
                                            html.Tr(
@@ -99,7 +99,7 @@ def layout_table(tags, substructure, cls=None, subcls=None, type=None, subtype=N
                                                    dbc.Input(name="substructure", id="substructure",
                                                              placeholder="SMARTS Substructure (optional)",
                                                              style={"width": "100%"},
-                                                             persistence=False,
+                                                             persistence=True,
                                                              value=substructure
                                                              ), colSpan=2)
                                            ),
@@ -119,7 +119,7 @@ def layout_table(tags, substructure, cls=None, subcls=None, type=None, subtype=N
                                # dbc.Input(name="subcls", id="subcls", style={'display': 'none'}),
                                # dbc.Input(name="type", id="type", style={'display': 'none'}),
                                # dbc.Input(name="subtype", id="subtype", style={'display': 'none'}),
-                               dbc.Input(name="tags", id="tags", style={'display': 'none'}, required=True),
+                               dbc.Input(name="tags", id="tags", style={'display': 'none'}),
                            ])
 
     export_summary_form = html.Form(id='export-summary-form',
