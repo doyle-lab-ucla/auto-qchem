@@ -108,10 +108,7 @@ def pass_value_conformer(v):
 @app.callback(Output('tags', 'value'),
               [Input('tags_dropdown', 'value')])
 def pass_value_tags(v):
-    if v:
-        return ",".join(v)
-    else:
-        return ""
+    return "" if v == "All" else v
 
 
 @app.callback(Output('cls', 'value'),

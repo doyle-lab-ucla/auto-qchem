@@ -32,75 +32,37 @@ def layout_table(tags, substructure, cls=None, subcls=None, type=None, subtype=N
     """main layout with a table of molecules"""
 
     tags_coll = db_connect('tags')
-    mols_coll = db_connect('molecules')
 
     query_form = html.Form(id='query-form',
                            children=[
                                dbc.Table(
                                    html.Tbody(
                                        [
-                                           # html.Tr([
-                                           #     html.Td(
-                                           #         dcc.Dropdown(id="cls_dropdown",
-                                           #                      options=[dict(label=cls, value=cls)
-                                           #                               for cls in list(
-                                           #                              mols_coll.distinct('metadata.class')
-                                           #                          )],
-                                           #                      placeholder="Select Class",
-                                           #                      multi=False,
-                                           #                      persistence=False,
-                                           #                      )),
-                                           #     html.Td(
-                                           #         dcc.Dropdown(id="subcls_dropdown",
-                                           #                      options=[dict(label=subcls, value=subcls)
-                                           #                               for subcls in list(
-                                           #                              mols_coll.distinct('metadata.subclass')
-                                           #                          )],
-                                           #                      placeholder="Select SubClass",
-                                           #                      multi=False,
-                                           #                      persistence=False,
-                                           #                      ))
-                                           # ]),
-                                           # html.Tr([
-                                           #     html.Td(
-                                           #         dcc.Dropdown(id="type_dropdown",
-                                           #                      options=[dict(label=type, value=type)
-                                           #                               for type in list(
-                                           #                              mols_coll.distinct('metadata.type')
-                                           #                          )],
-                                           #                      placeholder="Select Type",
-                                           #                      multi=False,
-                                           #                      persistence=False)),
-                                           #     html.Td(
-                                           #         dcc.Dropdown(id="subtype_dropdown",
-                                           #                      options=[dict(label=subtype, value=subtype)
-                                           #                               for subtype in list(
-                                           #                              mols_coll.distinct('metadata.subtype')
-                                           #                          )],
-                                           #                      placeholder="Select SubType",
-                                           #                      multi=False,
-                                           #                      persistence=False)),
-                                           # ]),
                                            html.Tr(
                                                html.Td(
-                                                   dcc.Dropdown(
+                                                   dbc.Select(
                                                        id='tags_dropdown',
                                                        options=[dict(
-                                                           label=f'''{tag} ({len(tags_coll.distinct("molecule_id", {"tag": tag}))} molecules)''',
-                                                           value=tag)
-                                                           for tag in tags_coll.distinct('tag')],
-                                                       multi=True,
-                                                       placeholder="Select Tags",
+                                                           label=f'''All ({len(tags_coll.distinct("molecule_id"))} molecules)''',
+                                                           value='All'),
+                                                                dict(label="-------------------------------", value="",
+                                                                     disabled="disabled")] +
+                                                               [dict(
+                                                                   label=f'''{tag} ({len(tags_coll.distinct("molecule_id", {"tag": tag}))} molecules)''',
+                                                                   value=tag)
+                                                                for tag in tags_coll.distinct('tag')],
+                                                       required=True,
+                                                       placeholder="Select Dataset",
                                                        persistence=True,
                                                    ), colSpan=2)
                                            ),
                                            html.Tr(
                                                html.Td(
                                                    dbc.Input(name="substructure", id="substructure",
-                                                             placeholder="SMARTS Substructure (optional)",
+                                                             placeholder="SMARTS Substructure",
                                                              style={"width": "100%"},
                                                              persistence=True,
-                                                             value=substructure
+                                                             value=substructure,
                                                              ), colSpan=2)
                                            ),
                                            html.Tr(
@@ -115,10 +77,6 @@ def layout_table(tags, substructure, cls=None, subcls=None, type=None, subtype=N
                                    borderless=True,
 
                                ),
-                               # dbc.Input(name="cls", id="cls", style={'display': 'none'}),
-                               # dbc.Input(name="subcls", id="subcls", style={'display': 'none'}),
-                               # dbc.Input(name="type", id="type", style={'display': 'none'}),
-                               # dbc.Input(name="subtype", id="subtype", style={'display': 'none'}),
                                dbc.Input(name="tags", id="tags", style={'display': 'none'}),
                            ])
 
@@ -142,11 +100,11 @@ def layout_table(tags, substructure, cls=None, subcls=None, type=None, subtype=N
                         placeholder="Select descriptor presets...",
                     ))),
                 html.Tr(html.Td(
-                    dcc.Dropdown(
+                    dbc.Select(
                         id='dropdownConformerOptions',
                         options=[dict(label=desc, value=tag)
                                  for desc, tag in zip(conf_options_long, conf_options)],
-                        multi=False,
+                        required=True,
                         placeholder="Select conformer option..."
                     )
                 )),
