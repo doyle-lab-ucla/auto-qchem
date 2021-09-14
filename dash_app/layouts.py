@@ -120,11 +120,15 @@ def layout_table(tags, substructure, cls=None, subcls=None, type=None, subtype=N
 
     queried = any(filter is not None for filter in (cls, subcls, type, subtype, tags))
     if queried:
-        cols = ['image', 'can', 'tags', 'theory', 'light_basis_set', 'heavy_basis_set', 'generic_basis_set',
-                'max_num_conformers', 'num_conformers', 'descriptors']
+        cols = ['image', 'can', 'name', 'tags', 'theory', 'light_basis_set', 'heavy_basis_set', 'generic_basis_set',
+                'num_conf/max_conf', 'descriptors']
         df = get_table(cls, subcls, type, subtype, tags, substructure)[cols]
 
     content = [
+        # html.Iframe(id="marvinWidget",
+        #            src="assets/marvinjs_core/editorws.html",
+        #            style={"overflow": "hidden", "min-width": "800px", "min-height": "600px", "border": "1px solid darkgray"}),
+        # dbc.Input(id="marvinSmarts", style={"display": "hidden"}),
         dbc.Tabs([
                      dbc.Tab(query_form, label="Query")] + ([
                                                                 dbc.Tab(download_descriptors_form,
@@ -145,6 +149,7 @@ def layout_table(tags, substructure, cls=None, subcls=None, type=None, subtype=N
                      for c in df.columns],
             page_size=10,
             editable=False,
+            sort_action='native',
 
             style_table={
                 "fontFamily": '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji"'},

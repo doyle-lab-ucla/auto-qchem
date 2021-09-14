@@ -32,5 +32,8 @@ def get_table(cls, subcls, type, subtype, tags, substructure):
     df_gaussian_config = pd.DataFrame(list(df_metadata.gaussian_config))
     df = pd.concat([df, df_gaussian_config, df_metadata[['class', 'subclass', 'type', 'subtype',
                                                          'max_num_conformers']]], axis=1)
+    df['num_conf/max_conf'] = df.apply(lambda r: f"{r['num_conformers']}/{r['max_num_conformers']}", axis=1)
+    df = df.drop(['num_conformers', 'max_num_conformers'], axis=1)
     df = df.loc[:, ~df.columns.duplicated()]  # deduplicate columns
+
     return df.drop(['molecule_id', 'metadata', '_ids'], axis=1)
