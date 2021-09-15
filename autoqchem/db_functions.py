@@ -1,12 +1,6 @@
 import logging
-
-try:
-    from openbabel import pybel # ob 3.0.0
-except ImportError: # ob 2.4
-    import pybel
 import re
 
-import numpy as np
 import pandas as pd
 import pymongo
 from bson.objectid import ObjectId
@@ -143,10 +137,14 @@ def db_select_molecules(cls=None, subcls=None, type=None, subtype=None, tags=[],
         mols_df['name'] = None
 
     if substructure:
-        pattern = pybel.Smarts(substructure)
-        mols_df['pybel_mol'] = mols_df['can'].map(lambda can: pybel.readstring("smi", can))
-        mols_df = mols_df[mols_df['pybel_mol'].map(lambda mol: bool(pattern.findall(mol)))]
-        mols_df = mols_df.drop('pybel_mol', axis=1)
+        sub = Chem.MolFromSmarts(substructure)
+        mols_df['rdmol'] = mols_df['can'].map(Chem.MolFromSmiles)
+
+        # TODO RDKIT molecule creation will fail for dative bonds with metals, this fails silently
+        mols_df = mols_df.dropna(subset=['rdmol'])
+
+        mols_df = mols_df[mols_df['rdmol'].map(lambda mol: bool(mol.GetSubstructMatches(sub)))]
+        mols_df = mols_df.drop('rdmol', axis=1)
 
     # merge tags in an outer way
     df = pd.merge(mols_df, tags_df, how='outer', left_on='_id', right_on='molecule_id', suffixes=('', '_tag'))
@@ -259,45 +257,39 @@ def descriptors(cls, subcls, type, subtype, tags, presets, conf_option, substruc
         ts.columns = descs_df.index
         data['transitions'] = ts.T
 
-    if 'substructure' in presets and substructure:
-        sub = pybel.Smarts(substructure)
-        # these matches are numbered from 1, so subtract one from them
-        matches = descs_df.index.map(lambda c: sub.findall(pybel.readstring("smi", c))[0])
-        matches = matches.map(lambda x: (np.array(x) - 1).tolist())
+    if 'substructure' in presets or 'core' in presets:
+        # make rdmols
+        cans = mol_df['can'].tolist()
+        rd_mols = {can: Chem.MolFromSmiles(can) for can in cans}
 
-        # fetch atom labels for this smarts using the first molecule
-        sub_labels = pd.Series(descs_df.iloc[0]['labels']).loc[matches[0]].tolist()
-        sub_labels = add_numbers_to_repeated_items(sub_labels)
-        sub_labels = [f"atom{i + 1}" for i in range(len(matches[0]))]
+    if 'substructure' in presets and substructure:
+        # create an rdkit smarts
+        sub = Chem.MolFromSmarts(substructure)
+
+        # get the first match, if multiple substructure matches exist
+        matches = {can: rd_mols[can].GetSubstructMatches(sub)[0] for can in cans}
+        matches = pd.Series(matches).map(list)
 
         # create a frame with descriptors large structure in one column, and substructure match
         # indices in the second column
         tmp_df = descs_df.to_frame('descs')
         tmp_df['matches'] = matches
 
+        # fetch atom labels for this smarts using the first molecule
+        sub_labels = [f"atom{i + 1}" for i in range(len(matches[0]))]
+
         for i, label in enumerate(sub_labels):
-            # data[label] = pd.concat([row['descs']['atom_descriptors'].loc[row['matches'][i]]
-            #                         for c, row in tmp_df.iterrows()], axis=1)
             to_concat = []
             for c, row in tmp_df.iterrows():
                 atom_descs = row['descs']['atom_descriptors']
                 atom_descs['labels'] = row['descs']['labels']
+                atom_descs = atom_descs[~atom_descs['labels'].str.startswith("H")]  # need to remove hydrogens
                 to_concat.append(atom_descs.iloc[row['matches'][i]])
             data[label] = pd.concat(to_concat, axis=1, sort=True)
             data[label].columns = descs_df.index
             data[label] = data[label].T
 
     if 'core' in presets:
-        cans = mol_df['can'].tolist()
-        rd_mols = {can: Chem.MolFromSmiles(can) for can in cans}
-
-        # occasionally rdkit cannot create a molecule from can that openbabel can
-        # this is typically due to dative bonds, dative
-        for can, rd_mol in rd_mols.items():
-            if rd_mol is None:
-                logger.warning(f"Molecule with can: {can} cannot be constructed directly by rdkit.")
-                rd_mols[can] = Chem.MolFromSmarts(can)  # create it from smarts
-
         # run MCS if there is more than 1 molecule
         if len(rd_mols) > 1:
             core_smarts = rdFMCS.FindMCS(list(rd_mols.values())).smartsString
