@@ -8,7 +8,7 @@ import flask
 import pandas as pd
 from dash.dependencies import Input, Output
 
-from autoqchem.db_functions import pybel, descriptors, InconsistentLabelsException, db_connect
+from autoqchem.db_functions import Chem, descriptors, InconsistentLabelsException, db_connect
 from dash_app.app import app, server
 from dash_app.functions import app_path, get_table
 from dash_app.layouts import layout_table, layout_descriptors, layout_navbar
@@ -32,13 +32,13 @@ def display_page(pathname, search):
             items_dict['tags'] = list(filter(None, items_dict['tags'].split(",")))
             try:
                 if items_dict['substructure'] != "":
-                    pybel.Smarts(items_dict['substructure'])
+                    assert Chem.MolFromSmarts(items_dict['substructre']) is not None
                 else:
                     pass
                 return layout_table(items_dict['tags'],
                                     items_dict['substructure'],
                                     )
-            except OSError as e:
+            except AssertionError as e:
                 return layout_table(None, None, message=f"Substructure '{items_dict['substructure']}'"
                                                         f" is an invalid SMARTS pattern.")
     elif pathname.startswith(f"/descriptors/"):
