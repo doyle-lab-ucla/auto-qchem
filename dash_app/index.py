@@ -32,7 +32,7 @@ def display_page(pathname, search):
             items_dict['tags'] = list(filter(None, items_dict['tags'].split(",")))
             try:
                 if items_dict['substructure'] != "":
-                    assert Chem.MolFromSmarts(items_dict['substructre']) is not None
+                    assert Chem.MolFromSmarts(items_dict['substructure']) is not None
                 else:
                     pass
                 return layout_table(items_dict['tags'],
