@@ -122,7 +122,11 @@ def layout_table(tags, substructure, cls=None, subcls=None, type=None, subtype=N
     if queried:
         cols = ['image', 'can', 'name', 'tags', 'theory', 'light_basis_set', 'heavy_basis_set', 'generic_basis_set',
                 'num_conf/max_conf', 'descriptors']
-        df = get_table(cls, subcls, type, subtype, tags, substructure)[cols]
+        df = get_table(cls, subcls, type, subtype, tags, substructure)
+        if not df.empty:
+            df = df[cols]
+        else:
+            df = pd.DataFrame(columns=cols)
 
     content = [
         # html.Iframe(id="marvinWidget",
@@ -142,7 +146,7 @@ def layout_table(tags, substructure, cls=None, subcls=None, type=None, subtype=N
         html.P(message) if message else html.Div(),
 
         # molecule table
-        html.Div(dt.DataTable(
+        html.Div([dbc.Label(f"Found {df.shape[0]} molecules"), dt.DataTable(
             id="mol_table",
             data=df.to_dict(orient='records'),
             columns=[{'id': c, 'name': c, 'presentation': ('markdown' if c in ['image', 'descriptors'] else 'input')}
@@ -172,8 +176,8 @@ def layout_table(tags, substructure, cls=None, subcls=None, type=None, subtype=N
             },
             style_as_list_view=True,
 
-        ),
-            style={"margin": "10px"}) if queried else html.Div()
+        )],
+                 style={"margin": "10px"}) if queried else html.Div()
         # dbc.Table.from_dataframe(df, responsive=True) if queried else html.Div(),
     ]
 

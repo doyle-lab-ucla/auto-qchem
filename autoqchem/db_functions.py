@@ -140,11 +140,15 @@ def db_select_molecules(cls=None, subcls=None, type=None, subtype=None, tags=[],
         sub = Chem.MolFromSmarts(substructure)
         mols_df['rdmol'] = mols_df['can'].map(Chem.MolFromSmiles)
 
-        # TODO RDKIT molecule creation will fail for dative bonds with metals, this fails silently
+        # TODO RDKIT molecule creation will fail for dative bonds with metals, this fails silently, not ideal
         mols_df = mols_df.dropna(subset=['rdmol'])
 
         mols_df = mols_df[mols_df['rdmol'].map(lambda mol: bool(mol.GetSubstructMatches(sub)))]
         mols_df = mols_df.drop('rdmol', axis=1)
+
+        # if substructure filter returned no results
+        if mols_df.empty:
+            return mols_df
 
     # merge tags in an outer way
     df = pd.merge(mols_df, tags_df, how='outer', left_on='_id', right_on='molecule_id', suffixes=('', '_tag'))
