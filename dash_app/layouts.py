@@ -14,7 +14,7 @@ def layout_navbar():
             html.A(
                 dbc.Row(
                     [
-                        dbc.Col(html.Img(src="/static/logo.png", height="40px")),
+                        dbc.Col(html.Img(src="/assets/logo.png", height="40px")),
                         dbc.Col(dbc.NavbarBrand("Auto-QChem DB", className='ml-2'))
                     ],
                     no_gutters=True,
