@@ -234,8 +234,7 @@ def descriptors(cls, subcls, type, subtype, tags, presets, conf_option, substruc
 
     mol_df = db_select_molecules(cls=cls, subcls=subcls, type=type, subtype=subtype,
                                  tags=tags, substructure=substructure)
-    # TODO making DB queries inside a loop is very inefficient, this code should be reorganized to use single query
-    descs_df = mol_df.set_index('can')['_ids'].map(lambda l: descriptors_from_list_of_ids(l, conf_option=conf_option))
+    descs_df = descriptors_from_mol_df(mol_df, conf_option)  # this is the heavy query from DB
 
     data = {}
 
@@ -359,11 +358,12 @@ def descriptors(cls, subcls, type, subtype, tags, presets, conf_option, substruc
     return data
 
 
-def descriptors_from_list_of_ids(ids, conf_option='max') -> dict:
-    """Get and average descriptors using a list of db ids.
+def descriptors_from_mol_df(mol_df, conf_option='max') -> dict:
+    """Get and weight descriptors given a set of molecules and a conformer reweighting option.
+    This function may involve a large query from the DB
 
-    :param ids: list of db id's that correspond to a given molecule
-    :type ids: list
+    :param mol_df: dataframe returned by the autoqchem.db_functions.db_select_molecules function
+    :type mol_df: pd.DataFrame
     :param conf_option: conformer averaging option: 'boltzmann' (Boltzmann average), \
      'max' (conformer with highest weight), 'mean' (arithmetic average), 'min' (conformer with smallest weight), \
      'any' (any single conformer), 'std' (std dev. over conformers)
@@ -379,51 +379,70 @@ def descriptors_from_list_of_ids(ids, conf_option='max') -> dict:
     # connect to db
     feats_coll = db_connect("qchem_descriptors")
 
-    # fetch db _ids and weights and can
-    cursor = feats_coll.find({"_id": {"$in": ids}}, {'weight': 1, 'molecule_id': 1})
-    recs = pd.DataFrame(cursor).sort_values('weight', ascending=False)
+    # fetch ids and weights for all conformers for all molecules (lightweight query_
+    all_ids = mol_df['_ids'].sum()
+    cursor = feats_coll.find({"_id": {"$in": all_ids}}, {'weight': 1, 'molecule_id': 1})
+    id_df = pd.DataFrame(cursor).sort_values(['molecule_id', 'weight'], ascending=False)
 
-    # assert that all ids come from the same can, and that weights sum to 1.
-    assert len(recs.molecule_id.unique()) == 1
-    assert abs(recs.weight.sum() - 1.) < 1e-6
+    # filter ids based on the conf_option (sometimes we don't need to fetch all conformers descriptors form the DB
 
-    # set trivial option for the case with only one conformation
-    if len(recs) == 1:
-        conf_option = 'any'
+    # helper function to manage different conf_options
+    def filter_ids(group):
+        # this function assumes each group is reverse ordered by weight (highest weight comes first)
+        assert abs(group.weight.sum() - 1.) < 1e-6
 
-    # single conf options
-    if conf_option in ['min', 'max', 'any']:
         if conf_option == 'max':
-            _id = recs['_id'].iloc[0]
+            _ids = [group['_id'].iloc[0]]
         elif conf_option == 'min':
-            _id = recs['_id'].iloc[-1]
+            _ids = [group['_id'].iloc[-1]]
+        elif conf_option == 'any':
+            _ids = [group['_id'].sample(1).iloc[0]]
         else:
-            _id = recs['_id'].sample(1).iloc[0]
+            _ids = group['_id'].tolist()
 
-        # return pandatized record for a chosen id
-        return _pandatize_record(feats_coll.find_one({"_id": _id}))
+        return _ids
 
-    rec = {}
-    if conf_option in ['boltzmann', 'mean', 'std']:
-        # fetch db records for these _ids
-        cursor = feats_coll.find({"_id": {"$in": ids}})
-        recs = [_pandatize_record(record) for record in cursor]
-        rec.update({"labels": recs[0]['labels']})
+    filtered_ids = id_df.groupby('molecule_id').apply(filter_ids).sum()
 
-        keys_to_reweight = ['descriptors', 'atom_descriptors', 'modes', 'transitions']
+    # query that fetches all decsriptors from the DB (heavyweight query)
+    cursor = feats_coll.find({"_id": {"$in": filtered_ids}}, {'molecule_id': 1,
+                                                              'descriptors': 1,
+                                                              'atom_descriptors': 1,
+                                                              'transitions': 1,
+                                                              'weight': 1,
+                                                              'labels': 1})
+    record_df = pd.Series([_pandatize_record(record) for record in cursor]).to_frame('records')
 
-        for key in keys_to_reweight:
-            if conf_option == 'boltzmann':
-                dfs = pd.concat(r[key] * r['weight'] for r in recs)
-                rec[key] = dfs.groupby(dfs.index, sort=False).sum()
-            if conf_option in ['mean', 'std']:
-                dfs = pd.concat(r[key] for r in recs)
-                if conf_option == 'mean':
-                    rec[key] = dfs.groupby(dfs.index, sort=False).mean()
-                elif conf_option == 'std':
-                    rec[key] = dfs.groupby(dfs.index, sort=False).std()
+    # merge in can using molecule id
+    record_df['molecule_id'] = record_df['records'].map(lambda r: r['molecule_id'])
+    record_df = pd.merge(record_df, mol_df[['molecule_id', 'can']], how='left', on='molecule_id')
 
-    return rec
+    # reweight descriptor conformers based on the option
+    # helper function to manage different conf_options
+    def reweigh_desc(group):
+
+        if conf_option in ['min', 'max', 'any']:
+            return group['records'].iloc[0]
+        else:
+            record = {}
+            records = group['records'].tolist()
+            record.update({"labels": records[0]['labels']})
+
+            keys_to_reweigh = ['descriptors', 'atom_descriptors', 'transitions']
+
+            for key in keys_to_reweigh:
+                if conf_option == 'boltzmann':
+                    dfs = pd.concat(r[key] * r['weight'] for r in records)
+                    record[key] = dfs.groupby(dfs.index, sort=False).sum()
+                if conf_option in ['mean', 'std']:
+                    dfs = pd.concat(r[key] for r in records)
+                    if conf_option == 'mean':
+                        record[key] = dfs.groupby(dfs.index, sort=False).mean()
+                    elif conf_option == 'std':
+                        record[key] = dfs.groupby(dfs.index, sort=False).std()
+            return record
+
+    return record_df.groupby('can').apply(reweigh_desc)
 
 
 def _pandatize_record(record) -> dict:
@@ -437,17 +456,18 @@ def _pandatize_record(record) -> dict:
     del record['descriptors']['stoichiometry']
 
     record['descriptors'] = pd.Series(record['descriptors']).astype(float)
-    record['modes'] = pd.DataFrame(record['modes']).astype(float)
-    record['transitions'] = pd.DataFrame(record['transitions']).astype(float)
     record['atom_descriptors'] = pd.DataFrame(record['atom_descriptors']).astype(float)
+    record['transitions'] = pd.DataFrame(record['transitions']).astype(float)
 
-    if record['mode_vectors'] is not None:
-        record['mode_vectors'] = pd.DataFrame(record['mode_vectors'])
-        record['mode_vectors']['atom_idx'] = list(range(len(record['labels']))) * 3 * record['modes'].shape[0]
-        record['mode_vectors'] = record['mode_vectors'].set_index(['mode_number', 'axis', 'atom_idx']).unstack(
-            ['mode_number', 'axis'])
-        record['mode_vectors'] = record['mode_vectors'].droplevel(0, axis=1).astype(float)
-    else:
-        record['mode_vectors'] = pd.DataFrame()
+    # block for vibrational modes (currently unused)
+    # record['modes'] = pd.DataFrame(record['modes']).astype(float)
+    # if record['mode_vectors'] is not None:
+    #    record['mode_vectors'] = pd.DataFrame(record['mode_vectors'])
+    #    record['mode_vectors']['atom_idx'] = list(range(len(record['labels']))) * 3 * record['modes'].shape[0]
+    #    record['mode_vectors'] = record['mode_vectors'].set_index(['mode_number', 'axis', 'atom_idx']).unstack(
+    #        ['mode_number', 'axis'])
+    #    record['mode_vectors'] = record['mode_vectors'].droplevel(0, axis=1).astype(float)
+    # else:
+    #    record['mode_vectors'] = pd.DataFrame()
 
     return record
