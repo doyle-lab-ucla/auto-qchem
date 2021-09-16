@@ -376,6 +376,13 @@ class slurm_manager(object):
 
                 # fetch non-duplicate keys
                 can_keys_to_keep = [key for i, key in enumerate(keys) if i not in duplicates]
+
+                # remove jobs for duplicate conformers
+                can_keys_to_remove = [key for i, key in enumerate(keys) if i in duplicates]
+                to_remove_jobs = {name: job for name, job in self.jobs.items() if name in can_keys_to_remove}
+                logger.info(f"Removing {len(duplicates)} / {len(keys)} jobs and log files that contain duplicate "
+                            f"conformers.")
+                self.remove_jobs(to_remove_jobs)
             else:
                 can_keys_to_keep = keys
             self._upload_can_to_db(can, tasks, meta, can_keys_to_keep, tags, max_n_conf)
