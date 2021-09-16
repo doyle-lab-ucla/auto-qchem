@@ -28,7 +28,7 @@ def layout_navbar():
     return navbar
 
 
-def layout_table(tags, substructure, cls=None, subcls=None, type=None, subtype=None, message=""):
+def layout_table(tags, substructure, message=""):
     """main layout with a table of molecules"""
 
     tags_coll = db_connect('tags')
@@ -118,21 +118,17 @@ def layout_table(tags, substructure, cls=None, subcls=None, type=None, subtype=N
         method='post',
     )
 
-    queried = any(filter is not None for filter in (cls, subcls, type, subtype, tags))
+    queried = tags is not None
     if queried:
         cols = ['image', 'can', 'name', 'tags', 'theory', 'light_basis_set', 'heavy_basis_set', 'generic_basis_set',
                 'num_conf/max_conf', 'descriptors']
-        df = get_table(cls, subcls, type, subtype, tags, substructure)
+        df = get_table(tags=tags, substructure=substructure)
         if not df.empty:
             df = df[cols]
         else:
             df = pd.DataFrame(columns=cols)
 
     content = [
-        # html.Iframe(id="marvinWidget",
-        #            src="assets/marvinjs_core/editorws.html",
-        #            style={"overflow": "hidden", "min-width": "800px", "min-height": "600px", "border": "1px solid darkgray"}),
-        # dbc.Input(id="marvinSmarts", style={"display": "hidden"}),
         dbc.Tabs([
                      dbc.Tab(query_form, label="Query")] + ([
                                                                 dbc.Tab(download_descriptors_form,
@@ -187,21 +183,15 @@ def layout_table(tags, substructure, cls=None, subcls=None, type=None, subtype=N
 
 
 def layout_descriptors(id):
-    feats_coll = db_connect('qchem_descriptors')
-    mols_coll = db_connect('molecules')
+    mols_df = db_select_molecules(molecule_ids=[ObjectId(id)])
+    can = mols_df['can'].iloc[0]
+    desc = descriptors_from_mol_df(mols_df, conf_option='boltzmann').iloc[0]
 
-    can = mols_coll.find_one(ObjectId(id), {'can': 1})['can']
-    feat_ids = list(feats_coll.find({'molecule_id': ObjectId(id)}, {'_id': 1}))
-    feat_ids = [item['_id'] for item in feat_ids]
-
-    desc = descriptors_from_list_of_ids(feat_ids, conf_option='boltzmann')
     d = desc['descriptors'].to_frame().T
-
     df_atom = desc['atom_descriptors']
     df_atom.insert(0, 'label', desc['labels'])
     df_atom.insert(0, 'atom_idx', range(df_atom.shape[0]))
 
-    vib = desc['modes']
     trans = desc['transitions']
 
     return html.Div(children=[
@@ -215,8 +205,6 @@ def layout_descriptors(id):
             dbc.Table.from_dataframe(df_atom, responsive=True),
             dbc.Label("Excited State Transitions", style={'font-weight': 'bold'}, size='lg'),
             dbc.Table.from_dataframe(trans, responsive=True),
-            dbc.Label("Vibrations:", style={'font-weight': 'bold'}, size='lg'),
-            dbc.Table.from_dataframe(vib, responsive=True),
         ],
             style={'margin': '10px'}
         )

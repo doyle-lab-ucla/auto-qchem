@@ -16,9 +16,8 @@ def image(can):
     return f"/static/{hash_str}.svg"
 
 
-def get_table(cls, subcls, type, subtype, tags, substructure):
-    df = db_select_molecules(cls=cls, subcls=subcls, type=type,
-                             subtype=subtype, tags=tags, substructure=substructure)
+def get_table(tags, substructure):
+    df = db_select_molecules(tags=tags, substructure=substructure)
     if df.empty:
         return df
     df['image'] = df.can.map(image).map(lambda path: f"![]({path})")

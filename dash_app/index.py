@@ -48,48 +48,6 @@ def display_page(pathname, search):
         return '404'
 
 
-@app.callback([
-    Output('cls_dropdown', 'options'),
-    Output('subcls_dropdown', 'options'),
-    Output('type_dropdown', 'options'),
-    Output('subtype_dropdown', 'options'),
-    Output('tags_dropdown', 'options')],
-    [Input('cls_dropdown', 'value'),
-     Input('subcls_dropdown', 'value'),
-     Input('type_dropdown', 'value'),
-     Input('subtype_dropdown', 'value')])
-def update_type_dropdown(cls, subcls, type, subtype):
-    filter = {}
-    if cls is not None:
-        filter['metadata.class'] = cls
-    if subcls is not None:
-        filter['metadata.subclass'] = subcls
-    if type is not None:
-        filter['metadata.type'] = type
-    if subtype is not None:
-        filter['metadata.subtype'] = subtype
-
-    mols_coll = db_connect('molecules')
-    tags_coll = db_connect('tags')
-    options_cls = [dict(label=type, value=type) for type in list(mols_coll.distinct('metadata.class', filter))]
-    options_subcls = [dict(label=type, value=type) for type in list(mols_coll.distinct('metadata.subclass', filter))]
-    options_type = [dict(label=type, value=type) for type in list(mols_coll.distinct('metadata.type', filter))]
-    options_subtype = [dict(label=type, value=type) for type in list(mols_coll.distinct('metadata.subtype', filter))]
-
-    if filter:
-        mols_ids = mols_coll.distinct('_id', filter)
-        available_tags = tags_coll.distinct('tag', {'molecule_id': {"$in": mols_ids}})
-        options_tags = [dict(label=f'''{tag} ({len(tags_coll.distinct("molecule_id", {"tag": tag,
-                                                                                      'molecule_id': {"$in": mols_ids}}))} molecules)''',
-                             value=tag) for tag in available_tags]
-    else:
-        available_tags = tags_coll.distinct('tag')
-        options_tags = [dict(label=f'''{tag} ({len(tags_coll.distinct("molecule_id", {"tag": tag}))} molecules)''',
-                             value=tag) for tag in available_tags]
-
-    return options_cls, options_subcls, options_type, options_subtype, options_tags
-
-
 @app.callback(Output('inputPresetOptions', 'value'),
               [Input('dropdownPresetOptions', 'value')])
 def pass_value_preset(v):
@@ -109,30 +67,6 @@ def pass_value_conformer(v):
               [Input('tags_dropdown', 'value')])
 def pass_value_tags(v):
     return "" if v == "All" else v
-
-
-@app.callback(Output('cls', 'value'),
-              [Input('cls_dropdown', 'value')])
-def pass_value_cls(v):
-    return v if v else ""
-
-
-@app.callback(Output('subcls', 'value'),
-              [Input('subcls_dropdown', 'value')])
-def pass_value_subcls(v):
-    return v if v else ""
-
-
-@app.callback(Output('type', 'value'),
-              [Input('type_dropdown', 'value')])
-def pass_value_type(v):
-    return v if v else ""
-
-
-@app.callback(Output('subtype', 'value'),
-              [Input('subtype_dropdown', 'value')])
-def pass_value_subtype(v):
-    return v if v else ""
 
 
 @app.server.route('/', methods=['POST'])
@@ -164,13 +98,7 @@ def on_post():
 
     if 'export' in items_dict:
         path = f"{app_path}/static/user_desc/summary_{ts}.xlsx"
-        df = get_table(
-            cls=None,
-            subcls=None,
-            type=None,
-            subtype=None,
-            tags=items_dict['tags'],
-            substructure=items_dict['substructure'])
+        df = get_table(tags=items_dict['tags'], substructure=items_dict['substructure'])
         data = {'summary': df.drop(['image', 'descriptors', 'tag'], axis=1)}
 
     elif ('PresetOptions' in items_dict) and ('ConformerOptions' in items_dict):
@@ -179,10 +107,6 @@ def on_post():
         # extract the descriptors (this can take long)
         try:
             data = descriptors(
-                cls=None,
-                subcls=None,
-                type=None,
-                subtype=None,
                 tags=items_dict['tags'],
                 presets=items_dict['PresetOptions'],
                 conf_option=items_dict['ConformerOptions'],
