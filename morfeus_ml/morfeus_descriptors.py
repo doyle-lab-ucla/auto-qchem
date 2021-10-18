@@ -8,10 +8,13 @@ import numpy as np
 from rdkit import Chem
 
 from morfeus.conformer import ConformerEnsemble
-from morfeus import Sterimol, BuriedVolume, XTB
+from morfeus import Sterimol, BuriedVolume, XTB as morf_xtb
+
+# constants
+os.environ['NWCHEM_BASIS_LIBRARY'] = '/home/zuranski/miniconda3/envs/qml/share/nwchem/libraries/'
 
 
-def compute(smiles, n_confs=None, solvent=None):
+def compute(smiles, n_confs=None, program='xtb', method='GFN2-xTB', basis=None, solvent=None):
     """Calculates a conformer ensemble using rdkit, then optimizes
     each conformer geometry using GFN2-xTB and calculates their properties"""
 
@@ -20,21 +23,21 @@ def compute(smiles, n_confs=None, solvent=None):
                                       n_threads=os.cpu_count() - 1)
 
     # optimize conformer geometries
-    ce.optimize_qc_engine(program="xtb",
-                          model={'method': 'GFN2-xTB', "solvent": solvent},
-                          procedure="berny")
+    ce.optimize_qc_engine(program=program,
+                          model={'method': method, "basis": basis, "solvent": solvent},
+                          procedure="geometric")
     ce.prune_rmsd()
 
     # compute energies of the single point calculations
-    ce.sp_qc_engine(program='xtb', model={'method': 'GFN2-xTB', "solvent": solvent})
+    ce.sp_qc_engine(program=program, model={'method': method, "basis": basis, "solvent": solvent})
 
     # sort on energy and generate an rdkit molecule
     ce.sort()
     ce.generate_mol()
 
-    # compute xtb for the conformers
+    # compute xtb for the conformers for descriptor calculations
     for conf in ce:
-        conf.xtb = XTB(ce.elements, conf.coordinates, solvent=solvent, version='2')
+        conf.xtb = morf_xtb(ce.elements, conf.coordinates, solvent=solvent, version='2')
 
     return ce
 
@@ -174,10 +177,6 @@ if __name__ == "__main__":
     m = compute(args.smiles, n_confs=args.n_confs, solvent=args.solvent)
     print(m.get_energies())
 
-    # save output
-    with open(f"{args.output_path}/{args.name}.pkl", "wb") as f:
-        pickle.dump(m, f)
-
     if args.descriptors:
         descs = get_descriptors(m, substructure=args.substructure,
                                 substructure_labels=args.substructure_labels,
@@ -185,3 +184,7 @@ if __name__ == "__main__":
 
         with open(f"{args.output_path}/{args.name}_descriptors.csv", "wb") as f:
             descs.to_frame(args.smiles).T.to_csv(f, index_label="smiles")
+
+    # save output
+    with open(f"{args.output_path}/{args.name}.pkl", "wb") as f:
+        pickle.dump(m, f)
