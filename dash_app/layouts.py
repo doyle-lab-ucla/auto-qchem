@@ -2,9 +2,12 @@ import dash_core_components as dcc
 import dash_bootstrap_components as dbc
 import dash_html_components as html
 import dash_table as dt
+import dash_bio as dbio
 
 from dash_app.functions import *
+from autoqchem.rdkit_utils import extract_from_rdmol
 
+jmolcolors = pd.read_csv("assets/jmolcolors.csv").set_index('atom')['Hex']
 
 def layout_navbar():
     """navigation bar"""
@@ -121,7 +124,7 @@ def layout_table(tags, substructure, message=""):
     queried = tags is not None
     if queried:
         cols = ['image', 'can', 'name', 'tags', 'theory', 'light_basis_set', 'heavy_basis_set', 'generic_basis_set',
-                'num_conf/max_conf', 'descriptors']
+                'num_conf/max_conf', 'detail']
         df = get_table(tags=tags, substructure=substructure)
         if not df.empty:
             df = df[cols]
@@ -145,7 +148,7 @@ def layout_table(tags, substructure, message=""):
         html.Div([dbc.Label(f"Found {df.shape[0]} molecules"), dt.DataTable(
             id="mol_table",
             data=df.to_dict(orient='records'),
-            columns=[{'id': c, 'name': c, 'presentation': ('markdown' if c in ['image', 'descriptors'] else 'input')}
+            columns=[{'id': c, 'name': c, 'presentation': ('markdown' if c in ['image', 'detail'] else 'input')}
                      for c in df.columns],
             page_size=10,
             editable=False,
@@ -184,6 +187,29 @@ def layout_table(tags, substructure, message=""):
 
 def layout_descriptors(id):
     mols_df = db_select_molecules(molecule_ids=[ObjectId(id)])
+    mol_record = db_connect('molecules').find_one({'_id': ObjectId(id)})
+
+    rdmol, energies = db_get_rdkit_mol(mol_record)
+    # make alternating single/double bonds for aromatics
+    Chem.SanitizeMol(rdmol)
+    Chem.Kekulize(rdmol, clearAromaticFlags=True)
+
+    # extract geometry info from the molecule
+    elements, coords, conn, _ = extract_from_rdmol(rdmol)
+    N = len(elements)
+    Nconf = len(coords)
+    if Nconf <= 10:
+        marks = {i: str(i) for i in range(1, Nconf + 1)}
+    else:
+        marks = {i: str(i) for i in range(1, Nconf + 1, int(Nconf / 10))}
+
+    modelData = {'atoms': [{'name': e, 'element': e, 'positions': c.tolist(), 'serial': i
+                            } for i, (e, c) in enumerate(zip(elements, coords[0]))],
+                 'bonds': [{'atom1_index': i, 'atom2_index': j, 'bond_order': int(conn[i][j])}
+                           for j in range(N) for i in range(N) if (i < j) and (conn[i][j] > 0)]}
+    stylesData = {str(i): {"color": f"#{jmolcolors.loc[e]}",
+                           "visualization_type": "stick"} for i, e in enumerate(elements)}
+
     can = mols_df['can'].iloc[0]
     desc = descriptors_from_mol_df(mols_df, conf_option='boltzmann').iloc[0]
 
@@ -195,11 +221,16 @@ def layout_descriptors(id):
     trans = desc['transitions']
 
     return html.Div(children=[
+        dcc.Store(id='store', data={'elements': elements, 'coords': coords, 'conn': conn, 'energies': energies}),
 
-        html.Img(src=image(can)),
-        # html.Br(),
         html.Div([
             dbc.Label(f"{can}", style={"font-weight": "bold"}, size='lg'),
+            html.Div(children=[html.P(id='conf_energy', children="", style={"font-weight": "bold", 'align': 'center'}),
+                               dbio.Molecule3dViewer(id='molecule3d', modelData=modelData, styles=stylesData),
+                               dcc.Slider(id='conf-slider',
+                                          min=1, max=Nconf, step=1, value=1,
+                                          marks=marks)],
+                     style={'width': '500px'}),
             dbc.Table.from_dataframe(d, responsive=True),
             dbc.Label("Atom-Level Descriptors", style={"font-weight": "bold"}, size='lg'),
             dbc.Table.from_dataframe(df_atom, responsive=True),

@@ -6,7 +6,7 @@ import dash_core_components as dcc
 import dash_html_components as html
 import flask
 import pandas as pd
-from dash.dependencies import Input, Output
+from dash.dependencies import Input, Output, State
 
 from autoqchem.db_functions import Chem, descriptors, InconsistentLabelsException, db_connect
 from dash_app.app import app, server
@@ -23,7 +23,9 @@ app.layout = html.Div([layout_navbar(),
               [Input('url', 'pathname'),
                Input('url', 'search')])
 def display_page(pathname, search):
-    if pathname == f"/":
+    if pathname is None:
+        return None
+    elif pathname == f"/":
         if not search:
             return layout_table(None, None)
         if search:
@@ -41,7 +43,7 @@ def display_page(pathname, search):
             except AssertionError as e:
                 return layout_table(None, None, message=f"Substructure '{items_dict['substructure']}'"
                                                         f" is an invalid SMARTS pattern.")
-    elif pathname.startswith(f"/descriptors/"):
+    elif pathname.startswith(f"/detail/"):
         id = pathname.split('/')[-1]
         return layout_descriptors(id)
     else:
@@ -99,7 +101,7 @@ def on_post():
     if 'export' in items_dict:
         path = f"{app_path}/static/user_desc/summary_{ts}.xlsx"
         df = get_table(tags=items_dict['tags'], substructure=items_dict['substructure'])
-        data = {'summary': df.drop(['image', 'descriptors', 'tag'], axis=1)}
+        data = {'summary': df.drop(['image', 'detail', 'tag'], axis=1)}
 
     elif ('PresetOptions' in items_dict) and ('ConformerOptions' in items_dict):
         path = f"{app_path}/static/user_desc/descriptors_{ts}.xlsx"
@@ -127,6 +129,34 @@ def on_post():
     return flask.send_file(path, as_attachment=True)
 
 
+@app.callback(
+    Output("molecule3d", "modelData"),
+    Input("conf-slider", "value"),
+    State("store", "data"),
+    prevent_initial_call=True,
+)
+def conf(value, data):
+    elements = data['elements']
+    coords = data['coords']
+    conn = data['conn']
+    N = len(elements)
+    modelData = {'atoms': [{'name': e, 'element': e, 'positions': c, 'serial': i
+                            } for i, (e, c) in enumerate(zip(elements, coords[value - 1]))],
+                 'bonds': [{'atom1_index': i, 'atom2_index': j, 'bond_order': int(conn[i][j])}
+                           for j in range(N) for i in range(N) if (i < j) and (conn[i][j] > 0)]}
+    return modelData
+
+
+@app.callback(
+    Output("conf_energy", "children"),
+    Input("conf-slider", "value"),
+    State("store", "data")
+)
+def conf_energy(value, data):
+    energies = data['energies']
+    return f"{value}: G = {min(energies):.1f} + {energies[value - 1] - min(energies):.2f} kcal/mol"
+
+
 if __name__ == '__main__':
-    server.run(port=80)
-    # app.run_server(debug=True, port=80)
+    # server.run(port=80)
+    app.run_server(debug=True, port=80)

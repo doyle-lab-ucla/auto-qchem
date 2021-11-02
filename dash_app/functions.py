@@ -4,7 +4,7 @@ from autoqchem.molecule import *
 app_path = "/home/ubuntu/github/auto-qchem/dash_app"
 
 
-# app_path = "C:/Users/AndrzejZuranski/Dropbox/DataX_PU/github/auto-qchem/dash_app"
+app_path = "C:/Users/AndrzejZuranski/Dropbox/DataX_PU/github/auto-qchem/dash_app"
 
 
 def image(can):
@@ -21,7 +21,7 @@ def get_table(tags, substructure):
     if df.empty:
         return df
     df['image'] = df.can.map(image).map(lambda path: f"![]({path})")
-    df['descriptors'] = df['molecule_id'].map(lambda i: f'''|[descriptors](/descriptors/{str(i)})|\n|:----:|''')
+    df['detail'] = df['molecule_id'].map(lambda i: f'''|[detail](/detail/{str(i)})|\n|:----:|''')
     df['tags'] = df['tag'].map(lambda t: t.__repr__()[1:-1])
 
     df_metadata = pd.DataFrame(list(df.metadata))
