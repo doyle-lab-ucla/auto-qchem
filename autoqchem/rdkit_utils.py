@@ -1,9 +1,6 @@
 import os
 import numpy as np
 
-from ipywidgets import interact, fixed
-
-import py3Dmol
 from rdkit import Chem, Geometry
 from rdkit.Chem import AllChem
 
@@ -82,27 +79,6 @@ def add_conformers_to_rdmol(mol: Chem.Mol, conformer_coordinates: np.ndarray) ->
             point = Geometry.Point3D(*coord)
             conformer.SetAtomPosition(i, point)
         mol.AddConformer(conformer, assignId=True)
-
-
-def graph_conf(m, confId=0):
-    mb = Chem.MolToMolBlock(m, confId=confId)
-    p = py3Dmol.view(width=400, height=400)
-    p.removeAllModels()
-    p.addModel(mb, 'sdf')
-    p.setStyle({'stick': {}})
-    p.setBackgroundColor('0xeeeeee')
-    p.zoomTo()
-    return p
-
-
-def draw(mol: Chem.Mol, energies: list) -> interact:
-    """Make a drawing of all conformers in 3d"""
-
-    # emin = min(energies)
-    # energies = energies - emin
-    # p = py3Dmol.view(width=400,height=400)
-    # return interact(drawit, m=fixed(mol), p=fixed(p),
-    #                confId=(0, mol.GetNumConformers()-1))
 
 
 def generate_conformations_from_rdkit(smiles, num_conf, rdkit_ff='MMFF94', n_threads=os.cpu_count() - 1):
