@@ -189,26 +189,31 @@ def layout_descriptors(id):
     mols_df = db_select_molecules(molecule_ids=[ObjectId(id)])
     mol_record = db_connect('molecules').find_one({'_id': ObjectId(id)})
 
-    rdmol, energies = db_get_rdkit_mol(mol_record)
-    # make alternating single/double bonds for aromatics
-    Chem.SanitizeMol(rdmol)
-    Chem.Kekulize(rdmol, clearAromaticFlags=True)
+    try:
+        rdmol, energies = db_get_rdkit_mol(mol_record)
+        # make alternating single/double bonds for aromatics
+        Chem.SanitizeMol(rdmol)
+        Chem.Kekulize(rdmol, clearAromaticFlags=True)
 
-    # extract geometry info from the molecule
-    elements, coords, conn, _ = extract_from_rdmol(rdmol)
-    N = len(elements)
-    Nconf = len(coords)
-    if Nconf <= 10:
-        marks = {i: str(i) for i in range(1, Nconf + 1)}
-    else:
-        marks = {i: str(i) for i in range(1, Nconf + 1, int(Nconf / 10))}
+        # extract geometry info from the molecule
+        elements, coords, conn, _ = extract_from_rdmol(rdmol)
+        N = len(elements)
+        Nconf = len(coords)
+        if Nconf <= 10:
+            marks = {i: str(i) for i in range(1, Nconf + 1)}
+        else:
+            marks = {i: str(i) for i in range(1, Nconf + 1, int(Nconf / 10))}
 
-    modelData = {'atoms': [{'name': e, 'element': e, 'positions': c.tolist(), 'serial': i
-                            } for i, (e, c) in enumerate(zip(elements, coords[0]))],
-                 'bonds': [{'atom1_index': i, 'atom2_index': j, 'bond_order': int(conn[i][j])}
-                           for j in range(N) for i in range(N) if (i < j) and (conn[i][j] > 0)]}
-    stylesData = {str(i): {"color": f"#{jmolcolors.loc[e]}",
-                           "visualization_type": "stick"} for i, e in enumerate(elements)}
+        modelData = {'atoms': [{'name': e, 'element': e, 'positions': c.tolist(), 'serial': i
+                                } for i, (e, c) in enumerate(zip(elements, coords[0]))],
+                     'bonds': [{'atom1_index': i, 'atom2_index': j, 'bond_order': int(conn[i][j])}
+                               for j in range(N) for i in range(N) if (i < j) and (conn[i][j] > 0)]}
+        stylesData = {str(i): {"color": f"#{jmolcolors.loc[e]}",
+                               "visualization_type": "stick"} for i, e in enumerate(elements)}
+        ismol = True
+    except AssertionError:
+        logger.warning("Cannot create rdmol from DB.")
+        ismol = False
 
     can = mols_df['can'].iloc[0]
     desc = descriptors_from_mol_df(mols_df, conf_option='boltzmann').iloc[0]
@@ -221,7 +226,8 @@ def layout_descriptors(id):
     trans = desc['transitions']
 
     return html.Div(children=[
-        dcc.Store(id='store', data={'elements': elements, 'coords': coords, 'conn': conn, 'energies': energies}),
+        dcc.Store(id='store', data={'elements': elements, 'coords': coords, 'conn': conn, 'energies': energies})
+        if ismol else dcc.Store(id='store'),
 
         html.Div([
             dbc.Label(f"{can}", style={"font-weight": "bold"}, size='lg'),
@@ -230,7 +236,8 @@ def layout_descriptors(id):
                                dcc.Slider(id='conf-slider',
                                           min=1, max=Nconf, step=1, value=1,
                                           marks=marks)],
-                     style={'width': '500px'}),
+                     style={'width': '500px'}) if ismol else
+            html.Div(children=[html.Br(), html.Img(src=image(can))]),
             dbc.Table.from_dataframe(d, responsive=True),
             dbc.Label("Atom-Level Descriptors", style={"font-weight": "bold"}, size='lg'),
             dbc.Table.from_dataframe(df_atom, responsive=True),
