@@ -2,13 +2,15 @@ import logging
 import re
 
 import pandas as pd
+import numpy as np
 import pymongo
 from bson.objectid import ObjectId
 from rdkit import Chem
 from rdkit.Chem import rdFMCS
 
-from autoqchem.helper_classes import config
+from autoqchem.helper_classes import config, Hartree_in_kcal_per_mol
 from autoqchem.helper_functions import add_numbers_to_repeated_items
+from autoqchem.rdkit_utils import get_rdkit_mol
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +43,7 @@ def db_connect(collection=None) -> pymongo.collection.Collection:
         return cli['autoqchem'][collection]
 
 
-def db_upload_molecule(can, tags, metadata, weights, conformations, logs) -> ObjectId:
+def db_upload_molecule(mol_data, tags, metadata, weights, conformations, logs) -> ObjectId:
     """Upload single molecule to DB and all child objects tags, features
     and log files for its conformations"""
 
@@ -50,20 +52,26 @@ def db_upload_molecule(can, tags, metadata, weights, conformations, logs) -> Obj
     tags_coll = db['tags']
 
     # create molecule record and insert it
-    mol_data = {'can': can, 'metadata': metadata}
+    mol_data = {'can': mol_data['can'],
+                'inchi': mol_data['inchi'],
+                'inchikey': mol_data['inchikey'],
+                'elements': mol_data['elements'],
+                'charges': mol_data['charges'],
+                'connectivity_matrix': mol_data['connectivity_matrix'],
+                'metadata': metadata}
     ret = mols_coll.insert_one(mol_data)
     mol_id = ret.inserted_id
 
     # insert tag record
     for tag in tags:
-        tags_coll.insert_one({'tag': tag, 'molecule_id': mol_id, 'can': can})
+        tags_coll.insert_one({'tag': tag, 'molecule_id': mol_id})
 
     for weight, conformation, log in zip(weights, conformations, logs):
-        db_upload_conformation(mol_id, can, weight, conformation, log, check_mol_exists=False)
+        db_upload_conformation(mol_id, weight, conformation, log, check_mol_exists=False)
     return mol_id
 
 
-def db_upload_conformation(mol_id, can, weight, conformation, log, check_mol_exists=True):
+def db_upload_conformation(mol_id, weight, conformation, log, check_mol_exists=True):
     """Upload single conformation features and log file to DB, requires a molecule
     to be present"""
 
@@ -77,14 +85,14 @@ def db_upload_conformation(mol_id, can, weight, conformation, log, check_mol_exi
     feats_coll = db['qchem_descriptors']
     logs_coll = db['log_files']
 
-    data = {'molecule_id': mol_id, 'weight': weight, 'can': can}
+    data = {'molecule_id': mol_id, 'weight': weight}
 
     # update with descriptors
     data.update(conformation)
 
     # db insertion
     feats_coll.insert_one(data)
-    logs_coll.insert_one({'molecule_id': mol_id, 'log': log, 'can': can})
+    logs_coll.insert_one({'molecule_id': mol_id, 'log': log})
 
 
 def db_delete_molecule(mol_id):
@@ -168,7 +176,7 @@ def db_select_molecules(tags=[], substructure="", molecule_ids=[]) -> pd.DataFra
     return df
 
 
-def db_check_exists(can, gaussian_config, max_num_conformers) -> tuple:
+def db_check_exists(inchi, gaussian_config, max_num_conformers, conformer_engine) -> tuple:
     """Check if a molecule is already present in the database with the same Gaussian config (theory, basis_sets, etc.)
 
     :param can: canonical smiles
@@ -181,16 +189,64 @@ def db_check_exists(can, gaussian_config, max_num_conformers) -> tuple:
     db = db_connect()
     mols_coll = db['molecules']
     tags_coll = db['tags']
-    mol_id = mols_coll.find_one({"can": can,
+    mol_id = mols_coll.find_one({"inchi": inchi,
                                  "metadata.gaussian_config": gaussian_config,
-                                 "metadata.max_num_conformers": max_num_conformers},
-                                {"molecule_id": 1})
+                                 "metadata.max_num_conformers": max_num_conformers,
+                                 "metadata.conformer_engine": conformer_engine},
+                                {"_id": 1})
 
     exists, tags = False, []
     if mol_id is not None:
         exists = True
         tags = tags_coll.distinct('tag', {'molecule_id': ObjectId(mol_id['_id'])})
     return exists, tags
+
+
+def db_get_molecule(can, tags=[]):
+    """Get an rdkit molecule from DB conformer geometries"""
+
+    mols_coll = db_connect('molecules')
+    tags_coll = db_connect('tags')
+
+    if tags:
+        # prefilter molecules that belong to a specific tag
+        mol_ids = [record['molecule_id'] for record in tags_coll.find({'tag': {'$in': tags}},
+                                                                      {'molecule_id': 1, '_id': 0})]
+        m = mols_coll.find_one({'can': can, '_id': {"$in": mol_ids}})
+    else:
+        m = mols_coll.find_one({'can': can})
+
+    if m is None:
+        logger.warning(f"Molecule {can} not found.")
+        return None, None
+
+    return db_get_rdkit_mol(m)
+
+
+def db_get_rdkit_mol(molecule_record) -> tuple([Chem.Mol, list]):
+    """Get an rdkit molecule from DB conformer geometries"""
+
+    feats_coll = db_connect("qchem_descriptors")
+    feats = feats_coll.find({'molecule_id': molecule_record['_id']},
+                            {'_id': 0, 'descriptors.G': 1, 'labels': 1, 'atom_descriptors.X': 1,
+                             'atom_descriptors.Y': 1, 'atom_descriptors.Z': 1})
+    feats = list(feats)
+
+    # dummy check
+    assert (all(f['labels'] == molecule_record['elements'] for f in feats))
+
+    energies = np.array([f['descriptors']['G'] * Hartree_in_kcal_per_mol for f in feats])
+    coords = np.array([np.array([f['atom_descriptors']['X'],
+                                 f['atom_descriptors']['Y'], f['atom_descriptors']['Z']]).T for f in feats])
+
+    connectivity = np.reshape(molecule_record['connectivity_matrix'],
+                              newshape=(len(molecule_record['elements']), len(molecule_record['elements'])))
+
+    order = energies.argsort()
+    rdmol = get_rdkit_mol(molecule_record['elements'], coords[order, :, :],
+                          connectivity, molecule_record['charges'])
+
+    return rdmol, energies[order]
 
 
 def descriptors(tags, presets, conf_option, substructure="") -> dict:

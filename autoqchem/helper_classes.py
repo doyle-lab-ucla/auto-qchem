@@ -1,5 +1,6 @@
 import enum
 import os
+import numpy as np
 from dataclasses import dataclass
 
 import yaml
@@ -50,10 +51,18 @@ class slurm_job:
     :type n_success_tasks: int
     """
 
-    # molecule and gaussian config
+    # molecule info
     can: str
+    inchi: str
+    inchikey: str
+    elements: list
+    charges: list
+    connectivity_matrix: np.ndarray
     conformation: int
+
+    # configuration info
     max_num_conformers: int
+    conformer_engine: str
     tasks: tuple
     config: dict
 

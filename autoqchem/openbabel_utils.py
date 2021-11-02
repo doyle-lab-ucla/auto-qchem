@@ -1,6 +1,6 @@
 from autoqchem.gaussian_log_extractor import *
 from autoqchem.helper_classes import *
-from autoqchem.molecule import pybel
+from autoqchem.molecule import pybel, GetSymbol
 
 conv = pybel.ob.OBConversion()
 
@@ -101,3 +101,50 @@ def deduplicate_list_of_OBMols(mols, RMSD_threshold, symmetry) -> list:
                 duplicate_indices.append(j)
 
     return duplicate_indices
+
+
+def extract_from_obmol(mol, ) -> tuple([list, np.ndarray, np.ndarray, np.ndarray]):
+    """Extract information from Openbabel OBMol object with conformers."""
+
+    py_mol = pybel.Molecule(mol)
+    elements = [GetSymbol(atom.atomicnum) for atom in py_mol.atoms]
+    charges = np.array([atom.formalcharge for atom in py_mol.atoms])
+
+    n_atoms = len(py_mol.atoms)
+    connectivity_matrix = np.zeros((n_atoms, n_atoms))
+    for bond in pybel.ob.OBMolBondIter(mol):
+        i = bond.GetBeginAtomIdx() - 1
+        j = bond.GetEndAtomIdx() - 1
+        bo = bond.GetBondOrder()
+        connectivity_matrix[i, j] = bo
+        connectivity_matrix[j, i] = bo
+
+    # Retrieve conformer coordinates
+    conformer_coordinates = []
+    for i in range(mol.NumConformers()):
+        mol.SetConformer(i)
+        coordinates = np.array([atom.coords for atom in py_mol.atoms])
+        conformer_coordinates.append(coordinates)
+    conformer_coordinates = np.array(conformer_coordinates)
+
+    return elements, conformer_coordinates, connectivity_matrix, charges
+
+
+def generate_conformations_from_openbabel(smiles, num_conf, ob_gen3D_option='best'):
+    # initialize obmol
+    obmol = pybel.readstring('smi', smiles).OBMol
+    obmol.AddHydrogens()
+
+    # initial geometry
+    gen3D = pybel.ob.OBOp.FindType("gen3D")
+    gen3D.Do(obmol, ob_gen3D_option)
+
+    # conf search
+    confSearch = pybel.ob.OBConformerSearch()
+    confSearch.Setup(obmol, num_conf)
+    confSearch.Search()
+    confSearch.GetConformers(obmol)
+
+    elements, conformer_coordinates, connectivity_matrix, charges = extract_from_obmol(obmol)
+
+    return elements, conformer_coordinates, connectivity_matrix, charges

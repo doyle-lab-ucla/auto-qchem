@@ -8,7 +8,7 @@ import pymongo
 from autoqchem.db_functions import *
 from autoqchem.gaussian_input_generator import *
 from autoqchem.helper_functions import *
-from autoqchem.openbabel_functions import *
+from autoqchem.openbabel_utils import *
 
 logger = logging.getLogger(__name__)
 
@@ -92,7 +92,7 @@ class slurm_manager(object):
         """
 
         # create gaussian files
-        molecule_workdir = os.path.join(self.workdir, molecule.fs_name)
+        molecule_workdir = os.path.join(self.workdir, molecule.inchikey)
         gig = gaussian_input_generator(molecule, workflow_type, molecule_workdir, theory, light_basis_set,
                                        heavy_basis_set, generic_basis_set, max_light_atomic_number)
         gaussian_config = {'theory': theory,
@@ -102,9 +102,10 @@ class slurm_manager(object):
                            'max_light_atomic_number': max_light_atomic_number}
 
         # DB check if the same molecule with the same gaussian configuration already exists
-        exists, tags = db_check_exists(molecule.can, gaussian_config, molecule.max_num_conformers)
+        exists, tags = db_check_exists(molecule.inchi, gaussian_config,
+                                       molecule.max_num_conformers, molecule.conformer_engine)
         if exists:
-            logger.warning(f"Molecule {molecule.can} already exists with the same Gaussian config with tags {tags}."
+            logger.warning(f"Molecule {molecule.inchi} already exists with the same Gaussian config with tags {tags}."
                            f" Not creating jobs.")
             return
 
@@ -117,10 +118,16 @@ class slurm_manager(object):
             self._create_slurm_file_from_gaussian_file(base_name, molecule_workdir, wall_time)
             # create job structure
             job = slurm_job(can=molecule.can,
+                            inchi=molecule.inchi,
+                            inchikey=molecule.inchikey,
+                            elements=molecule.elements,
+                            charges=molecule.charges,
+                            connectivity_matrix=molecule.connectivity_matrix,
                             conformation=int(base_name.split("_conf_")[1]),
-                            max_num_conformers=gig.molecule.max_num_conformers,
+                            max_num_conformers=molecule.max_num_conformers,
                             tasks=gig.tasks,
                             config=gaussian_config,
+                            conformer_engine=molecule.conformer_engine,
                             job_id=-1,  # job_id (not assigned yet)
                             directory=gig.directory,  # filesystem path
                             base_name=base_name,  # filesystem basename
@@ -328,8 +335,7 @@ class slurm_manager(object):
 
         self.submit_jobs_from_jobs_dict(incomplete_jobs_to_resubmit)
 
-    def upload_done_molecules_to_db(self, tags, cls="", subcls="",
-                                    type="", subtype="", RMSD_threshold=0.01, symmetry=True) -> None:
+    def upload_done_molecules_to_db(self, tags, RMSD_threshold=0.35, symmetry=True) -> None:
 
         """Upload done molecules to db. Molecules are considered done when all jobs for a given \
          smiles are in 'done' status. The conformers are deduplicated and uploaded to database using a metadata tag.
@@ -360,48 +366,35 @@ class slurm_manager(object):
         logger.info(f"There are {len(done_cans)} finished molecules {done_cans}.")
 
         # select jobs for done molecules
-        done_can_jobs = self.get_jobs(can=done_cans)
-        jobs_df = pd.DataFrame([job.__dict__ for job in done_can_jobs.values()], index=done_can_jobs.keys())
+        # done_can_jobs = self.get_jobs(can=done_cans)
+        # jobs_df = pd.DataFrame([job.__dict__ for job in done_can_jobs.values()], index=done_can_jobs.keys())
 
         logger.debug(f"Deduplicating conformers if RMSD < {RMSD_threshold}.")
-        meta = {"class": cls, "subclass": subcls, "type": type, "subtype": subtype}
 
-        for (can, tasks, max_n_conf), keys in jobs_df.groupby(["can", "tasks", "max_num_conformers"]).groups.items():
+        for done_can in done_cans:
+            (keys, jobs) = zip(*self.get_jobs(can=done_can).items())
+            rdmol, energies = rdmol_from_slurm_jobs(jobs, postDFT=True)
+            keep = prune_rmsds(rdmol, RMSD_threshold)
+            logger.info(f"Molecule {done_can} has {len(keys) - len(keep)} / {len(keys)} duplicate conformers.")
 
-            if len(keys) > 1:
-                # deduplicate conformers
-                mols = [OBMol_from_done_slurm_job(done_jobs[key]) for key in keys]
-                duplicates = deduplicate_list_of_OBMols(mols, RMSD_threshold=RMSD_threshold, symmetry=symmetry)
-                logger.info(f"Molecule {can} has {len(duplicates)} / {len(keys)} duplicate conformers.")
+            # remove duplicate jobs
+            can_keys_to_remove = [key for i, key in enumerate(keys) if i not in keep]
+            to_remove_jobs = {name: job for name, job in self.jobs.items() if name in can_keys_to_remove}
+            logger.info(
+                f"Removing {len(keys) - len(keep)} / {len(keys)} jobs and log files that contain duplicate conformers.")
+            self.remove_jobs(to_remove_jobs)
 
-                # fetch non-duplicate keys
-                can_keys_to_keep = [key for i, key in enumerate(keys) if i not in duplicates]
+            # upload non-duplicate jobs
+            can_keys_to_keep = [key for i, key in enumerate(keys) if i in keep]
+            self._upload_can_to_db(can_keys_to_keep, tags)
 
-                # remove jobs for duplicate conformers
-                can_keys_to_remove = [key for i, key in enumerate(keys) if i in duplicates]
-                to_remove_jobs = {name: job for name, job in self.jobs.items() if name in can_keys_to_remove}
-                logger.info(f"Removing {len(duplicates)} / {len(keys)} jobs and log files that contain duplicate "
-                            f"conformers.")
-                self.remove_jobs(to_remove_jobs)
-            else:
-                can_keys_to_keep = keys
-            self._upload_can_to_db(can, tasks, meta, can_keys_to_keep, tags, max_n_conf)
-
-    def _upload_can_to_db(self, can, tasks, meta, keys, tags, max_conf) -> None:
+    def _upload_can_to_db(self, keys, tags) -> None:
         """Uploading single molecule conformers to database.
 
-        :param db: database client
-        :type db: pymongo.MongoClient
-        :param can: canonical smiles
-        :type can: str
-        :param tasks: tuple of Gaussian tasks
-        :type tasks: tuple
         :param keys: list of keys to the self.jobs dictionary to upload
         :type keys: list
         :param tags: metadata tag or tags
         :type tags: str or list
-        :param max_conf: max number of conformers used for this molecule
-        :type max_conf: int
         """
 
         # check if the tag(s) are properly provided
@@ -410,18 +403,34 @@ class slurm_manager(object):
             tags = [tags]
         assert all(len(t.strip()) > 0 for t in tags)
 
-        # loop over the conformers
+        # fetch jobs
+        jobs = [self.jobs[key] for key in keys]
+
+        # get molecule info
+        assert len(set(j.can for j in jobs)) == 1
+        assert len(set(j.inchi for j in jobs)) == 1
+        assert len(set(j.inchikey for j in jobs)) == 1
+        assert len(set(tuple(j.elements) for j in jobs)) == 1
+        assert len(set(tuple(j.charges) for j in jobs)) == 1
+        assert len(set(tuple(j.connectivity_matrix.flatten()) for j in jobs)) == 1
+        assert len(set(tuple(j.config) for j in jobs)) == 1
+
+        mol_data = {'can': jobs[0].can,
+                    'inchi': jobs[0].inchi,
+                    'inchikey': jobs[0].inchikey,
+                    'elements': jobs[0].elements,
+                    'charges': jobs[0].charges.tolist(),
+                    'connectivity_matrix': jobs[0].connectivity_matrix.flatten().tolist()}
+
+        metadata = {'gaussian_config': jobs[0].config,
+                    'gaussian_tasks': jobs[0].tasks,
+                    'max_num_conformers': jobs[0].max_num_conformers,
+                    'conformer_engine': jobs[0].conformer_engine}
+
+        # loop over the conformers and extract info
         conformations = []
         logs = []
-        configs = []
-        for key in keys:
-            # fetch job, verify that there are not can issues (just in case)
-            job = self.jobs[key]
-            assert job.can == can
-
-            # append job configs
-            configs.append(job.config)
-
+        for job in jobs:
             # extract descriptors for this conformer from log file
             log = f"{job.directory}/{job.base_name}.log"
             le = gaussian_log_extractor(log)
@@ -436,14 +445,10 @@ class slurm_manager(object):
         weights = np.exp(-free_energies / (k_in_kcal_per_mol_K * T))
         weights /= weights.sum()
 
-        # check that all configs are the same
-        assert len(set([config.__repr__() for config in configs])) == 1
-        metadata = {'gaussian_config': configs[0], 'gaussian_tasks': tasks, 'max_num_conformers': max_conf}
-        metadata.update(meta)
-
-        mol_id = db_upload_molecule(can, tags, metadata, weights, conformations, logs)
-        logger.info(f"Uploaded descriptors to DB for smiles: {can}, number of conformers: {len(conformations)},"
-                    f" DB molecule id {mol_id}.")
+        mol_id = db_upload_molecule(mol_data, tags, metadata, weights, conformations, logs)
+        logger.info(
+            f"Uploaded descriptors to DB for smiles: {mol_data['can']}, number of conformers: {len(conformations)},"
+            f" DB molecule id {mol_id}.")
         for key in keys:
             self.jobs[key].status = slurm_status.uploaded
         self._cache()
