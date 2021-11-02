@@ -158,5 +158,5 @@ def conf_energy(value, data):
 
 
 if __name__ == '__main__':
-    # server.run(port=80)
-    app.run_server(debug=True, port=80)
+    server.run(port=80)
+    # app.run_server(debug=True, port=80)

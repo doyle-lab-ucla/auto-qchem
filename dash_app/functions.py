@@ -4,7 +4,7 @@ from autoqchem.molecule import *
 app_path = "/home/ubuntu/github/auto-qchem/dash_app"
 
 
-app_path = "C:/Users/AndrzejZuranski/Dropbox/DataX_PU/github/auto-qchem/dash_app"
+# app_path = "C:/Users/AndrzejZuranski/Dropbox/DataX_PU/github/auto-qchem/dash_app"
 
 
 def image(can):
