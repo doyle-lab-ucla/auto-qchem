@@ -51,7 +51,9 @@ class gaussian_input_generator(object):
             )
         elif workflow_type == "test":
             self.tasks = (
-                f"{theory}/{basis_set}",
+                f"Opt B3LYP/6-31G** SCRF=(Solvent=TetraHydroFuran) EmpiricalDispersion=GD3",
+                f"Freq B3LYP/6-31G** volume NMR pop=NPA density=current Geom=AllCheck Guess=Read "
+                f"SCRF=(Solvent=TetraHydroFuran) EmpiricalDispersion=GD3"
             )
         else:
             raise ValueError(f"Not supported gaussian job type {workflow_type}. "
