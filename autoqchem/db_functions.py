@@ -92,7 +92,10 @@ def db_upload_conformation(mol_id, weight, conformation, log, check_mol_exists=T
 
     # db insertion
     feats_coll.insert_one(data)
-    logs_coll.insert_one({'molecule_id': mol_id, 'log': log})
+    try:
+        logs_coll.insert_one({'molecule_id': mol_id, 'log': log})
+    except pymongo.errors.DocumentTooLarge:
+        logger.warning(f"Log file of conformation with weight {weight} too large for DB (limit is 16MB).")
 
 
 def db_delete_molecule(mol_id):
