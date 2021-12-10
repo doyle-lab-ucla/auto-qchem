@@ -364,11 +364,6 @@ class slurm_manager(object):
             return
 
         logger.info(f"There are {len(done_cans)} finished molecules {done_cans}.")
-
-        # select jobs for done molecules
-        # done_can_jobs = self.get_jobs(can=done_cans)
-        # jobs_df = pd.DataFrame([job.__dict__ for job in done_can_jobs.values()], index=done_can_jobs.keys())
-
         logger.debug(f"Deduplicating conformers if RMSD < {RMSD_threshold}.")
 
         for done_can in done_cans:
