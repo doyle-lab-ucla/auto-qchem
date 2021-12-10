@@ -1,5 +1,4 @@
 from ipywidgets import interact, fixed
-import numpy as np
 from rdkit import Chem
 import py3Dmol
 
