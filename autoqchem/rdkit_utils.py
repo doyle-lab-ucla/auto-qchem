@@ -1,11 +1,15 @@
 import os
 import numpy as np
+import itertools
 
 from rdkit import Chem, Geometry
 from rdkit.Chem import AllChem
 
 from .molecule import GetSymbol
+from .helper_classes import slurm_status
 from .gaussian_log_extractor import gaussian_log_extractor
+
+from .helper_classes import Hartree_in_kcal_per_mol
 
 
 def extract_from_rdmol(mol: Chem.Mol) -> tuple([list, np.ndarray, np.ndarray, np.ndarray]):
@@ -118,7 +122,7 @@ def get_light_and_heavy_elements(mol: Chem.Mol, max_light_atomic_number: int) ->
     return light_elements, heavy_elements
 
 
-def rdmol_from_slurm_jobs(jobs, postDFT=True, ordered=False):
+def rdmol_from_slurm_jobs(jobs, postDFT=True):
     """Create an rdkit molecule from a set of finished slurm jobs"""
 
     # check that these are jobs for the same molecule
@@ -144,7 +148,7 @@ def rdmol_from_slurm_jobs(jobs, postDFT=True, ordered=False):
             conformer_coordinates.append(le.geom[list('XYZ')].values)
 
             le._get_freq_part_descriptors()
-            energies.append(le.descriptors['G'])
+            energies.append(le.descriptors['G'] * Hartree_in_kcal_per_mol)
 
         else:
             with open(f"{j.directory}/{j.base_name}.gjf") as f:
@@ -161,33 +165,19 @@ def rdmol_from_slurm_jobs(jobs, postDFT=True, ordered=False):
         energies = [AllChem.MMFFGetMoleculeForceField(rdmol, props, confId=i).CalcEnergy()
                     for i in range(rdmol.GetNumConformers())]
 
-    if ordered:
-        pass
-
     return rdmol, energies
 
 
 def get_rmsd_rdkit(rdmol):
-    """Calculate RMSD row-wise with RDKit."""
+    """Calculate RMSD row-wise with RDKit. This is a computationally slower version,
+    but takes symmetry into account (explores permutations of atom order)"""
 
-    # Construct atom list for rmsd: do not include hydrogen
-    atom_ids = [atom.GetIdx() for atom in rdmol.GetAtoms() if atom.GetAtomicNum() != 1]
-
-    # Calculated RMSD row-wise with RDKit
-    rmsds = []
-    conformers = list(rdmol.GetConformers())
-    for i in range(len(conformers)):
-        ref_mol = Chem.Mol(rdmol)
-        ref_conformer = conformers[i]
-        ref_mol.RemoveAllConformers()
-        ref_mol.AddConformer(ref_conformer)
-        for j in range(len(conformers)):
-            conformer = conformers[j]
-            ref_mol.AddConformer(conformer)
-        rmsds_row = []
-        AllChem.AlignMolConformers(ref_mol, atomIds=atom_ids, RMSlist=rmsds_row)
-        rmsds.append(rmsds_row)
-    rmsds = np.array(rmsds)
+    N = rdmol.GetNumConformers()
+    rmsds = np.zeros(shape=(N, N))
+    for i, j in itertools.combinations(range(N), 2):
+        rms = AllChem.GetBestRMS(rdmol, rdmol, i, j)
+        rmsds[i][j] = rms
+        rmsds[j][i] = rms
 
     return rmsds
 
