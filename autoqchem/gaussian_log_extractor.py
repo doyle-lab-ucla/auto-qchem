@@ -165,7 +165,7 @@ class gaussian_log_extractor(object):
         self.parts = {}
         for p in log_parts:
             # regex logic: find first word in the text
-            name = re.search("^\w+", p).group(0)
+            name = re.search("^\w+", p).group(0).lower()
             self.parts[name] = p
 
     def _get_frequencies_and_moment_vectors(self) -> None:
