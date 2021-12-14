@@ -16,8 +16,9 @@ def image(can):
     return f"/static/{hash_str}.svg"
 
 
-def get_table(tags, substructure):
-    df = db_select_molecules(tags=tags, substructure=substructure)
+def get_table(tag, substructure, solvent, functional, basis_set):
+    df = db_select_molecules(tags=[tag] if tag != 'ALL' else [],
+                             substructure=substructure, solvent=solvent, functional=functional, basis_set=basis_set)
     if df.empty:
         return df
     df['image'] = df.can.map(image).map(lambda path: f"![]({path})")
@@ -36,3 +37,32 @@ def get_table(tags, substructure):
     df = df.loc[:, ~df.columns.duplicated()]  # deduplicate columns
 
     return df.drop(['molecule_id', 'metadata', '_ids'], axis=1)
+
+
+def get_tags_dropdown(basis_set, functional, solvent):
+    # connect to db
+    filter = {}
+    mols_coll = db_connect('molecules')
+    tags_coll = db_connect('tags')
+
+    if basis_set != 'ALL':
+        filter['metadata.gaussian_config.light_basis_set'] = re.compile(f"^{re.escape(basis_set)}$", re.IGNORECASE)
+    if functional != 'ALL':
+        filter['metadata.gaussian_config.theory'] = re.compile(f"^{re.escape(functional)}$", re.IGNORECASE)
+    if solvent != 'ALL':
+        filter['metadata.gaussian_config.solvent'] = re.compile(f"^{re.escape(solvent)}$", re.IGNORECASE)
+
+    if not filter:
+        mol_ids = mols_coll.distinct('_id')
+        available_tags = tags_coll.distinct('tag')
+    else:
+        mol_ids = mols_coll.distinct('_id', filter)
+        available_tags = tags_coll.distinct('tag', {'molecule_id': {"$in": mol_ids}})
+
+    options_tags = [dict(label=f'''All ({len(mol_ids)} molecules)''', value='ALL'),
+                    dict(label="-------------------------------", value="", disabled="disabled")] + \
+                   [dict(
+                       label=f'''{tag} ({len(tags_coll.distinct("molecule_id", {"tag": tag, 'molecule_id': {'$in': mol_ids}}))} molecules)''',
+                       value=tag) for tag in available_tags]
+
+    return options_tags

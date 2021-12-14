@@ -1,7 +1,9 @@
 import os
 import time
+import re
 from urllib.parse import unquote_plus
 
+import dash
 import dash_core_components as dcc
 import dash_html_components as html
 import flask
@@ -10,7 +12,7 @@ from dash.dependencies import Input, Output, State
 
 from autoqchem.db_functions import Chem, descriptors, InconsistentLabelsException, db_connect
 from dash_app.app import app, server
-from dash_app.functions import app_path, get_table
+from dash_app.functions import app_path, get_table, get_tags_dropdown
 from dash_app.layouts import layout_table, layout_descriptors, layout_navbar
 
 app.layout = html.Div([layout_navbar(),
@@ -27,19 +29,17 @@ def display_page(pathname, search):
         return None
     elif pathname == f"/":
         if not search:
-            return layout_table(None, None)
+            return layout_table(queried=False)
         if search:
             items = [item.split("=") for item in search.split('?')[1].split("&")]
             items_dict = {key: unquote_plus(value) for key, value in items}
-            items_dict['tags'] = list(filter(None, items_dict['tags'].split(",")))
             try:
                 if items_dict['substructure'] != "":
                     assert Chem.MolFromSmarts(items_dict['substructure']) is not None
                 else:
                     pass
-                return layout_table(items_dict['tags'],
-                                    items_dict['substructure'],
-                                    )
+                items_dict['queried'] = True
+                return layout_table(**items_dict)
             except AssertionError as e:
                 return layout_table(None, None, message=f"Substructure '{items_dict['substructure']}'"
                                                         f" is an invalid SMARTS pattern.")
@@ -48,6 +48,20 @@ def display_page(pathname, search):
         return layout_descriptors(id)
     else:
         return '404'
+
+
+@app.callback(Output('tags_dropdown', 'options'),
+              [Input('basis_sets_dropdown', 'value'),
+               Input('functionals_dropdown', 'value'),
+               Input('solvents_dropdown', 'value')],
+              prevent_initial_call=False)
+def update_tags_dropdown(basis_set, functional, solvent):
+    ctx = dash.callback_context
+    # determine the source of the callback
+    if ctx.triggered:
+        return get_tags_dropdown(basis_set, functional, solvent)
+    else:
+        return dash.no_update
 
 
 @app.callback(Output('inputPresetOptions', 'value'),
@@ -65,12 +79,6 @@ def pass_value_conformer(v):
     return v if v else ""
 
 
-@app.callback(Output('tags', 'value'),
-              [Input('tags_dropdown', 'value')])
-def pass_value_tags(v):
-    return "" if v == "All" else v
-
-
 @app.server.route('/', methods=['POST'])
 def on_post():
     # fetch query items from url
@@ -82,7 +90,7 @@ def on_post():
     items_dict = {key: unquote_plus(value) for key, value in url_items}
     # fetch form items from form
     items_dict.update(flask.request.form)
-    items_dict['tags'] = list(filter(None, items_dict['tags'].split(",")))
+    # items_dict['tags'] = list(filter(None, items_dict['tags'].split(",")))
 
     # remove unused files in the dir
     for f in os.listdir(f"{app_path}/static/user_desc/"):
@@ -100,7 +108,9 @@ def on_post():
 
     if 'export' in items_dict:
         path = f"{app_path}/static/user_desc/summary_{ts}.xlsx"
-        df = get_table(tags=items_dict['tags'], substructure=items_dict['substructure'])
+        df = get_table(tag=items_dict['tag'], substructure=items_dict['substructure'],
+                       solvent=items_dict['solvent'], functional=items_dict['functional'],
+                       basis_set=items_dict['basis_set'])
         data = {'summary': df.drop(['image', 'detail', 'tag'], axis=1)}
 
     elif ('PresetOptions' in items_dict) and ('ConformerOptions' in items_dict):
@@ -109,10 +119,14 @@ def on_post():
         # extract the descriptors (this can take long)
         try:
             data = descriptors(
-                tags=items_dict['tags'],
+                tags=[items_dict['tag']] if items_dict['tag'] != 'ALL' else [],
                 presets=items_dict['PresetOptions'],
                 conf_option=items_dict['ConformerOptions'],
-                substructure=items_dict['substructure'])
+                solvent=items_dict['solvent'],
+                functional=items_dict['functional'],
+                basis_set=items_dict['basis_set'],
+                substructure=items_dict['substructure']
+            )
         except InconsistentLabelsException as e:
             return ('Molecules in the set have inconsistent labels', 200)
     else:

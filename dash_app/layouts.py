@@ -31,56 +31,108 @@ def layout_navbar():
     return navbar
 
 
-def layout_table(tags, substructure, message=""):
+def layout_table(tag='ALL', substructure=None, solvent='ALL', functional='ALL', basis_set='ALL', message="",
+                 queried=False):
     """main layout with a table of molecules"""
 
     tags_coll = db_connect('tags')
+    mols_coll = db_connect('molecules')
 
-    query_form = html.Form(id='query-form',
-                           children=[
-                               dbc.Table(
-                                   html.Tbody(
-                                       [
-                                           html.Tr(
-                                               html.Td(
-                                                   dbc.Select(
-                                                       id='tags_dropdown',
-                                                       options=[dict(
-                                                           label=f'''All ({len(tags_coll.distinct("molecule_id"))} molecules)''',
-                                                           value='All'),
-                                                                dict(label="-------------------------------", value="",
-                                                                     disabled="disabled")] +
-                                                               [dict(
-                                                                   label=f'''{tag} ({len(tags_coll.distinct("molecule_id", {"tag": tag}))} molecules)''',
-                                                                   value=tag)
-                                                                for tag in tags_coll.distinct('tag')],
-                                                       required=True,
-                                                       placeholder="Select Dataset",
-                                                       persistence=True,
-                                                   ), colSpan=2)
-                                           ),
-                                           html.Tr(
-                                               html.Td(
-                                                   dbc.Input(name="substructure", id="substructure",
-                                                             placeholder="SMARTS Substructure",
-                                                             style={"width": "100%"},
-                                                             persistence=True,
-                                                             value=substructure,
-                                                             ), colSpan=2)
-                                           ),
-                                           html.Tr(
-                                               html.Td(
-                                                   dbc.Button('Query', id='submit_query-form',
-                                                              color="primary",
-                                                              block=True
-                                                              ))
-                                           )
-                                       ],
+    solvents = list(set(map(str.upper, mols_coll.distinct('metadata.gaussian_config.solvent'))))
+    functionals = list(set(map(str.upper, mols_coll.distinct('metadata.gaussian_config.theory'))))
+    basis_sets = list(set(map(str.upper, mols_coll.distinct('metadata.gaussian_config.light_basis_set'))))
+
+    options_tags = get_tags_dropdown(basis_set, functional, solvent)
+
+    query_form = dbc.Form(id='query-form', prevent_default_on_submit=False,
+                          children=[
+                              dbc.Table(
+                                  html.Tbody(
+                                      [
+                                          html.Tr([
+                                              html.Td(dbc.Button("Dataset Tag", type='button', style={'width': '100%'}),
+                                                      style={'width': '80px'}),
+                                              html.Td(
+                                                  dbc.Select(
+                                                      name='tag',
+                                                      id='tags_dropdown',
+                                                      options=options_tags,
+                                                      required=True,
+                                                      valid='ALL',
+                                                      persistence="session",
+                                                  ))]),
+                                          html.Tr([
+                                              html.Td(dbc.Button("Solvent", type='Button', style={'width': '100%'}),
+                                                      style={'width': '80px'}),
+                                              html.Td(
+                                                  dbc.Select(
+                                                      name='solvent',
+                                                      id='solvents_dropdown',
+                                                      options=[dict(label=f'ALL', value='ALL'),
+                                                               dict(label="-------------------------------", value="",
+                                                                    disabled="disabled")] +
+                                                              [dict(label=solvent, value=solvent) for solvent in
+                                                               solvents],
+                                                      required=True,
+                                                      value='ALL',
+                                                      persistence="session",
+                                                  ))]),
+                                          html.Tr([
+                                              html.Td(dbc.Button("Functional", type='button', style={'width': '100%'}),
+                                                      style={'width': '80px'}),
+                                              html.Td(
+                                                  dbc.Select(
+                                                      name='functional',
+                                                      id='functionals_dropdown',
+                                                      options=[dict(label=f'ALL', value='ALL'),
+                                                               dict(label="-------------------------------", value="",
+                                                                    disabled="disabled")] +
+                                                              [dict(label=functional, value=functional) for functional
+                                                               in functionals],
+                                                      required=True,
+                                                      value='ALL',
+                                                      persistence="session",
+                                                  ))]),
+                                          html.Tr([
+                                              html.Td(dbc.Button("Basis Set", type='button', style={'width': '100%'}),
+                                                      style={'width': '80px'}),
+                                              html.Td(
+                                                  dbc.Select(
+                                                      name='basis_set',
+                                                      id='basis_sets_dropdown',
+                                                      options=[dict(label=f'ALL', value='ALL'),
+                                                               dict(label="-------------------------------", value="",
+                                                                    disabled="disabled")] +
+                                                              [dict(label=basis_set, value=basis_set) for basis_set in
+                                                               basis_sets],
+                                                      required=True,
+                                                      value='ALL',
+                                                      persistence="session"
+                                                  ))]),
+                                          html.Tr([
+                                              html.Td(
+                                                  dbc.Button("Substructure", type='button', style={'width': '100%'}),
+                                                  style={'width': '80px'}),
+                                              html.Td(
+                                                  dbc.Input(name="substructure",
+                                                            id="substructure",
+                                                            placeholder="SMARTS Substructure",
+                                                            style={"width": "100%"},
+                                                            persistence="session",
+                                                            value=substructure,
+                                                            ))]),
+                                          html.Tr(
+                                              html.Td(
+                                                  dbc.Button('Query', id='submit_query-form',
+                                                             color="primary",
+                                                             block=True,
+                                                             type='submit',
+                                                             ), colSpan=2)),
+                                      ],
                                    ),  # html.Tbody
                                    borderless=True,
-
+                                  responsive=True
                                ),
-                               dbc.Input(name="tags", id="tags", style={'display': 'none'}),
                            ])
 
     export_summary_form = html.Form(id='export-summary-form',
@@ -105,8 +157,8 @@ def layout_table(tags, substructure, message=""):
                 html.Tr(html.Td(
                     dbc.Select(
                         id='dropdownConformerOptions',
-                        options=[dict(label=desc, value=tag)
-                                 for desc, tag in zip(conf_options_long, conf_options)],
+                        options=[dict(label=desc, value=val)
+                                 for desc, val in zip(conf_options_long, conf_options)],
                         required=True,
                         placeholder="Select conformer option..."
                     )
@@ -121,11 +173,10 @@ def layout_table(tags, substructure, message=""):
         method='post',
     )
 
-    queried = tags is not None
     if queried:
-        cols = ['image', 'can', 'name', 'tags', 'theory', 'light_basis_set', 'heavy_basis_set', 'generic_basis_set',
+        cols = ['image', 'can', 'name', 'tags', 'solvent', 'theory', 'light_basis_set', 'heavy_basis_set',
                 'num_conf/max_conf', 'detail']
-        df = get_table(tags=tags, substructure=substructure)
+        df = get_table(tag=tag, substructure=substructure, solvent=solvent, functional=functional, basis_set=basis_set)
         if not df.empty:
             df = df[cols]
         else:
@@ -150,9 +201,8 @@ def layout_table(tags, substructure, message=""):
             data=df.to_dict(orient='records'),
             columns=[{'id': c, 'name': c, 'presentation': ('markdown' if c in ['image', 'detail'] else 'input')}
                      for c in df.columns],
-            page_size=10,
+            page_size=30,
             editable=False,
-            sort_action='native',
 
             style_table={
                 "fontFamily": '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji"'},
