@@ -66,6 +66,7 @@ class slurm_manager(object):
                                  molecule,
                                  workflow_type="equilibrium",
                                  theory="APFD",
+                                 solvent="None",
                                  light_basis_set="6-31G*",
                                  heavy_basis_set="LANL2DZ",
                                  generic_basis_set="genecp",
@@ -93,9 +94,10 @@ class slurm_manager(object):
 
         # create gaussian files
         molecule_workdir = os.path.join(self.workdir, molecule.inchikey)
-        gig = gaussian_input_generator(molecule, workflow_type, molecule_workdir, theory, light_basis_set,
+        gig = gaussian_input_generator(molecule, workflow_type, molecule_workdir, theory, solvent, light_basis_set,
                                        heavy_basis_set, generic_basis_set, max_light_atomic_number)
         gaussian_config = {'theory': theory,
+                           'solvent': solvent,
                            'light_basis_set': light_basis_set,
                            'heavy_basis_set': heavy_basis_set,
                            'generic_basis_set': generic_basis_set,

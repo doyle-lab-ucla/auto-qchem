@@ -112,7 +112,8 @@ def db_delete_molecule(mol_id):
     db['molecules'].delete_one({"_id": mol_id})  # molecule itself
 
 
-def db_select_molecules(tags=[], substructure="", molecule_ids=[]) -> pd.DataFrame:
+def db_select_molecules(tags=[], substructure="", solvent="ALL",
+                        functional="ALL", basis_set="ALL", molecule_ids=[]) -> pd.DataFrame:
     """Get a summary frame of molecules in the database
 
     :param tags: a list of tags of the db records (if multiple an 'OR' is taken)
@@ -130,16 +131,27 @@ def db_select_molecules(tags=[], substructure="", molecule_ids=[]) -> pd.DataFra
     tags_cur = tags_coll.find({'tag': {'$in': tags}} if tags else {})
     tags_df = pd.DataFrame(tags_cur)
 
+    # filter
     filter = {}
     if molecule_ids:
         filter['_id'] = {'$in': molecule_ids}
     else:
         filter['_id'] = {'$in': tags_df.molecule_id.tolist()}
 
+    if solvent != 'ALL':
+        filter['metadata.gaussian_config.solvent'] = re.compile(f"^{re.escape(solvent)}$", re.IGNORECASE)
+    if functional != 'ALL':
+        filter['metadata.gaussian_config.theory'] = re.compile(f"^{re.escape(functional)}$", re.IGNORECASE)
+    if basis_set != 'ALL':
+        filter['metadata.gaussian_config.light_basis_set'] = re.compile(f"^{re.escape(basis_set)}$", re.IGNORECASE)
+
     mols_cur = mols_coll.find(filter)
     mols_df = pd.DataFrame(mols_cur)
     if 'name' not in mols_df.columns:
         mols_df['name'] = None
+
+    if mols_df.empty:
+        return mols_df
 
     if substructure:
         sub = Chem.MolFromSmarts(substructure)
@@ -252,7 +264,7 @@ def db_get_rdkit_mol(molecule_record) -> tuple([Chem.Mol, list]):
     return rdmol, energies[order]
 
 
-def descriptors(tags, presets, conf_option, substructure="") -> dict:
+def descriptors(tags, presets, conf_option, solvent, functional, basis_set, substructure="") -> dict:
     """Retrieve DFT descriptors from the database
 
     :param tag: metadata.tag of the db records
@@ -285,7 +297,8 @@ def descriptors(tags, presets, conf_option, substructure="") -> dict:
         logger.warning(f"Conf_option {conf_option} is not one of the allowed options {conf_options}. Not extracting.")
         return {}
 
-    mol_df = db_select_molecules(tags=tags, substructure=substructure)
+    mol_df = db_select_molecules(tags=tags, substructure=substructure, solvent=solvent, functional=functional,
+                                 basis_set=basis_set)
     descs_df = descriptors_from_mol_df(mol_df, conf_option)  # this is the heavy query from DB
 
     data = {}
@@ -305,12 +318,15 @@ def descriptors(tags, presets, conf_option, substructure="") -> dict:
 
     if 'transitions' in presets:
         # select top 3 transitions by oscillation strength
-        ts = pd.concat([d['transitions'].sort_values("ES_osc_strength",
-                                                     ascending=False).head(10).reset_index(drop=True).unstack()
-                        for can, d in descs_df.iteritems()], axis=1, sort=True)
-        ts.index = ts.index.map(lambda i: "_".join(map(str, i)))
-        ts.columns = descs_df.index
-        data['transitions'] = ts.T
+        try:
+            ts = pd.concat([d['transitions'].sort_values("ES_osc_strength",
+                                                         ascending=False).head(10).reset_index(drop=True).unstack()
+                            for can, d in descs_df.iteritems()], axis=1, sort=True)
+            ts.index = ts.index.map(lambda i: "_".join(map(str, i)))
+            ts.columns = descs_df.index
+            data['transitions'] = ts.T
+        except KeyError:
+            pass
 
     if 'substructure' in presets or 'core' in presets:
         # make rdmols
@@ -347,39 +363,43 @@ def descriptors(tags, presets, conf_option, substructure="") -> dict:
     if 'core' in presets:
         # run MCS if there is more than 1 molecule
         if len(rd_mols) > 1:
-            core_smarts = rdFMCS.FindMCS(list(rd_mols.values())).smartsString
+            try:
+                core_smarts = rdFMCS.FindMCS(list(rd_mols.values())).smartsString
+            except ValueError:
+                core_smarts = ''
         else:  # otherwise use the entire smiles as smarts string
             core_smarts = Chem.MolToSmarts(list(rd_mols.values())[0])
 
-        # create an rdkit smarts
-        core = Chem.MolFromSmarts(core_smarts)
+        if core_smarts:
+            # create an rdkit smarts
+            core = Chem.MolFromSmarts(core_smarts)
 
-        # get the first match, if multiple substructure matches exist
-        matches = {can: rd_mols[can].GetSubstructMatches(core)[0] for can in cans}
-        matches = pd.Series(matches).map(list)
+            # get the first match, if multiple substructure matches exist
+            matches = {can: rd_mols[can].GetSubstructMatches(core)[0] for can in cans}
+            matches = pd.Series(matches).map(list)
 
-        # create a frame with descriptors large structure in one column, and substructure match
-        # indices in the second column
-        tmp_df = descs_df.to_frame('descs')
-        tmp_df['matches'] = matches
+            # create a frame with descriptors large structure in one column, and substructure match
+            # indices in the second column
+            tmp_df = descs_df.to_frame('descs')
+            tmp_df['matches'] = matches
 
-        # fetch atom labels for this smarts using the first molecule
-        row = tmp_df.iloc[0]
-        row_labels = pd.Series(row['descs']['labels'])
-        row_labels = row_labels[~row_labels.str.startswith('H')]  # need to remove hydrogens
-        sub_labels = row_labels.iloc[row['matches']].tolist()
-        sub_labels = add_numbers_to_repeated_items(sub_labels)
+            # fetch atom labels for this smarts using the first molecule
+            row = tmp_df.iloc[0]
+            row_labels = pd.Series(row['descs']['labels'])
+            row_labels = row_labels[~row_labels.str.startswith('H')]  # need to remove hydrogens
+            sub_labels = row_labels.iloc[row['matches']].tolist()
+            sub_labels = add_numbers_to_repeated_items(sub_labels)
 
-        for i, label in enumerate(sub_labels):
-            to_concat = []
-            for c, row in tmp_df.iterrows():
-                atom_descs = row['descs']['atom_descriptors']
-                atom_descs['labels'] = row['descs']['labels']
-                atom_descs = atom_descs[~atom_descs['labels'].str.startswith("H")]  # need to remove hydrogens
-                to_concat.append(atom_descs.iloc[row['matches'][i]])
-            data[label] = pd.concat(to_concat, axis=1, sort=True)
-            data[label].columns = descs_df.index
-            data[label] = data[label].T
+            for i, label in enumerate(sub_labels):
+                to_concat = []
+                for c, row in tmp_df.iterrows():
+                    atom_descs = row['descs']['atom_descriptors']
+                    atom_descs['labels'] = row['descs']['labels']
+                    atom_descs = atom_descs[~atom_descs['labels'].str.startswith("H")]  # need to remove hydrogens
+                    to_concat.append(atom_descs.iloc[row['matches'][i]])
+                data[label] = pd.concat(to_concat, axis=1, sort=True)
+                data[label].columns = descs_df.index
+                data[label] = data[label].T
 
     if 'labeled' in presets:
         # extract the positions of the labeled atoms in the atom lists for each molecule

@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 class gaussian_input_generator(object):
     """Generator of gaussian input files class"""
 
-    def __init__(self, molecule, workflow_type, directory, theory, light_basis_set,
+    def __init__(self, molecule, workflow_type, directory, theory, solvent, light_basis_set,
                  heavy_basis_set, generic_basis_set, max_light_atomic_number):
         """Initialize input generator for a given molecule.
 
@@ -40,14 +40,14 @@ class gaussian_input_generator(object):
 
         if workflow_type == "equilibrium":
             self.tasks = (
-                f"opt=CalcFc {theory}/{basis_set} scf=xqc",
-                f"freq {theory}/{basis_set} volume NMR pop=NPA density=current Geom=AllCheck Guess=Read",
-                f"TD(NStates=10, Root=1) {theory}/{basis_set} volume pop=NPA density=current Geom=AllCheck Guess=Read"
+                f"opt=CalcFc {theory}/{basis_set} SCRF=(Solvent={solvent}) scf=xqc ",
+                f"freq {theory}/{basis_set} SCRF=(Solvent={solvent}) volume NMR pop=NPA density=current Geom=AllCheck Guess=Read",
+                f"TD(NStates=10, Root=1) {theory}/{basis_set} SCRF=(Solvent={solvent}) volume pop=NPA density=current Geom=AllCheck Guess=Read"
             )
         elif workflow_type == "transition_state":
             self.tasks = (
-                f"opt=(calcfc,ts,noeigentest) scf=xqc {theory}/{basis_set}",
-                f"freq {theory}/{basis_set} volume NMR pop=NPA density=current Geom=AllCheck Guess=Read"
+                f"opt=(calcfc,ts,noeigentest) scf=xqc {theory}/{basis_set} SCRF=(Solvent={solvent})",
+                f"freq {theory}/{basis_set} SCRF=(Solvent={solvent}) volume NMR pop=NPA density=current Geom=AllCheck Guess=Read"
             )
         elif workflow_type == "test":
             self.tasks = (
