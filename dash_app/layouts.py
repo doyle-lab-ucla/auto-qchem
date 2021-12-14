@@ -60,7 +60,7 @@ def layout_table(tag='ALL', substructure=None, solvent='ALL', functional='ALL', 
                                                       id='tags_dropdown',
                                                       options=options_tags,
                                                       required=True,
-                                                      valid='ALL',
+                                                      value='ALL',
                                                       persistence="session",
                                                   ))]),
                                           html.Tr([
