@@ -7,7 +7,9 @@ import dash_bio as dbio
 from dash_app.functions import *
 from autoqchem.rdkit_utils import extract_from_rdmol
 
-jmolcolors = pd.read_csv("assets/jmolcolors.csv").set_index('atom')['Hex']
+# jmolcolors = pd.read_csv("assets/jmolcolors.csv").set_index('atom')['Hex']
+jmolcolors = pd.read_csv("/home/ubuntu/github/auto-qchem/dash_app/assets/jmolcolors.csv").set_index('atom')['Hex']
+
 
 def layout_navbar():
     """navigation bar"""
