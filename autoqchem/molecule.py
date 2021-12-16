@@ -24,7 +24,7 @@ class molecule(object):
     """Wrapper class for molecule"""
 
     def __init__(self, smiles, num_conf, engine='rdkit', rdkit_ff='MMFF94', ob_gen3D_option='best') -> None:
-        '''Initialize the molecule with a conformational ensemble
+        """Initialize the molecule with a conformational ensemble
 
         :arg smiles: SMILES string
         :type smiles: str
@@ -36,7 +36,7 @@ class molecule(object):
         :type rdkit_ff: str
         :param ob_gen3D_option: option to use with openbabel gen3D for search of initial geometry
         :type ob_gen3D_option: str
-        '''
+        """
 
         # run conformer generation
         if engine == 'rdkit':

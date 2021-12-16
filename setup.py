@@ -17,5 +17,8 @@ setup(
                       'fabric',
                       'paramiko',
                       'pymongo',
-                      'appdirs']
+                      'appdirs',
+                      'rdkit',
+                      'ipywidgets',
+                      'py3Dmol']
 )

@@ -3,10 +3,10 @@ import pickle
 from contextlib import suppress
 
 import appdirs
-import pymongo
 
 from autoqchem.db_functions import *
 from autoqchem.gaussian_input_generator import *
+from gaussian_log_extractor import *
 from autoqchem.helper_functions import *
 from autoqchem.openbabel_utils import *
 

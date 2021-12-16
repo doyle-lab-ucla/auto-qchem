@@ -1,4 +1,5 @@
 import os
+import re
 import numpy as np
 import itertools
 
@@ -173,7 +174,7 @@ def rdmol_from_slurm_jobs(jobs, postDFT=True) -> Chem.Mol:
 
     # check that these are jobs for the same molecule
     assert len(set(j.inchi for j in jobs)) == 1
-    if postDFT == True:
+    if postDFT:
         # check that the jobs are in done status
         assert all(j.status.value == slurm_status.done.value for j in jobs)
 
@@ -181,7 +182,7 @@ def rdmol_from_slurm_jobs(jobs, postDFT=True) -> Chem.Mol:
     conformer_coordinates = []
     energies = []
     for j in jobs:
-        if postDFT == True:
+        if postDFT:
 
             le = gaussian_log_extractor(f"{j.directory}/{j.base_name}.log")
             le.check_for_exceptions()
@@ -193,7 +194,7 @@ def rdmol_from_slurm_jobs(jobs, postDFT=True) -> Chem.Mol:
             le.get_geometry()
             conformer_coordinates.append(le.geom[list('XYZ')].values)
 
-            le._get_freq_part_descriptors()
+            le.get_descriptors()
             energies.append(le.descriptors['G'] * Hartree_in_kcal_per_mol)
 
         else:
