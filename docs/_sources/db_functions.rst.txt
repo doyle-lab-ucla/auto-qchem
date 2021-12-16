@@ -3,5 +3,7 @@ db\_functions module
 
 .. automodule:: db_functions
    :members:
+   :special-members:
    :undoc-members:
-   :show-inheritance:
+   :exclude-members: __weakref__, __dict__, __module__
+   :member-order: bysource

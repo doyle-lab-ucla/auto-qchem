@@ -1,8 +1,7 @@
-helper\_classes
-===============
+helper\_classes module
+======================
 
 .. automodule:: helper_classes
    :members:
-   :undoc-members:
-   :show-inheritance:
+   :exclude-members: __weakref__, __dict__, __module__
    :member-order: bysource

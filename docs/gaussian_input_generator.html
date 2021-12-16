@@ -1,53 +1,33 @@
 <!DOCTYPE html>
-<!--[if IE 8]>
-<html class="no-js lt-ie9" lang="en"> <![endif]-->
-<!--[if gt IE 8]><!-->
-<html class="no-js" lang="en"> <!--<![endif]-->
+<html class="writer-html5" lang="en">
 <head>
-    <meta charset="utf-8">
-
-    <meta content="width=device-width, initial-scale=1.0" name="viewport">
-
-    <title>gaussian_input_generator class &mdash; autoqchem 0.1 documentation</title>
-
-
-    <script src="_static/js/modernizr.min.js" type="text/javascript"></script>
-
-
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"
-            type="text/javascript"></script>
-    <script src="_static/jquery.js" type="text/javascript"></script>
-    <script src="_static/underscore.js" type="text/javascript"></script>
-    <script src="_static/doctools.js" type="text/javascript"></script>
-    <script src="_static/language_data.js" type="text/javascript"></script>
-
-    <script src="_static/js/theme.js" type="text/javascript"></script>
-
-
-    <link href="_static/css/theme.css" rel="stylesheet" type="text/css"/>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>gaussian_input_generator class &mdash; autoqchem 1 documentation</title>
     <link href="_static/pygments.css" rel="stylesheet" type="text/css"/>
+    <link href="_static/css/theme.css" rel="stylesheet" type="text/css"/>
+    <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+    <![endif]-->
+
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
     <link href="genindex.html" rel="index" title="Index"/>
     <link href="search.html" rel="search" title="Search"/>
     <link href="gaussian_log_extractor.html" rel="next" title="gaussian_log_extractor class"/>
-    <link href="descriptor_functions.html" rel="prev" title="descriptor_functions"/>
+    <link href="slurm_manager.html" rel="prev" title="slurm_manager class"/>
 </head>
 
 <body class="wy-body-for-nav">
-
-
 <div class="wy-grid-for-nav">
-
     <nav class="wy-nav-side" data-toggle="wy-nav-shift">
         <div class="wy-side-scroll">
             <div class="wy-side-nav-search">
-
-
                 <a class="icon icon-home" href="index.html"> autoqchem
-
-
                 </a>
-
-
                 <div role="search">
                     <form action="search.html" class="wy-form" id="rtd-search-form" method="get">
                         <input name="q" placeholder="Search docs" type="text"/>
@@ -55,14 +35,9 @@
                         <input name="area" type="hidden" value="default"/>
                     </form>
                 </div>
-
-
             </div>
-
-            <div aria-label="main navigation" class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation">
-
-
-                <p class="caption"><span class="caption-text">Contents:</span></p>
+            <div aria-label="Navigation menu" class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation">
+                <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
                 <ul class="current">
                     <li class="toctree-l1 current"><a class="reference internal" href="modules.html">autoqchem</a>
                         <ul class="current">
@@ -70,67 +45,49 @@
                             </li>
                             <li class="toctree-l2"><a class="reference internal" href="slurm_manager.html">slurm_manager
                                 class</a></li>
-                            <li class="toctree-l2"><a class="reference internal" href="db_functions.html">db_functions
-                                module</a></li>
-                            <li class="toctree-l2"><a class="reference internal" href="descriptor_functions.html">descriptor_functions</a>
-                            </li>
                             <li class="toctree-l2 current"><a class="current reference internal" href="#">gaussian_input_generator
                                 class</a></li>
                             <li class="toctree-l2"><a class="reference internal" href="gaussian_log_extractor.html">gaussian_log_extractor
                                 class</a></li>
-                            <li class="toctree-l2"><a class="reference internal" href="openbabel_functions.html">openbabel_functions</a>
-                            </li>
-                            <li class="toctree-l2"><a class="reference internal" href="helper_classes.html">helper_classes</a>
-                            </li>
-                            <li class="toctree-l2"><a class="reference internal" href="helper_functions.html">helper_functions</a>
-                            </li>
+                            <li class="toctree-l2"><a class="reference internal" href="openbabel_utils.html">openbabel_utils
+                                module</a></li>
+                            <li class="toctree-l2"><a class="reference internal" href="rdkit_utils.html">rdkit_utils
+                                module</a></li>
+                            <li class="toctree-l2"><a class="reference internal" href="draw_utils.html">draw_utils
+                                module</a></li>
+                            <li class="toctree-l2"><a class="reference internal" href="db_functions.html">db_functions
+                                module</a></li>
+                            <li class="toctree-l2"><a class="reference internal" href="descriptor_functions.html">descriptor_functions
+                                module</a></li>
+                            <li class="toctree-l2"><a class="reference internal" href="helper_classes.html">helper_classes
+                                module</a></li>
+                            <li class="toctree-l2"><a class="reference internal" href="helper_functions.html">helper_functions
+                                module</a></li>
                         </ul>
                     </li>
                 </ul>
-
 
             </div>
         </div>
     </nav>
 
     <section class="wy-nav-content-wrap" data-toggle="wy-nav-shift">
-
-
-        <nav aria-label="top navigation" class="wy-nav-top">
-
+        <nav aria-label="Mobile navigation menu" class="wy-nav-top">
             <i class="fa fa-bars" data-toggle="wy-nav-top"></i>
             <a href="index.html">autoqchem</a>
-
         </nav>
 
-
         <div class="wy-nav-content">
-
             <div class="rst-content">
-
-
-                <div aria-label="breadcrumbs navigation" role="navigation">
-
+                <div aria-label="Page navigation" role="navigation">
                     <ul class="wy-breadcrumbs">
-
-                        <li><a href="index.html">Docs</a> &raquo;</li>
-
+                        <li><a class="icon icon-home" href="index.html"></a> &raquo;</li>
                         <li><a href="modules.html">autoqchem</a> &raquo;</li>
-
                         <li>gaussian_input_generator class</li>
-
-
                         <li class="wy-breadcrumbs-aside">
-
-
                             <a href="_sources/gaussian_input_generator.rst.txt" rel="nofollow"> View page source</a>
-
-
                         </li>
-
                     </ul>
-
-
                     <hr/>
                 </div>
                 <div class="document" itemscope="itemscope" itemtype="http://schema.org/Article" role="main">
@@ -140,33 +97,55 @@
                             <span id="gaussian-input-generator-class"></span>
                             <h1>gaussian_input_generator class<a class="headerlink"
                                                                  href="#module-gaussian_input_generator"
-                                                                 title="Permalink to this headline">¶</a></h1>
-                            <dl class="class">
-                                <dt id="gaussian_input_generator.gaussian_input_generator">
-                                    <em class="property">class </em><code class="sig-prename descclassname">gaussian_input_generator.</code><code
-                                        class="sig-name descname">gaussian_input_generator</code><span
-                                        class="sig-paren">(</span><em class="sig-param">molecule</em>, <em
-                                        class="sig-param">workflow_type</em>, <em class="sig-param">directory</em>, <em
-                                        class="sig-param">theory</em>, <em class="sig-param">light_basis_set</em>, <em
-                                        class="sig-param">heavy_basis_set</em>, <em
-                                        class="sig-param">generic_basis_set</em>, <em class="sig-param">max_light_atomic_number</em><span
+                                                                 title="Permalink to this headline"></a></h1>
+                            <dl class="py class">
+                                <dt class="sig sig-object py" id="gaussian_input_generator.gaussian_input_generator">
+                                    <em class="property"><span class="pre">class</span><span
+                                            class="w"> </span></em><span class="sig-prename descclassname"><span
+                                        class="pre">gaussian_input_generator.</span></span><span
+                                        class="sig-name descname"><span
+                                        class="pre">gaussian_input_generator</span></span><span
+                                        class="sig-paren">(</span><em class="sig-param"><span class="n"><span
+                                        class="pre">molecule</span></span></em>, <em class="sig-param"><span
+                                        class="n"><span class="pre">workflow_type</span></span></em>, <em
+                                        class="sig-param"><span class="n"><span class="pre">directory</span></span></em>,
+                                    <em class="sig-param"><span class="n"><span class="pre">theory</span></span></em>,
+                                    <em class="sig-param"><span class="n"><span class="pre">solvent</span></span></em>,
+                                    <em class="sig-param"><span class="n"><span
+                                            class="pre">light_basis_set</span></span></em>, <em class="sig-param"><span
+                                        class="n"><span class="pre">heavy_basis_set</span></span></em>, <em
+                                        class="sig-param"><span class="n"><span
+                                        class="pre">generic_basis_set</span></span></em>, <em class="sig-param"><span
+                                        class="n"><span class="pre">max_light_atomic_number</span></span></em><span
                                         class="sig-paren">)</span><a class="headerlink"
                                                                      href="#gaussian_input_generator.gaussian_input_generator"
-                                                                     title="Permalink to this definition">¶</a></dt>
-                                <dd><p>Generator of gaussian input files class</p>
-                                    <dl class="method">
-                                        <dt id="gaussian_input_generator.gaussian_input_generator.__init__">
-                                            <code class="sig-name descname">__init__</code><span
-                                                class="sig-paren">(</span><em class="sig-param">molecule</em>, <em
-                                                class="sig-param">workflow_type</em>, <em
-                                                class="sig-param">directory</em>, <em class="sig-param">theory</em>, <em
-                                                class="sig-param">light_basis_set</em>, <em class="sig-param">heavy_basis_set</em>,
-                                            <em class="sig-param">generic_basis_set</em>, <em class="sig-param">max_light_atomic_number</em><span
+                                                                     title="Permalink to this definition"></a></dt>
+                                <dd><p>Generator of Gaussian input files</p>
+                                    <dl class="py method">
+                                        <dt class="sig sig-object py"
+                                            id="gaussian_input_generator.gaussian_input_generator.__init__">
+                                            <span class="sig-name descname"><span
+                                                    class="pre">__init__</span></span><span
+                                                class="sig-paren">(</span><em class="sig-param"><span class="n"><span
+                                                class="pre">molecule</span></span></em>, <em class="sig-param"><span
+                                                class="n"><span class="pre">workflow_type</span></span></em>, <em
+                                                class="sig-param"><span class="n"><span
+                                                class="pre">directory</span></span></em>, <em class="sig-param"><span
+                                                class="n"><span class="pre">theory</span></span></em>, <em
+                                                class="sig-param"><span class="n"><span
+                                                class="pre">solvent</span></span></em>, <em class="sig-param"><span
+                                                class="n"><span class="pre">light_basis_set</span></span></em>, <em
+                                                class="sig-param"><span class="n"><span
+                                                class="pre">heavy_basis_set</span></span></em>, <em
+                                                class="sig-param"><span class="n"><span
+                                                class="pre">generic_basis_set</span></span></em>, <em class="sig-param"><span
+                                                class="n"><span
+                                                class="pre">max_light_atomic_number</span></span></em><span
                                                 class="sig-paren">)</span><a class="headerlink"
                                                                              href="#gaussian_input_generator.gaussian_input_generator.__init__"
-                                                                             title="Permalink to this definition">¶</a>
+                                                                             title="Permalink to this definition"></a>
                                         </dt>
-                                        <dd><p>Initialize input generator for a given molecule.</p>
+                                        <dd><p>Initializes Gaussian input generator for a given molecule.</p>
                                             <dl class="field-list simple">
                                                 <dt class="field-odd">Parameters</dt>
                                                 <dd class="field-odd">
@@ -180,20 +159,40 @@
                                                             ‘transition_state’</p></li>
                                                         <li><p><strong>directory</strong> (<em>str</em>) – local
                                                             directory to store input files</p></li>
+                                                        <li><p><strong>theory</strong> (<em>str</em>) – Gaussian
+                                                            supported Functional (e.g., B3LYP)</p></li>
+                                                        <li><p><strong>solvent</strong> (<em>str</em>) – Gaussian
+                                                            supported Solvent (e.g., TETRAHYDROFURAN)</p></li>
+                                                        <li><p><strong>light_basis_set</strong> (<em>str</em>) –
+                                                            Gaussian supported basis set for elements up to <cite>max_light_atomic_number</cite>
+                                                            (e.g., 6-31G*)</p></li>
+                                                        <li><p><strong>heavy_basis_set</strong> (<em>str</em>) – Gaussin
+                                                            supported basis set for elements heavier than <cite>max_light_atomic_number</cite>
+                                                            (e.g., LANL2DZ)</p></li>
+                                                        <li><p><strong>generic_basis_set</strong> (<em>str</em>) –
+                                                            Gaussian supported basis set for generic elements (e.g.,
+                                                            gencep)</p></li>
+                                                        <li><p><strong>max_light_atomic_number</strong> (<em>int</em>) –
+                                                            maximum atomic number for light elements</p></li>
                                                     </ul>
                                                 </dd>
                                             </dl>
                                         </dd>
                                     </dl>
 
-                                    <dl class="method">
-                                        <dt id="gaussian_input_generator.gaussian_input_generator.create_gaussian_files">
-                                            <code class="sig-name descname">create_gaussian_files</code><span
-                                                class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a
-                                                class="headerlink"
-                                                href="#gaussian_input_generator.gaussian_input_generator.create_gaussian_files"
-                                                title="Permalink to this definition">¶</a></dt>
-                                        <dd><p>Create the actual gaussian files for each conformer of the molecule.</p>
+                                    <dl class="py method">
+                                        <dt class="sig sig-object py"
+                                            id="gaussian_input_generator.gaussian_input_generator.create_gaussian_files">
+                                            <span class="sig-name descname"><span
+                                                    class="pre">create_gaussian_files</span></span><span
+                                                class="sig-paren">(</span><span class="sig-paren">)</span> <span
+                                                class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span
+                                                class="sig-return-typehint"><span
+                                                class="pre">None</span></span></span><a class="headerlink"
+                                                                                        href="#gaussian_input_generator.gaussian_input_generator.create_gaussian_files"
+                                                                                        title="Permalink to this definition"></a>
+                                        </dt>
+                                        <dd><p>Creates the Gaussian input files for each conformer of the molecule.</p>
                                         </dd>
                                     </dl>
 
@@ -204,52 +203,39 @@
 
 
                     </div>
-
                 </div>
                 <footer>
-
-                    <div aria-label="footer navigation" class="rst-footer-buttons" role="navigation">
-
+                    <div aria-label="Footer" class="rst-footer-buttons" role="navigation">
+                        <a accesskey="p" class="btn btn-neutral float-left" href="slurm_manager.html" rel="prev"
+                           title="slurm_manager class"><span aria-hidden="true" class="fa fa-arrow-circle-left"></span>
+                            Previous</a>
                         <a accesskey="n" class="btn btn-neutral float-right" href="gaussian_log_extractor.html"
-                           rel="next" title="gaussian_log_extractor class">Next <span
-                                class="fa fa-arrow-circle-right"></span></a>
-
-
-                        <a accesskey="p" class="btn btn-neutral float-left" href="descriptor_functions.html" rel="prev"
-                           title="descriptor_functions"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-
+                           rel="next" title="gaussian_log_extractor class">Next <span aria-hidden="true"
+                                                                                      class="fa fa-arrow-circle-right"></span></a>
                     </div>
-
 
                     <hr/>
 
                     <div role="contentinfo">
-                        <p>
-                            &copy; Copyright 2020, Andrzej Zuranski, Benjamin Shields
-
-                        </p>
+                        <p>&#169; Copyright 2021, Andrzej Zuranski, Ben Shields.</p>
                     </div>
-                    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
-                        href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a
-                        href="https://readthedocs.org">Read the Docs</a>.
+
+                    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+                    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+                    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
 
                 </footer>
-
             </div>
         </div>
-
     </section>
-
 </div>
-
-
-<script type="text/javascript">
+<script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
 
 </script>
-
 
 </body>
 </html>

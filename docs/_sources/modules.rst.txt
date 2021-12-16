@@ -2,14 +2,16 @@ autoqchem
 =========
 
 .. toctree::
-   :maxdepth: 4
+    :maxdepth: 4
 
-   molecule
-   slurm_manager
-   db_functions
-   descriptor_functions
-   gaussian_input_generator
-   gaussian_log_extractor
-   openbabel_functions
-   helper_classes
-   helper_functions
+    molecule
+    slurm_manager
+    gaussian_input_generator
+    gaussian_log_extractor
+    openbabel_utils
+    rdkit_utils
+    draw_utils
+    db_functions
+    descriptor_functions
+    helper_classes
+    helper_functions

@@ -1,9 +1,7 @@
 gaussian\_log\_extractor class
-==============================
+===============================
 
 .. automodule:: gaussian_log_extractor
-
-.. autoclass:: gaussian_log_extractor
    :members:
    :special-members:
    :undoc-members:

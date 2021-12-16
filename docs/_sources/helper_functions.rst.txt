@@ -1,6 +1,7 @@
-helper\_functions
-=================
+helper\_functions module
+========================
 
 .. automodule:: helper_functions
    :members:
-   :member-order: bysource
+   :undoc-members:
+   :show-inheritance:

@@ -1,31 +1,20 @@
 <!DOCTYPE html>
-<!--[if IE 8]>
-<html class="no-js lt-ie9" lang="en"> <![endif]-->
-<!--[if gt IE 8]><!-->
-<html class="no-js" lang="en"> <!--<![endif]-->
+<html class="writer-html5" lang="en">
 <head>
-    <meta charset="utf-8">
-
-    <meta content="width=device-width, initial-scale=1.0" name="viewport">
-
-    <title>molecule class &mdash; autoqchem 0.1 documentation</title>
-
-
-    <script src="_static/js/modernizr.min.js" type="text/javascript"></script>
-
-
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"
-            type="text/javascript"></script>
-    <script src="_static/jquery.js" type="text/javascript"></script>
-    <script src="_static/underscore.js" type="text/javascript"></script>
-    <script src="_static/doctools.js" type="text/javascript"></script>
-    <script src="_static/language_data.js" type="text/javascript"></script>
-
-    <script src="_static/js/theme.js" type="text/javascript"></script>
-
-
-    <link href="_static/css/theme.css" rel="stylesheet" type="text/css"/>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>molecule class &mdash; autoqchem 1 documentation</title>
     <link href="_static/pygments.css" rel="stylesheet" type="text/css"/>
+    <link href="_static/css/theme.css" rel="stylesheet" type="text/css"/>
+    <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+    <![endif]-->
+
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
     <link href="genindex.html" rel="index" title="Index"/>
     <link href="search.html" rel="search" title="Search"/>
     <link href="slurm_manager.html" rel="next" title="slurm_manager class"/>
@@ -33,21 +22,12 @@
 </head>
 
 <body class="wy-body-for-nav">
-
-
 <div class="wy-grid-for-nav">
-
     <nav class="wy-nav-side" data-toggle="wy-nav-shift">
         <div class="wy-side-scroll">
             <div class="wy-side-nav-search">
-
-
                 <a class="icon icon-home" href="index.html"> autoqchem
-
-
                 </a>
-
-
                 <div role="search">
                     <form action="search.html" class="wy-form" id="rtd-search-form" method="get">
                         <input name="q" placeholder="Search docs" type="text"/>
@@ -55,14 +35,9 @@
                         <input name="area" type="hidden" value="default"/>
                     </form>
                 </div>
-
-
             </div>
-
-            <div aria-label="main navigation" class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation">
-
-
-                <p class="caption"><span class="caption-text">Contents:</span></p>
+            <div aria-label="Navigation menu" class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation">
+                <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
                 <ul class="current">
                     <li class="toctree-l1 current"><a class="reference internal" href="modules.html">autoqchem</a>
                         <ul class="current">
@@ -70,67 +45,49 @@
                                 class</a></li>
                             <li class="toctree-l2"><a class="reference internal" href="slurm_manager.html">slurm_manager
                                 class</a></li>
-                            <li class="toctree-l2"><a class="reference internal" href="db_functions.html">db_functions
-                                module</a></li>
-                            <li class="toctree-l2"><a class="reference internal" href="descriptor_functions.html">descriptor_functions</a>
-                            </li>
                             <li class="toctree-l2"><a class="reference internal" href="gaussian_input_generator.html">gaussian_input_generator
                                 class</a></li>
                             <li class="toctree-l2"><a class="reference internal" href="gaussian_log_extractor.html">gaussian_log_extractor
                                 class</a></li>
-                            <li class="toctree-l2"><a class="reference internal" href="openbabel_functions.html">openbabel_functions</a>
-                            </li>
-                            <li class="toctree-l2"><a class="reference internal" href="helper_classes.html">helper_classes</a>
-                            </li>
-                            <li class="toctree-l2"><a class="reference internal" href="helper_functions.html">helper_functions</a>
-                            </li>
+                            <li class="toctree-l2"><a class="reference internal" href="openbabel_utils.html">openbabel_utils
+                                module</a></li>
+                            <li class="toctree-l2"><a class="reference internal" href="rdkit_utils.html">rdkit_utils
+                                module</a></li>
+                            <li class="toctree-l2"><a class="reference internal" href="draw_utils.html">draw_utils
+                                module</a></li>
+                            <li class="toctree-l2"><a class="reference internal" href="db_functions.html">db_functions
+                                module</a></li>
+                            <li class="toctree-l2"><a class="reference internal" href="descriptor_functions.html">descriptor_functions
+                                module</a></li>
+                            <li class="toctree-l2"><a class="reference internal" href="helper_classes.html">helper_classes
+                                module</a></li>
+                            <li class="toctree-l2"><a class="reference internal" href="helper_functions.html">helper_functions
+                                module</a></li>
                         </ul>
                     </li>
                 </ul>
-
 
             </div>
         </div>
     </nav>
 
     <section class="wy-nav-content-wrap" data-toggle="wy-nav-shift">
-
-
-        <nav aria-label="top navigation" class="wy-nav-top">
-
+        <nav aria-label="Mobile navigation menu" class="wy-nav-top">
             <i class="fa fa-bars" data-toggle="wy-nav-top"></i>
             <a href="index.html">autoqchem</a>
-
         </nav>
 
-
         <div class="wy-nav-content">
-
             <div class="rst-content">
-
-
-                <div aria-label="breadcrumbs navigation" role="navigation">
-
+                <div aria-label="Page navigation" role="navigation">
                     <ul class="wy-breadcrumbs">
-
-                        <li><a href="index.html">Docs</a> &raquo;</li>
-
+                        <li><a class="icon icon-home" href="index.html"></a> &raquo;</li>
                         <li><a href="modules.html">autoqchem</a> &raquo;</li>
-
                         <li>molecule class</li>
-
-
                         <li class="wy-breadcrumbs-aside">
-
-
                             <a href="_sources/molecule.rst.txt" rel="nofollow"> View page source</a>
-
-
                         </li>
-
                     </ul>
-
-
                     <hr/>
                 </div>
                 <div class="document" itemscope="itemscope" itemtype="http://schema.org/Article" role="main">
@@ -139,122 +96,67 @@
                         <div class="section" id="module-molecule">
                             <span id="molecule-class"></span>
                             <h1>molecule class<a class="headerlink" href="#module-molecule"
-                                                 title="Permalink to this headline">¶</a></h1>
-                            <dl class="class">
-                                <dt id="molecule.molecule">
-                                    <em class="property">class </em><code
-                                        class="sig-prename descclassname">molecule.</code><code
-                                        class="sig-name descname">molecule</code><span class="sig-paren">(</span><em
-                                        class="sig-param">input</em>, <em
-                                        class="sig-param">isotopes_as_labels=False</em>, <em class="sig-param">max_num_conformers=1</em>,
-                                    <em class="sig-param">input_type='string'</em>, <em class="sig-param">input_format='smi'</em>,
-                                    <em class="sig-param">gen3D_option='best'</em>, <em class="sig-param">min_fragment_dist=2</em><span
+                                                 title="Permalink to this headline"></a></h1>
+                            <dl class="py class">
+                                <dt class="sig sig-object py" id="molecule.molecule">
+                                    <em class="property"><span class="pre">class</span><span
+                                            class="w"> </span></em><span class="sig-prename descclassname"><span
+                                        class="pre">molecule.</span></span><span class="sig-name descname"><span
+                                        class="pre">molecule</span></span><span class="sig-paren">(</span><em
+                                        class="sig-param"><span class="n"><span class="pre">smiles</span></span></em>,
+                                    <em class="sig-param"><span class="n"><span class="pre">num_conf</span></span></em>,
+                                    <em class="sig-param"><span class="n"><span class="pre">engine</span></span><span
+                                            class="o"><span class="pre">=</span></span><span class="default_value"><span
+                                            class="pre">'rdkit'</span></span></em>, <em class="sig-param"><span
+                                        class="n"><span class="pre">rdkit_ff</span></span><span class="o"><span
+                                        class="pre">=</span></span><span class="default_value"><span class="pre">'MMFF94'</span></span></em>,
+                                    <em class="sig-param"><span class="n"><span
+                                            class="pre">ob_gen3D_option</span></span><span class="o"><span
+                                            class="pre">=</span></span><span class="default_value"><span class="pre">'best'</span></span></em><span
                                         class="sig-paren">)</span><a class="headerlink" href="#molecule.molecule"
-                                                                     title="Permalink to this definition">¶</a></dt>
-                                <dd><p>Wrapper class for openbabel.OBMol class</p>
-                                    <dl class="method">
-                                        <dt id="molecule.molecule.__init__">
-                                            <code class="sig-name descname">__init__</code><span
-                                                class="sig-paren">(</span><em class="sig-param">input</em>, <em
-                                                class="sig-param">isotopes_as_labels=False</em>, <em class="sig-param">max_num_conformers=1</em>,
-                                            <em class="sig-param">input_type='string'</em>, <em class="sig-param">input_format='smi'</em>,
-                                            <em class="sig-param">gen3D_option='best'</em>, <em class="sig-param">min_fragment_dist=2</em><span
-                                                class="sig-paren">)</span><a class="headerlink"
-                                                                             href="#molecule.molecule.__init__"
-                                                                             title="Permalink to this definition">¶</a>
+                                                                     title="Permalink to this definition"></a></dt>
+                                <dd><p>Wrapper class for molecule</p>
+                                    <dl class="py method">
+                                        <dt class="sig sig-object py" id="molecule.molecule.__init__">
+                                            <span class="sig-name descname"><span
+                                                    class="pre">__init__</span></span><span
+                                                class="sig-paren">(</span><em class="sig-param"><span class="n"><span
+                                                class="pre">smiles</span></span></em>, <em class="sig-param"><span
+                                                class="n"><span class="pre">num_conf</span></span></em>, <em
+                                                class="sig-param"><span class="n"><span class="pre">engine</span></span><span
+                                                class="o"><span class="pre">=</span></span><span
+                                                class="default_value"><span class="pre">'rdkit'</span></span></em>, <em
+                                                class="sig-param"><span class="n"><span
+                                                class="pre">rdkit_ff</span></span><span class="o"><span
+                                                class="pre">=</span></span><span class="default_value"><span
+                                                class="pre">'MMFF94'</span></span></em>, <em class="sig-param"><span
+                                                class="n"><span class="pre">ob_gen3D_option</span></span><span
+                                                class="o"><span class="pre">=</span></span><span
+                                                class="default_value"><span class="pre">'best'</span></span></em><span
+                                                class="sig-paren">)</span> <span class="sig-return"><span
+                                                class="sig-return-icon">&#x2192;</span> <span
+                                                class="sig-return-typehint"><span
+                                                class="pre">None</span></span></span><a class="headerlink"
+                                                                                        href="#molecule.molecule.__init__"
+                                                                                        title="Permalink to this definition"></a>
                                         </dt>
-                                        <dd><p>Initialize the OBMol molecule, generate initial 3D geometry and do
-                                            conformer search.</p>
+                                        <dd><p>Initialize the molecule with a conformational ensemble</p>
                                             <dl class="field-list simple">
                                                 <dt class="field-odd">Parameters</dt>
                                                 <dd class="field-odd">
                                                     <ul class="simple">
-                                                        <li><p><strong>input</strong> – string or file path</p></li>
-                                                        <li><p><strong>isotopes_as_labels</strong> – a flag to treat
-                                                            isotopes in the smiles string as atomic labels</p></li>
-                                                        <li><p><strong>max_num_conformers</strong> – maximum number of
-                                                            conformers to generate, use 1 (default) for no conformer
-                                                            search, a reasonable number of conformations to use is 30.
-                                                            Conformations are generated with genetic algorithm using
-                                                            pybel.ob.OBConformerSearch class.</p></li>
-                                                        <li><p><strong>input_type</strong> – “string” or “file”, in line
-                                                            with the input</p></li>
-                                                        <li><p><strong>input_format</strong> – any format supported by
-                                                            OpenBabel, e.g. ‘smi’, ‘cdx’, ‘pdb’, etc.</p></li>
-                                                        <li><p><strong>gen3D_option</strong> – “best”, “medium”, “fast”
-                                                            or “gen2D” (no 3D generation)</p></li>
-                                                        <li><p><strong>min_fragment_dist</strong> – minimum distance
-                                                            between molecular fragments for salts, no more than 2
-                                                            molecular fragments are supported</p></li>
+                                                        <li><p><strong>smiles</strong> (<em>str</em>) – SMILES string
+                                                        </p></li>
+                                                        <li><p><strong>num_conf</strong> (<em>int</em>) – maximum number
+                                                            of conformations to generate</p></li>
+                                                        <li><p><strong>engine</strong> (<em>str</em>) – conformation
+                                                            search engine (rdkit or openbabel)</p></li>
+                                                        <li><p><strong>rdkit_ff</strong> (<em>str</em>) – rdkit
+                                                            supported force-field to use when engine=’rdkit’</p></li>
+                                                        <li><p><strong>ob_gen3D_option</strong> (<em>str</em>) – option
+                                                            to use with openbabel gen3D for search of initial geometry
+                                                        </p></li>
                                                     </ul>
-                                                </dd>
-                                            </dl>
-                                        </dd>
-                                    </dl>
-
-                                    <dl class="method">
-                                        <dt id="molecule.molecule.get_geometry">
-                                            <code class="sig-name descname">get_geometry</code><span
-                                                class="sig-paren">(</span><em
-                                                class="sig-param">conformer_num=0</em><span class="sig-paren">)</span>
-                                            &#x2192; pandas.core.frame.DataFrame<a class="headerlink"
-                                                                                   href="#molecule.molecule.get_geometry"
-                                                                                   title="Permalink to this definition">¶</a>
-                                        </dt>
-                                        <dd><p>Get coordinates DataFrame for a given conformer.</p>
-                                            <dl class="field-list simple">
-                                                <dt class="field-odd">Parameters</dt>
-                                                <dd class="field-odd"><p><strong>conformer_num</strong> – conformer
-                                                    number, if larger than number of conformations available, the last
-                                                    is returned</p>
-                                                </dd>
-                                                <dt class="field-even">Returns</dt>
-                                                <dd class="field-even"><p>pandas.core.frame.DataFrame</p>
-                                                </dd>
-                                            </dl>
-                                        </dd>
-                                    </dl>
-
-                                    <dl class="method">
-                                        <dt id="molecule.molecule.draw">
-                                            <code class="sig-name descname">draw</code><span
-                                                class="sig-paren">(</span><em class="sig-param">conformer_num=0</em>,
-                                            <em class="sig-param">ipython_3d=True</em><span class="sig-paren">)</span>
-                                            &#x2192; None<a class="headerlink" href="#molecule.molecule.draw"
-                                                            title="Permalink to this definition">¶</a></dt>
-                                        <dd><p>Draw a depiction of the molecule for a given conformer.</p>
-                                            <dl class="field-list simple">
-                                                <dt class="field-odd">Parameters</dt>
-                                                <dd class="field-odd">
-                                                    <ul class="simple">
-                                                        <li><p><strong>conformer_num</strong> – conformer number, if
-                                                            larger than number of conformations available, the last is
-                                                            returned</p></li>
-                                                        <li><p><strong>ipython_3d</strong> – if True 3-dim rotatable
-                                                            graphics is generated</p></li>
-                                                    </ul>
-                                                </dd>
-                                            </dl>
-                                        </dd>
-                                    </dl>
-
-                                    <dl class="method">
-                                        <dt id="molecule.molecule.get_light_and_heavy_elements">
-                                            <code class="sig-name descname">get_light_and_heavy_elements</code><span
-                                                class="sig-paren">(</span><em
-                                                class="sig-param">max_light_atomic_number</em><span
-                                                class="sig-paren">)</span> &#x2192; tuple<a class="headerlink"
-                                                                                            href="#molecule.molecule.get_light_and_heavy_elements"
-                                                                                            title="Permalink to this definition">¶</a>
-                                        </dt>
-                                        <dd><p>Group molecule elements into light and heavy.</p>
-                                            <dl class="field-list simple">
-                                                <dt class="field-odd">Parameters</dt>
-                                                <dd class="field-odd"><p><strong>max_light_atomic_number</strong> –
-                                                    maximum atomic number classified as light</p>
-                                                </dd>
-                                                <dt class="field-even">Returns</dt>
-                                                <dd class="field-even"><p>light, heavy element lists</p>
                                                 </dd>
                                             </dl>
                                         </dd>
@@ -267,51 +169,39 @@
 
 
                     </div>
-
                 </div>
                 <footer>
-
-                    <div aria-label="footer navigation" class="rst-footer-buttons" role="navigation">
-
-                        <a accesskey="n" class="btn btn-neutral float-right" href="slurm_manager.html" rel="next"
-                           title="slurm_manager class">Next <span class="fa fa-arrow-circle-right"></span></a>
-
-
+                    <div aria-label="Footer" class="rst-footer-buttons" role="navigation">
                         <a accesskey="p" class="btn btn-neutral float-left" href="modules.html" rel="prev"
-                           title="autoqchem"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-
+                           title="autoqchem"><span aria-hidden="true" class="fa fa-arrow-circle-left"></span>
+                            Previous</a>
+                        <a accesskey="n" class="btn btn-neutral float-right" href="slurm_manager.html" rel="next"
+                           title="slurm_manager class">Next <span aria-hidden="true"
+                                                                  class="fa fa-arrow-circle-right"></span></a>
                     </div>
-
 
                     <hr/>
 
                     <div role="contentinfo">
-                        <p>
-                            &copy; Copyright 2020, Andrzej Zuranski, Benjamin Shields
-
-                        </p>
+                        <p>&#169; Copyright 2021, Andrzej Zuranski, Ben Shields.</p>
                     </div>
-                    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
-                        href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a
-                        href="https://readthedocs.org">Read the Docs</a>.
+
+                    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+                    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+                    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
 
                 </footer>
-
             </div>
         </div>
-
     </section>
-
 </div>
-
-
-<script type="text/javascript">
+<script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
 
 </script>
-
 
 </body>
 </html>

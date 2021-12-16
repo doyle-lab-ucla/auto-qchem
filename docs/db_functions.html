@@ -1,53 +1,33 @@
 <!DOCTYPE html>
-<!--[if IE 8]>
-<html class="no-js lt-ie9" lang="en"> <![endif]-->
-<!--[if gt IE 8]><!-->
-<html class="no-js" lang="en"> <!--<![endif]-->
+<html class="writer-html5" lang="en">
 <head>
-    <meta charset="utf-8">
-
-    <meta content="width=device-width, initial-scale=1.0" name="viewport">
-
-    <title>db_functions module &mdash; autoqchem 0.1 documentation</title>
-
-
-    <script src="_static/js/modernizr.min.js" type="text/javascript"></script>
-
-
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"
-            type="text/javascript"></script>
-    <script src="_static/jquery.js" type="text/javascript"></script>
-    <script src="_static/underscore.js" type="text/javascript"></script>
-    <script src="_static/doctools.js" type="text/javascript"></script>
-    <script src="_static/language_data.js" type="text/javascript"></script>
-
-    <script src="_static/js/theme.js" type="text/javascript"></script>
-
-
-    <link href="_static/css/theme.css" rel="stylesheet" type="text/css"/>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>db_functions module &mdash; autoqchem 1 documentation</title>
     <link href="_static/pygments.css" rel="stylesheet" type="text/css"/>
+    <link href="_static/css/theme.css" rel="stylesheet" type="text/css"/>
+    <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+    <![endif]-->
+
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
     <link href="genindex.html" rel="index" title="Index"/>
     <link href="search.html" rel="search" title="Search"/>
-    <link href="descriptor_functions.html" rel="next" title="descriptor_functions"/>
-    <link href="slurm_manager.html" rel="prev" title="slurm_manager class"/>
+    <link href="descriptor_functions.html" rel="next" title="descriptor_functions module"/>
+    <link href="draw_utils.html" rel="prev" title="draw_utils module"/>
 </head>
 
 <body class="wy-body-for-nav">
-
-
 <div class="wy-grid-for-nav">
-
     <nav class="wy-nav-side" data-toggle="wy-nav-shift">
         <div class="wy-side-scroll">
             <div class="wy-side-nav-search">
-
-
                 <a class="icon icon-home" href="index.html"> autoqchem
-
-
                 </a>
-
-
                 <div role="search">
                     <form action="search.html" class="wy-form" id="rtd-search-form" method="get">
                         <input name="q" placeholder="Search docs" type="text"/>
@@ -55,14 +35,9 @@
                         <input name="area" type="hidden" value="default"/>
                     </form>
                 </div>
-
-
             </div>
-
-            <div aria-label="main navigation" class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation">
-
-
-                <p class="caption"><span class="caption-text">Contents:</span></p>
+            <div aria-label="Navigation menu" class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation">
+                <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
                 <ul class="current">
                     <li class="toctree-l1 current"><a class="reference internal" href="modules.html">autoqchem</a>
                         <ul class="current">
@@ -70,67 +45,49 @@
                             </li>
                             <li class="toctree-l2"><a class="reference internal" href="slurm_manager.html">slurm_manager
                                 class</a></li>
-                            <li class="toctree-l2 current"><a class="current reference internal" href="#">db_functions
-                                module</a></li>
-                            <li class="toctree-l2"><a class="reference internal" href="descriptor_functions.html">descriptor_functions</a>
-                            </li>
                             <li class="toctree-l2"><a class="reference internal" href="gaussian_input_generator.html">gaussian_input_generator
                                 class</a></li>
                             <li class="toctree-l2"><a class="reference internal" href="gaussian_log_extractor.html">gaussian_log_extractor
                                 class</a></li>
-                            <li class="toctree-l2"><a class="reference internal" href="openbabel_functions.html">openbabel_functions</a>
-                            </li>
-                            <li class="toctree-l2"><a class="reference internal" href="helper_classes.html">helper_classes</a>
-                            </li>
-                            <li class="toctree-l2"><a class="reference internal" href="helper_functions.html">helper_functions</a>
-                            </li>
+                            <li class="toctree-l2"><a class="reference internal" href="openbabel_utils.html">openbabel_utils
+                                module</a></li>
+                            <li class="toctree-l2"><a class="reference internal" href="rdkit_utils.html">rdkit_utils
+                                module</a></li>
+                            <li class="toctree-l2"><a class="reference internal" href="draw_utils.html">draw_utils
+                                module</a></li>
+                            <li class="toctree-l2 current"><a class="current reference internal" href="#">db_functions
+                                module</a></li>
+                            <li class="toctree-l2"><a class="reference internal" href="descriptor_functions.html">descriptor_functions
+                                module</a></li>
+                            <li class="toctree-l2"><a class="reference internal" href="helper_classes.html">helper_classes
+                                module</a></li>
+                            <li class="toctree-l2"><a class="reference internal" href="helper_functions.html">helper_functions
+                                module</a></li>
                         </ul>
                     </li>
                 </ul>
-
 
             </div>
         </div>
     </nav>
 
     <section class="wy-nav-content-wrap" data-toggle="wy-nav-shift">
-
-
-        <nav aria-label="top navigation" class="wy-nav-top">
-
+        <nav aria-label="Mobile navigation menu" class="wy-nav-top">
             <i class="fa fa-bars" data-toggle="wy-nav-top"></i>
             <a href="index.html">autoqchem</a>
-
         </nav>
 
-
         <div class="wy-nav-content">
-
             <div class="rst-content">
-
-
-                <div aria-label="breadcrumbs navigation" role="navigation">
-
+                <div aria-label="Page navigation" role="navigation">
                     <ul class="wy-breadcrumbs">
-
-                        <li><a href="index.html">Docs</a> &raquo;</li>
-
+                        <li><a class="icon icon-home" href="index.html"></a> &raquo;</li>
                         <li><a href="modules.html">autoqchem</a> &raquo;</li>
-
                         <li>db_functions module</li>
-
-
                         <li class="wy-breadcrumbs-aside">
-
-
                             <a href="_sources/db_functions.rst.txt" rel="nofollow"> View page source</a>
-
-
                         </li>
-
                     </ul>
-
-
                     <hr/>
                 </div>
                 <div class="document" itemscope="itemscope" itemtype="http://schema.org/Article" role="main">
@@ -139,73 +96,162 @@
                         <div class="section" id="module-db_functions">
                             <span id="db-functions-module"></span>
                             <h1>db_functions module<a class="headerlink" href="#module-db_functions"
-                                                      title="Permalink to this headline">¶</a></h1>
-                            <dl class="exception">
-                                <dt id="db_functions.InconsistentLabelsException">
-                                    <em class="property">exception </em><code class="sig-prename descclassname">db_functions.</code><code
-                                        class="sig-name descname">InconsistentLabelsException</code><a
-                                        class="headerlink" href="#db_functions.InconsistentLabelsException"
-                                        title="Permalink to this definition">¶</a></dt>
-                                <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span
-                                        class="pre">Exception</span></code></p>
-                                    <p>Raised when a set of molecules is inconsistently labeled</p>
+                                                      title="Permalink to this headline"></a></h1>
+                            <dl class="py function">
+                                <dt class="sig sig-object py" id="db_functions.db_connect">
+                                    <span class="sig-prename descclassname"><span
+                                            class="pre">db_functions.</span></span><span class="sig-name descname"><span
+                                        class="pre">db_connect</span></span><span class="sig-paren">(</span><em
+                                        class="sig-param"><span class="n"><span
+                                        class="pre">collection</span></span><span class="o"><span
+                                        class="pre">=</span></span><span class="default_value"><span
+                                        class="pre">None</span></span></em><span class="sig-paren">)</span> <span
+                                        class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span
+                                        class="sig-return-typehint"><span
+                                        class="pre">pymongo.collection.Collection</span></span></span><a
+                                        class="headerlink" href="#db_functions.db_connect"
+                                        title="Permalink to this definition"></a></dt>
+                                <dd><p>Create a connection to the database and return the table (Collection).</p>
+                                    <dl class="field-list simple">
+                                        <dt class="field-odd">Parameters</dt>
+                                        <dd class="field-odd"><p><strong>collection</strong> (<em>str</em>) – database
+                                            collection name (optional)</p>
+                                        </dd>
+                                        <dt class="field-even">Returns</dt>
+                                        <dd class="field-even"><p>pymongo.collection.Collection</p>
+                                        </dd>
+                                    </dl>
                                 </dd>
                             </dl>
 
-                            <dl class="function">
-                                <dt id="db_functions.db_check_exists">
-                                    <code class="sig-prename descclassname">db_functions.</code><code
-                                        class="sig-name descname">db_check_exists</code><span class="sig-paren">(</span><em
-                                        class="sig-param">can</em>, <em class="sig-param">gaussian_config</em>, <em
-                                        class="sig-param">max_num_conformers</em><span class="sig-paren">)</span>
-                                    &#x2192; tuple<a class="headerlink" href="#db_functions.db_check_exists"
-                                                     title="Permalink to this definition">¶</a></dt>
-                                <dd><p>Check if a molecule is already present in the database with the same Gaussian
-                                    config (theory, basis_sets, etc.)</p>
+                            <dl class="py function">
+                                <dt class="sig sig-object py" id="db_functions.db_upload_molecule">
+                                    <span class="sig-prename descclassname"><span
+                                            class="pre">db_functions.</span></span><span class="sig-name descname"><span
+                                        class="pre">db_upload_molecule</span></span><span class="sig-paren">(</span><em
+                                        class="sig-param"><span class="n"><span class="pre">mol_data</span></span></em>,
+                                    <em class="sig-param"><span class="n"><span class="pre">tags</span></span></em>, <em
+                                        class="sig-param"><span class="n"><span class="pre">metadata</span></span></em>,
+                                    <em class="sig-param"><span class="n"><span class="pre">weights</span></span></em>,
+                                    <em class="sig-param"><span class="n"><span class="pre">conformations</span></span></em>,
+                                    <em class="sig-param"><span class="n"><span class="pre">logs</span></span></em><span
+                                        class="sig-paren">)</span> <span class="sig-return"><span
+                                        class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span
+                                        class="pre">bson.objectid.ObjectId</span></span></span><a class="headerlink"
+                                                                                                  href="#db_functions.db_upload_molecule"
+                                                                                                  title="Permalink to this definition"></a>
+                                </dt>
+                                <dd><p>Upload single molecule to DB and all child objects tags, features and log files
+                                    for its conformations</p>
                                     <dl class="field-list simple">
                                         <dt class="field-odd">Parameters</dt>
                                         <dd class="field-odd">
                                             <ul class="simple">
-                                                <li><p><strong>can</strong> (<em>str</em>) – canonical smiles</p></li>
-                                                <li><p><strong>gaussian_config</strong> (<em>dict</em>) – gaussian
-                                                    config dictionary</p></li>
+                                                <li><p><strong>mol_data</strong> (<em>dict</em>) – molecule identity
+                                                    data (inchi, connectivity, etc.)</p></li>
+                                                <li><p><strong>tags</strong> (<em>list</em>) – list of tags to assign to
+                                                    this molecule</p></li>
+                                                <li><p><strong>metadata</strong> (<em>dict</em>) – Gaussian metadata
+                                                    specifying the configuration of the calculation</p></li>
+                                                <li><p><strong>weights</strong> (<em>list</em>) – conformation weights
+                                                </p></li>
+                                                <li><p><strong>conformations</strong> (<em>list</em>) – list of
+                                                    extracted descriptors for each conformation</p></li>
+                                                <li><p><strong>logs</strong> (<em>list</em>) – list of log files for
+                                                    each conformation</p></li>
                                             </ul>
                                         </dd>
                                         <dt class="field-even">Returns</dt>
-                                        <dd class="field-even"><p>exists(bool), list of tags that are associated with
-                                            the molecule if it exists</p>
+                                        <dd class="field-even"><p>bson.objectid.ObjectId</p>
                                         </dd>
                                     </dl>
                                 </dd>
                             </dl>
 
-                            <dl class="function">
-                                <dt id="db_functions.db_connect">
-                                    <code class="sig-prename descclassname">db_functions.</code><code
-                                        class="sig-name descname">db_connect</code><span class="sig-paren">(</span><em
-                                        class="sig-param">collection='molecules'</em><span class="sig-paren">)</span>
-                                    &#x2192; pymongo.collection.Collection<a class="headerlink"
-                                                                             href="#db_functions.db_connect"
-                                                                             title="Permalink to this definition">¶</a>
-                                </dt>
-                                <dd><p>Create a connection to the database and return the table (Collection).</p>
+                            <dl class="py function">
+                                <dt class="sig sig-object py" id="db_functions.db_upload_conformation">
+                                    <span class="sig-prename descclassname"><span
+                                            class="pre">db_functions.</span></span><span class="sig-name descname"><span
+                                        class="pre">db_upload_conformation</span></span><span class="sig-paren">(</span><em
+                                        class="sig-param"><span class="n"><span class="pre">mol_id</span></span></em>,
+                                    <em class="sig-param"><span class="n"><span class="pre">weight</span></span></em>,
+                                    <em class="sig-param"><span class="n"><span
+                                            class="pre">conformation</span></span></em>, <em class="sig-param"><span
+                                        class="n"><span class="pre">log</span></span></em>, <em class="sig-param"><span
+                                        class="n"><span class="pre">check_mol_exists</span></span><span class="o"><span
+                                        class="pre">=</span></span><span class="default_value"><span
+                                        class="pre">True</span></span></em><span class="sig-paren">)</span><a
+                                        class="headerlink" href="#db_functions.db_upload_conformation"
+                                        title="Permalink to this definition"></a></dt>
+                                <dd><p>Upload single conformation features and log file to DB, requires a molecule to be
+                                    present</p>
                                     <dl class="field-list simple">
-                                        <dt class="field-odd">Returns</dt>
-                                        <dd class="field-odd"><p>pymongo.collection.Collection</p>
+                                        <dt class="field-odd">Parameters</dt>
+                                        <dd class="field-odd">
+                                            <ul class="simple">
+                                                <li><p><strong>mol_id</strong> (<em>bson.objectid.ObjectId</em>) –
+                                                    molecule id in the DB</p></li>
+                                                <li><p><strong>weight</strong> (<em>float</em>) – conformation weight
+                                                </p></li>
+                                                <li><p><strong>conformation</strong> (<em>dict</em>) – extracted
+                                                    descriptors for the conformation</p></li>
+                                                <li><p><strong>log</strong> (<em>str</em>) – log file for the
+                                                    conformation</p></li>
+                                                <li><p><strong>check_mol_exists</strong> (<em>bool</em>) – check whether
+                                                    the molecule exists in the database, default is TRUE, not
+                                                    recommended to change</p></li>
+                                            </ul>
                                         </dd>
                                     </dl>
                                 </dd>
                             </dl>
 
-                            <dl class="function">
-                                <dt id="db_functions.db_select_molecules">
-                                    <code class="sig-prename descclassname">db_functions.</code><code
-                                        class="sig-name descname">db_select_molecules</code><span
-                                        class="sig-paren">(</span><em class="sig-param">tags=[]</em>, <em
-                                        class="sig-param">substructure=''</em><span class="sig-paren">)</span> &#x2192;
-                                    pandas.core.frame.DataFrame<a class="headerlink"
-                                                                  href="#db_functions.db_select_molecules"
-                                                                  title="Permalink to this definition">¶</a></dt>
+                            <dl class="py function">
+                                <dt class="sig sig-object py" id="db_functions.db_delete_molecule">
+                                    <span class="sig-prename descclassname"><span
+                                            class="pre">db_functions.</span></span><span class="sig-name descname"><span
+                                        class="pre">db_delete_molecule</span></span><span class="sig-paren">(</span><em
+                                        class="sig-param"><span class="n"><span
+                                        class="pre">mol_id</span></span></em><span class="sig-paren">)</span><a
+                                        class="headerlink" href="#db_functions.db_delete_molecule"
+                                        title="Permalink to this definition"></a></dt>
+                                <dd><p>Delete molecule from DB, cascade all child objects: tags, descriptors and log
+                                    files</p>
+                                    <dl class="field-list simple">
+                                        <dt class="field-odd">Parameters</dt>
+                                        <dd class="field-odd"><p><strong>mol_id</strong>
+                                            (<em>bson.objectid.ObjectId</em>) – molecule id in the DB</p>
+                                        </dd>
+                                    </dl>
+                                </dd>
+                            </dl>
+
+                            <dl class="py function">
+                                <dt class="sig sig-object py" id="db_functions.db_select_molecules">
+                                    <span class="sig-prename descclassname"><span
+                                            class="pre">db_functions.</span></span><span class="sig-name descname"><span
+                                        class="pre">db_select_molecules</span></span><span class="sig-paren">(</span><em
+                                        class="sig-param"><span class="n"><span class="pre">tags</span></span><span
+                                        class="o"><span class="pre">=</span></span><span class="default_value"><span
+                                        class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span
+                                        class="pre">substructure</span></span><span class="o"><span class="pre">=</span></span><span
+                                        class="default_value"><span class="pre">''</span></span></em>, <em
+                                        class="sig-param"><span class="n"><span class="pre">solvent</span></span><span
+                                        class="o"><span class="pre">=</span></span><span class="default_value"><span
+                                        class="pre">'ALL'</span></span></em>, <em class="sig-param"><span
+                                        class="n"><span class="pre">functional</span></span><span class="o"><span
+                                        class="pre">=</span></span><span class="default_value"><span
+                                        class="pre">'ALL'</span></span></em>, <em class="sig-param"><span
+                                        class="n"><span class="pre">basis_set</span></span><span class="o"><span
+                                        class="pre">=</span></span><span class="default_value"><span
+                                        class="pre">'ALL'</span></span></em>, <em class="sig-param"><span
+                                        class="n"><span class="pre">molecule_ids</span></span><span class="o"><span
+                                        class="pre">=</span></span><span class="default_value"><span
+                                        class="pre">[]</span></span></em><span class="sig-paren">)</span> <span
+                                        class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span
+                                        class="sig-return-typehint"><span class="pre">pandas.core.frame.DataFrame</span></span></span><a
+                                        class="headerlink" href="#db_functions.db_select_molecules"
+                                        title="Permalink to this definition"></a></dt>
                                 <dd><p>Get a summary frame of molecules in the database</p>
                                     <dl class="field-list simple">
                                         <dt class="field-odd">Parameters</dt>
@@ -215,6 +261,13 @@
                                                     records (if multiple an ‘OR’ is taken)</p></li>
                                                 <li><p><strong>substructure</strong> (<em>str</em>) – substructure
                                                     SMARTS string</p></li>
+                                                <li><p><strong>solvent</strong> (<em>str</em>) – solvent filter</p></li>
+                                                <li><p><strong>functional</strong> (<em>str</em>) – functional filter
+                                                </p></li>
+                                                <li><p><strong>basis_set</strong> (<em>str</em>) – basis_set filter</p>
+                                                </li>
+                                                <li><p><strong>molecule_ids</strong> (<em>list</em>) – filter on
+                                                    specific molecule ids in the DB</p></li>
                                             </ul>
                                         </dd>
                                         <dt class="field-even">Returns</dt>
@@ -224,21 +277,126 @@
                                 </dd>
                             </dl>
 
-                            <dl class="function">
-                                <dt id="db_functions.descriptors">
-                                    <code class="sig-prename descclassname">db_functions.</code><code
-                                        class="sig-name descname">descriptors</code><span class="sig-paren">(</span><em
-                                        class="sig-param">tags</em>, <em class="sig-param">presets</em>, <em
-                                        class="sig-param">conf_option</em>, <em
-                                        class="sig-param">substructure=''</em><span class="sig-paren">)</span> &#x2192;
-                                    dict<a class="headerlink" href="#db_functions.descriptors"
-                                           title="Permalink to this definition">¶</a></dt>
+                            <dl class="py function">
+                                <dt class="sig sig-object py" id="db_functions.db_check_exists">
+                                    <span class="sig-prename descclassname"><span
+                                            class="pre">db_functions.</span></span><span class="sig-name descname"><span
+                                        class="pre">db_check_exists</span></span><span class="sig-paren">(</span><em
+                                        class="sig-param"><span class="n"><span class="pre">inchi</span></span></em>,
+                                    <em class="sig-param"><span class="n"><span
+                                            class="pre">gaussian_config</span></span></em>, <em class="sig-param"><span
+                                        class="n"><span class="pre">max_num_conformers</span></span></em>, <em
+                                        class="sig-param"><span class="n"><span
+                                        class="pre">conformer_engine</span></span></em><span class="sig-paren">)</span>
+                                    <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span
+                                            class="sig-return-typehint"><span class="pre">tuple</span></span></span><a
+                                        class="headerlink" href="#db_functions.db_check_exists"
+                                        title="Permalink to this definition"></a></dt>
+                                <dd><p>Check if a molecule is already present in the database with the same Gaussian
+                                    config (function, basis_set, number of conformers, conformer engine)</p>
+                                    <dl class="field-list simple">
+                                        <dt class="field-odd">Parameters</dt>
+                                        <dd class="field-odd">
+                                            <ul class="simple">
+                                                <li><p><strong>inchi</strong> (<em>str</em>) – inchi of the molecule</p>
+                                                </li>
+                                                <li><p><strong>gaussian_config</strong> (<em>dict</em>) – gaussian
+                                                    config</p></li>
+                                                <li><p><strong>max_num_conformers</strong> (<em>int</em>) – maximum
+                                                    number of conformers to generate</p></li>
+                                                <li><p><strong>conformer_engine</strong> (<em>str</em>) – conformer
+                                                    engine used for conformer generation (rdkit or openbabel)</p></li>
+                                            </ul>
+                                        </dd>
+                                        <dt class="field-even">Returns</dt>
+                                        <dd class="field-even"><p>tuple(exists(bool), list of tags that are associated
+                                            with the molecule if it exists)</p>
+                                        </dd>
+                                    </dl>
+                                </dd>
+                            </dl>
+
+                            <dl class="py function">
+                                <dt class="sig sig-object py" id="db_functions.db_get_molecule">
+                                    <span class="sig-prename descclassname"><span
+                                            class="pre">db_functions.</span></span><span class="sig-name descname"><span
+                                        class="pre">db_get_molecule</span></span><span class="sig-paren">(</span><em
+                                        class="sig-param"><span class="n"><span class="pre">inchi</span></span></em>,
+                                    <em class="sig-param"><span class="n"><span class="pre">tags</span></span><span
+                                            class="o"><span class="pre">=</span></span><span class="default_value"><span
+                                            class="pre">[]</span></span></em><span class="sig-paren">)</span><a
+                                        class="headerlink" href="#db_functions.db_get_molecule"
+                                        title="Permalink to this definition"></a></dt>
+                                <dd><p>Get an rdkit molecule from DB conformer geometries</p>
+                                    <dl class="field-list simple">
+                                        <dt class="field-odd">Parameters</dt>
+                                        <dd class="field-odd">
+                                            <ul class="simple">
+                                                <li><p><strong>inchi</strong> (<em>str</em>) – inchi of the molecule</p>
+                                                </li>
+                                                <li><p><strong>tags</strong> (<em>list</em>) – optional list of tags to
+                                                    narrow the search</p></li>
+                                            </ul>
+                                        </dd>
+                                        <dt class="field-even">Returns</dt>
+                                        <dd class="field-even"><p>rdkit.Chem.Mol</p>
+                                        </dd>
+                                    </dl>
+                                </dd>
+                            </dl>
+
+                            <dl class="py function">
+                                <dt class="sig sig-object py" id="db_functions.db_get_rdkit_mol">
+                                    <span class="sig-prename descclassname"><span
+                                            class="pre">db_functions.</span></span><span class="sig-name descname"><span
+                                        class="pre">db_get_rdkit_mol</span></span><span class="sig-paren">(</span><em
+                                        class="sig-param"><span class="n"><span
+                                        class="pre">molecule_record)</span> <span class="pre">-&gt;</span> <span
+                                        class="pre">(&lt;class</span> <span
+                                        class="pre">'rdkit.Chem.rdchem.Mol'&gt;</span></span></em>, <em
+                                        class="sig-param"><span class="n"><span class="pre">&lt;class</span> <span
+                                        class="pre">'list'&gt;</span></span></em><span class="sig-paren">)</span><a
+                                        class="headerlink" href="#db_functions.db_get_rdkit_mol"
+                                        title="Permalink to this definition"></a></dt>
+                                <dd><p>Get an rdkit molecule from DB conformer geometries</p>
+                                    <dl class="field-list simple">
+                                        <dt class="field-odd">Parameters</dt>
+                                        <dd class="field-odd"><p><strong>molecule_record</strong> (<em>dict</em>) –
+                                            molecule record from the DB</p>
+                                        </dd>
+                                        <dt class="field-even">Returns</dt>
+                                        <dd class="field-even"><p>rdkit.Chem.Mol</p>
+                                        </dd>
+                                    </dl>
+                                </dd>
+                            </dl>
+
+                            <dl class="py function">
+                                <dt class="sig sig-object py" id="db_functions.descriptors">
+                                    <span class="sig-prename descclassname"><span
+                                            class="pre">db_functions.</span></span><span class="sig-name descname"><span
+                                        class="pre">descriptors</span></span><span class="sig-paren">(</span><em
+                                        class="sig-param"><span class="n"><span class="pre">tags</span></span></em>, <em
+                                        class="sig-param"><span class="n"><span class="pre">presets</span></span></em>,
+                                    <em class="sig-param"><span class="n"><span
+                                            class="pre">conf_option</span></span></em>, <em class="sig-param"><span
+                                        class="n"><span class="pre">solvent</span></span></em>, <em
+                                        class="sig-param"><span class="n"><span
+                                        class="pre">functional</span></span></em>, <em class="sig-param"><span
+                                        class="n"><span class="pre">basis_set</span></span></em>, <em class="sig-param"><span
+                                        class="n"><span class="pre">substructure</span></span><span class="o"><span
+                                        class="pre">=</span></span><span class="default_value"><span
+                                        class="pre">''</span></span></em><span class="sig-paren">)</span> <span
+                                        class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span
+                                        class="sig-return-typehint"><span class="pre">dict</span></span></span><a
+                                        class="headerlink" href="#db_functions.descriptors"
+                                        title="Permalink to this definition"></a></dt>
                                 <dd><p>Retrieve DFT descriptors from the database</p>
                                     <dl class="field-list simple">
                                         <dt class="field-odd">Parameters</dt>
                                         <dd class="field-odd">
                                             <ul class="simple">
-                                                <li><p><strong>tag</strong> (<em>str</em>) – metadata.tag of the db
+                                                <li><p><strong>tags</strong> (<em>list</em>) – a list of tags of the db
                                                     records</p></li>
                                                 <li><p><strong>presets</strong> (<em>list</em>) – list of descriptor
                                                     presets from ‘global’ (molecule level descriptors), ‘min_max’ (min
@@ -250,33 +408,45 @@
                                                     highest weight), ‘mean’ (arithmetic average), ‘min’ (conformer with
                                                     smallest weight), ‘any’ (any single conformer), ‘std’ (std dev. over
                                                     conformers)</p></li>
+                                                <li><p><strong>solvent</strong> (<em>str</em>) – solvent filter</p></li>
+                                                <li><p><strong>functional</strong> (<em>str</em>) – functional filter
+                                                </p></li>
+                                                <li><p><strong>basis_set</strong> (<em>str</em>) – basis_set filter</p>
+                                                </li>
                                                 <li><p><strong>substructure</strong> (<em>str</em>) – substructure
                                                     SMARTS string</p></li>
                                             </ul>
                                         </dd>
                                         <dt class="field-even">Returns</dt>
-                                        <dd class="field-even"><p></p>
+                                        <dd class="field-even"><p>dict</p>
                                         </dd>
                                     </dl>
                                 </dd>
                             </dl>
 
-                            <dl class="function">
-                                <dt id="db_functions.descriptors_from_list_of_ids">
-                                    <code class="sig-prename descclassname">db_functions.</code><code
-                                        class="sig-name descname">descriptors_from_list_of_ids</code><span
-                                        class="sig-paren">(</span><em class="sig-param">ids</em>, <em class="sig-param">conf_option='max'</em><span
-                                        class="sig-paren">)</span> &#x2192; dict<a class="headerlink"
-                                                                                   href="#db_functions.descriptors_from_list_of_ids"
-                                                                                   title="Permalink to this definition">¶</a>
-                                </dt>
-                                <dd><p>Get and average descriptors using a list of db ids.</p>
+                            <dl class="py function">
+                                <dt class="sig sig-object py" id="db_functions.descriptors_from_mol_df">
+                                    <span class="sig-prename descclassname"><span
+                                            class="pre">db_functions.</span></span><span class="sig-name descname"><span
+                                        class="pre">descriptors_from_mol_df</span></span><span
+                                        class="sig-paren">(</span><em class="sig-param"><span class="n"><span
+                                        class="pre">mol_df</span></span></em>, <em class="sig-param"><span
+                                        class="n"><span class="pre">conf_option</span></span><span class="o"><span
+                                        class="pre">=</span></span><span class="default_value"><span
+                                        class="pre">'max'</span></span></em><span class="sig-paren">)</span> <span
+                                        class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span
+                                        class="sig-return-typehint"><span class="pre">dict</span></span></span><a
+                                        class="headerlink" href="#db_functions.descriptors_from_mol_df"
+                                        title="Permalink to this definition"></a></dt>
+                                <dd><p>Get and weight descriptors given a set of molecules and a conformer reweighting
+                                    option. This function involves a large query from the DB</p>
                                     <dl class="field-list simple">
                                         <dt class="field-odd">Parameters</dt>
                                         <dd class="field-odd">
                                             <ul class="simple">
-                                                <li><p><strong>ids</strong> (<em>list</em>) – list of db id’s that
-                                                    correspond to a given molecule</p></li>
+                                                <li><p><strong>mol_df</strong> (<em>pd.DataFrame</em>) – dataframe
+                                                    returned by the autoqchem.db_functions.db_select_molecules function
+                                                </p></li>
                                                 <li><p><strong>conf_option</strong> (<em>str</em>) – conformer averaging
                                                     option: ‘boltzmann’ (Boltzmann average), ‘max’ (conformer with
                                                     highest weight), ‘mean’ (arithmetic average), ‘min’ (conformer with
@@ -291,55 +461,56 @@
                                 </dd>
                             </dl>
 
+                            <dl class="py exception">
+                                <dt class="sig sig-object py" id="db_functions.InconsistentLabelsException">
+                                    <em class="property"><span class="pre">exception</span><span class="w"> </span></em><span
+                                        class="sig-prename descclassname"><span
+                                        class="pre">db_functions.</span></span><span class="sig-name descname"><span
+                                        class="pre">InconsistentLabelsException</span></span><a class="headerlink"
+                                                                                                href="#db_functions.InconsistentLabelsException"
+                                                                                                title="Permalink to this definition"></a>
+                                </dt>
+                                <dd><p>Raised when a set of molecules is inconsistently labeled</p>
+                                </dd>
+                            </dl>
+
                         </div>
 
 
                     </div>
-
                 </div>
                 <footer>
-
-                    <div aria-label="footer navigation" class="rst-footer-buttons" role="navigation">
-
+                    <div aria-label="Footer" class="rst-footer-buttons" role="navigation">
+                        <a accesskey="p" class="btn btn-neutral float-left" href="draw_utils.html" rel="prev"
+                           title="draw_utils module"><span aria-hidden="true" class="fa fa-arrow-circle-left"></span>
+                            Previous</a>
                         <a accesskey="n" class="btn btn-neutral float-right" href="descriptor_functions.html" rel="next"
-                           title="descriptor_functions">Next <span class="fa fa-arrow-circle-right"></span></a>
-
-
-                        <a accesskey="p" class="btn btn-neutral float-left" href="slurm_manager.html" rel="prev"
-                           title="slurm_manager class"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-
+                           title="descriptor_functions module">Next <span aria-hidden="true"
+                                                                          class="fa fa-arrow-circle-right"></span></a>
                     </div>
-
 
                     <hr/>
 
                     <div role="contentinfo">
-                        <p>
-                            &copy; Copyright 2020, Andrzej Zuranski, Benjamin Shields
-
-                        </p>
+                        <p>&#169; Copyright 2021, Andrzej Zuranski, Ben Shields.</p>
                     </div>
-                    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
-                        href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a
-                        href="https://readthedocs.org">Read the Docs</a>.
+
+                    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+                    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+                    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
 
                 </footer>
-
             </div>
         </div>
-
     </section>
-
 </div>
-
-
-<script type="text/javascript">
+<script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
 
 </script>
-
 
 </body>
 </html>
