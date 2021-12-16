@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>draw_utils module &mdash; autoqchem 1 documentation</title>
+    <link href="_static/pygments.css" rel="stylesheet" type="text/css"/>
+    <link href="_static/css/theme.css" rel="stylesheet" type="text/css"/>
+    <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+    <![endif]-->
+
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link href="genindex.html" rel="index" title="Index"/>
+    <link href="search.html" rel="search" title="Search"/>
+    <link href="db_functions.html" rel="next" title="db_functions module"/>
+    <link href="rdkit_utils.html" rel="prev" title="rdkit_utils module"/>
+</head>
+
+<body class="wy-body-for-nav">
+<div class="wy-grid-for-nav">
+    <nav class="wy-nav-side" data-toggle="wy-nav-shift">
+        <div class="wy-side-scroll">
+            <div class="wy-side-nav-search">
+                <a class="icon icon-home" href="index.html"> autoqchem
+                </a>
+                <div role="search">
+                    <form action="search.html" class="wy-form" id="rtd-search-form" method="get">
+                        <input name="q" placeholder="Search docs" type="text"/>
+                        <input name="check_keywords" type="hidden" value="yes"/>
+                        <input name="area" type="hidden" value="default"/>
+                    </form>
+                </div>
+            </div>
+            <div aria-label="Navigation menu" class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation">
+                <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+                <ul class="current">
+                    <li class="toctree-l1 current"><a class="reference internal" href="modules.html">autoqchem</a>
+                        <ul class="current">
+                            <li class="toctree-l2"><a class="reference internal" href="molecule.html">molecule class</a>
+                            </li>
+                            <li class="toctree-l2"><a class="reference internal" href="slurm_manager.html">slurm_manager
+                                class</a></li>
+                            <li class="toctree-l2"><a class="reference internal" href="gaussian_input_generator.html">gaussian_input_generator
+                                class</a></li>
+                            <li class="toctree-l2"><a class="reference internal" href="gaussian_log_extractor.html">gaussian_log_extractor
+                                class</a></li>
+                            <li class="toctree-l2"><a class="reference internal" href="openbabel_utils.html">openbabel_utils
+                                module</a></li>
+                            <li class="toctree-l2"><a class="reference internal" href="rdkit_utils.html">rdkit_utils
+                                module</a></li>
+                            <li class="toctree-l2 current"><a class="current reference internal" href="#">draw_utils
+                                module</a></li>
+                            <li class="toctree-l2"><a class="reference internal" href="db_functions.html">db_functions
+                                module</a></li>
+                            <li class="toctree-l2"><a class="reference internal" href="descriptor_functions.html">descriptor_functions
+                                module</a></li>
+                            <li class="toctree-l2"><a class="reference internal" href="helper_classes.html">helper_classes
+                                module</a></li>
+                            <li class="toctree-l2"><a class="reference internal" href="helper_functions.html">helper_functions
+                                module</a></li>
+                        </ul>
+                    </li>
+                </ul>
+
+            </div>
+        </div>
+    </nav>
+
+    <section class="wy-nav-content-wrap" data-toggle="wy-nav-shift">
+        <nav aria-label="Mobile navigation menu" class="wy-nav-top">
+            <i class="fa fa-bars" data-toggle="wy-nav-top"></i>
+            <a href="index.html">autoqchem</a>
+        </nav>
+
+        <div class="wy-nav-content">
+            <div class="rst-content">
+                <div aria-label="Page navigation" role="navigation">
+                    <ul class="wy-breadcrumbs">
+                        <li><a class="icon icon-home" href="index.html"></a> &raquo;</li>
+                        <li><a href="modules.html">autoqchem</a> &raquo;</li>
+                        <li>draw_utils module</li>
+                        <li class="wy-breadcrumbs-aside">
+                            <a href="_sources/draw_utils.rst.txt" rel="nofollow"> View page source</a>
+                        </li>
+                    </ul>
+                    <hr/>
+                </div>
+                <div class="document" itemscope="itemscope" itemtype="http://schema.org/Article" role="main">
+                    <div itemprop="articleBody">
+
+                        <div class="section" id="module-draw_utils">
+                            <span id="draw-utils-module"></span>
+                            <h1>draw_utils module<a class="headerlink" href="#module-draw_utils"
+                                                    title="Permalink to this headline"></a></h1>
+                            <dl class="py function">
+                                <dt class="sig sig-object py" id="draw_utils.draw">
+                                    <span class="sig-prename descclassname"><span
+                                            class="pre">draw_utils.</span></span><span class="sig-name descname"><span
+                                        class="pre">draw</span></span><span class="sig-paren">(</span><em
+                                        class="sig-param"><span class="n"><span class="pre">mol</span></span><span
+                                        class="p"><span class="pre">:</span></span><span class="w"> </span><span
+                                        class="n"><span class="pre">rdkit.Chem.rdchem.Mol</span></span></em>, <em
+                                        class="sig-param"><span class="n"><span class="pre">energies</span></span><span
+                                        class="p"><span class="pre">:</span></span><span class="w"> </span><span
+                                        class="n"><span class="pre">list</span></span><span class="w"> </span><span
+                                        class="o"><span class="pre">=</span></span><span class="w"> </span><span
+                                        class="default_value"><span class="pre">[]</span></span></em><span
+                                        class="sig-paren">)</span> <span class="sig-return"><span
+                                        class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span
+                                        class="pre">&lt;ipywidgets.widgets.interaction._InteractFactory</span> <span
+                                        class="pre">object</span> <span class="pre">at</span> <span class="pre">0x0000025A54A89A88&gt;</span></span></span><a
+                                        class="headerlink" href="#draw_utils.draw" title="Permalink to this definition"></a>
+                                </dt>
+                                <dd><p>Make a drawing of all conformers in 3d</p>
+                                    <dl class="field-list simple">
+                                        <dt class="field-odd">Parameters</dt>
+                                        <dd class="field-odd">
+                                            <ul class="simple">
+                                                <li><p><strong>mol</strong> (<em>rdkit.Chem.Mol</em>) – rdkit molecule
+                                                </p></li>
+                                                <li><p><strong>energies</strong> (<em>list</em>) – list of conformer
+                                                    energies</p></li>
+                                            </ul>
+                                        </dd>
+                                        <dt class="field-even">Returns</dt>
+                                        <dd class="field-even"><p>interact 3D object</p>
+                                        </dd>
+                                    </dl>
+                                </dd>
+                            </dl>
+
+                        </div>
+
+
+                    </div>
+                </div>
+                <footer>
+                    <div aria-label="Footer" class="rst-footer-buttons" role="navigation">
+                        <a accesskey="p" class="btn btn-neutral float-left" href="rdkit_utils.html" rel="prev"
+                           title="rdkit_utils module"><span aria-hidden="true" class="fa fa-arrow-circle-left"></span>
+                            Previous</a>
+                        <a accesskey="n" class="btn btn-neutral float-right" href="db_functions.html" rel="next"
+                           title="db_functions module">Next <span aria-hidden="true"
+                                                                  class="fa fa-arrow-circle-right"></span></a>
+                    </div>
+
+                    <hr/>
+
+                    <div role="contentinfo">
+                        <p>&#169; Copyright 2021, Andrzej Zuranski, Ben Shields.</p>
+                    </div>
+
+                    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+                    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+                    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+
+                </footer>
+            </div>
+        </div>
+    </section>
+</div>
+<script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+
+</script>
+
+</body>
+</html>

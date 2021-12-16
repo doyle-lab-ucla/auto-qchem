@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>helper_functions module &mdash; autoqchem 1 documentation</title>
+    <link href="_static/pygments.css" rel="stylesheet" type="text/css"/>
+    <link href="_static/css/theme.css" rel="stylesheet" type="text/css"/>
+    <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+    <![endif]-->
+
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link href="genindex.html" rel="index" title="Index"/>
+    <link href="search.html" rel="search" title="Search"/>
+    <link href="helper_classes.html" rel="prev" title="helper_classes module"/>
+</head>
+
+<body class="wy-body-for-nav">
+<div class="wy-grid-for-nav">
+    <nav class="wy-nav-side" data-toggle="wy-nav-shift">
+        <div class="wy-side-scroll">
+            <div class="wy-side-nav-search">
+                <a class="icon icon-home" href="index.html"> autoqchem
+                </a>
+                <div role="search">
+                    <form action="search.html" class="wy-form" id="rtd-search-form" method="get">
+                        <input name="q" placeholder="Search docs" type="text"/>
+                        <input name="check_keywords" type="hidden" value="yes"/>
+                        <input name="area" type="hidden" value="default"/>
+                    </form>
+                </div>
+            </div>
+            <div aria-label="Navigation menu" class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation">
+                <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+                <ul class="current">
+                    <li class="toctree-l1 current"><a class="reference internal" href="modules.html">autoqchem</a>
+                        <ul class="current">
+                            <li class="toctree-l2"><a class="reference internal" href="molecule.html">molecule class</a>
+                            </li>
+                            <li class="toctree-l2"><a class="reference internal" href="slurm_manager.html">slurm_manager
+                                class</a></li>
+                            <li class="toctree-l2"><a class="reference internal" href="gaussian_input_generator.html">gaussian_input_generator
+                                class</a></li>
+                            <li class="toctree-l2"><a class="reference internal" href="gaussian_log_extractor.html">gaussian_log_extractor
+                                class</a></li>
+                            <li class="toctree-l2"><a class="reference internal" href="openbabel_utils.html">openbabel_utils
+                                module</a></li>
+                            <li class="toctree-l2"><a class="reference internal" href="rdkit_utils.html">rdkit_utils
+                                module</a></li>
+                            <li class="toctree-l2"><a class="reference internal" href="draw_utils.html">draw_utils
+                                module</a></li>
+                            <li class="toctree-l2"><a class="reference internal" href="db_functions.html">db_functions
+                                module</a></li>
+                            <li class="toctree-l2"><a class="reference internal" href="descriptor_functions.html">descriptor_functions
+                                module</a></li>
+                            <li class="toctree-l2"><a class="reference internal" href="helper_classes.html">helper_classes
+                                module</a></li>
+                            <li class="toctree-l2 current"><a class="current reference internal" href="#">helper_functions
+                                module</a></li>
+                        </ul>
+                    </li>
+                </ul>
+
+            </div>
+        </div>
+    </nav>
+
+    <section class="wy-nav-content-wrap" data-toggle="wy-nav-shift">
+        <nav aria-label="Mobile navigation menu" class="wy-nav-top">
+            <i class="fa fa-bars" data-toggle="wy-nav-top"></i>
+            <a href="index.html">autoqchem</a>
+        </nav>
+
+        <div class="wy-nav-content">
+            <div class="rst-content">
+                <div aria-label="Page navigation" role="navigation">
+                    <ul class="wy-breadcrumbs">
+                        <li><a class="icon icon-home" href="index.html"></a> &raquo;</li>
+                        <li><a href="modules.html">autoqchem</a> &raquo;</li>
+                        <li>helper_functions module</li>
+                        <li class="wy-breadcrumbs-aside">
+                            <a href="_sources/helper_functions.rst.txt" rel="nofollow"> View page source</a>
+                        </li>
+                    </ul>
+                    <hr/>
+                </div>
+                <div class="document" itemscope="itemscope" itemtype="http://schema.org/Article" role="main">
+                    <div itemprop="articleBody">
+
+                        <div class="section" id="module-helper_functions">
+                            <span id="helper-functions-module"></span>
+                            <h1>helper_functions module<a class="headerlink" href="#module-helper_functions"
+                                                          title="Permalink to this headline"></a></h1>
+                            <dl class="py function">
+                                <dt class="sig sig-object py" id="helper_functions.add_numbers_to_repeated_items">
+                                    <span class="sig-prename descclassname"><span
+                                            class="pre">helper_functions.</span></span><span
+                                        class="sig-name descname"><span class="pre">add_numbers_to_repeated_items</span></span><span
+                                        class="sig-paren">(</span><em class="sig-param"><span class="n"><span
+                                        class="pre">items_list</span></span></em><span class="sig-paren">)</span> <span
+                                        class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span
+                                        class="sig-return-typehint"><span class="pre">list</span></span></span><a
+                                        class="headerlink" href="#helper_functions.add_numbers_to_repeated_items"
+                                        title="Permalink to this definition"></a></dt>
+                                <dd><p>Add numeric consecutive labels to repeated items in a list.</p>
+                                    <dl class="field-list simple">
+                                        <dt class="field-odd">Parameters</dt>
+                                        <dd class="field-odd"><p><strong>items_list</strong> – list of strings</p>
+                                        </dd>
+                                        <dt class="field-even">Returns</dt>
+                                        <dd class="field-even"><p>list</p>
+                                        </dd>
+                                    </dl>
+                                </dd>
+                            </dl>
+
+                            <dl class="py function">
+                                <dt class="sig sig-object py" id="helper_functions.cleanup_directory_files">
+                                    <span class="sig-prename descclassname"><span
+                                            class="pre">helper_functions.</span></span><span
+                                        class="sig-name descname"><span
+                                        class="pre">cleanup_directory_files</span></span><span
+                                        class="sig-paren">(</span><em class="sig-param"><span class="n"><span
+                                        class="pre">dir_path</span></span></em>, <em class="sig-param"><span
+                                        class="n"><span class="pre">types</span></span><span class="o"><span
+                                        class="pre">=</span></span><span class="default_value"><span
+                                        class="pre">()</span></span></em><span class="sig-paren">)</span> <span
+                                        class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span
+                                        class="sig-return-typehint"><span class="pre">None</span></span></span><a
+                                        class="headerlink" href="#helper_functions.cleanup_directory_files"
+                                        title="Permalink to this definition"></a></dt>
+                                <dd><p>Remove files with specific extension(s) from a directory.</p>
+                                    <dl class="field-list simple">
+                                        <dt class="field-odd">Parameters</dt>
+                                        <dd class="field-odd">
+                                            <ul class="simple">
+                                                <li><p><strong>dir_path</strong> – path of the directory to cleanup</p>
+                                                </li>
+                                                <li><p><strong>types</strong> – a tuple with file extenstions that will
+                                                    be removed</p></li>
+                                            </ul>
+                                        </dd>
+                                    </dl>
+                                </dd>
+                            </dl>
+
+                            <dl class="py function">
+                                <dt class="sig sig-object py" id="helper_functions.cleanup_empty_dirs">
+                                    <span class="sig-prename descclassname"><span
+                                            class="pre">helper_functions.</span></span><span
+                                        class="sig-name descname"><span
+                                        class="pre">cleanup_empty_dirs</span></span><span class="sig-paren">(</span><em
+                                        class="sig-param"><span class="n"><span
+                                        class="pre">dir_path</span></span></em><span class="sig-paren">)</span> <span
+                                        class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span
+                                        class="sig-return-typehint"><span class="pre">None</span></span></span><a
+                                        class="headerlink" href="#helper_functions.cleanup_empty_dirs"
+                                        title="Permalink to this definition"></a></dt>
+                                <dd><p>Remove empty directories 1-level under the specified directory.</p>
+                                    <dl class="field-list simple">
+                                        <dt class="field-odd">Parameters</dt>
+                                        <dd class="field-odd"><p><strong>dir_path</strong> – path of the directory to
+                                            cleanup</p>
+                                        </dd>
+                                    </dl>
+                                </dd>
+                            </dl>
+
+                            <dl class="py function">
+                                <dt class="sig sig-object py" id="helper_functions.convert_crlf_to_lf">
+                                    <span class="sig-prename descclassname"><span
+                                            class="pre">helper_functions.</span></span><span
+                                        class="sig-name descname"><span
+                                        class="pre">convert_crlf_to_lf</span></span><span class="sig-paren">(</span><em
+                                        class="sig-param"><span class="n"><span class="pre">file_path</span></span></em><span
+                                        class="sig-paren">)</span> <span class="sig-return"><span
+                                        class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span
+                                        class="pre">None</span></span></span><a class="headerlink"
+                                                                                href="#helper_functions.convert_crlf_to_lf"
+                                                                                title="Permalink to this definition"></a>
+                                </dt>
+                                <dd><p>Convert windows line endings CRLF to unix line endings LF in a given file.</p>
+                                    <dl class="field-list simple">
+                                        <dt class="field-odd">Parameters</dt>
+                                        <dd class="field-odd"><p><strong>file_path</strong> – file path to convert</p>
+                                        </dd>
+                                    </dl>
+                                </dd>
+                            </dl>
+
+                            <dl class="py function">
+                                <dt class="sig sig-object py" id="helper_functions.ssh_connect">
+                                    <span class="sig-prename descclassname"><span
+                                            class="pre">helper_functions.</span></span><span
+                                        class="sig-name descname"><span class="pre">ssh_connect</span></span><span
+                                        class="sig-paren">(</span><em class="sig-param"><span class="n"><span
+                                        class="pre">host</span></span></em>, <em class="sig-param"><span class="n"><span
+                                        class="pre">user</span></span></em><span class="sig-paren">)</span> <span
+                                        class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span
+                                        class="sig-return-typehint"><span
+                                        class="pre">fabric.connection.Connection</span></span></span><a
+                                        class="headerlink" href="#helper_functions.ssh_connect"
+                                        title="Permalink to this definition"></a></dt>
+                                <dd><p>Create ssh connection using fabric and paramiko, supports DUO authentication.</p>
+                                    <dl class="field-list simple">
+                                        <dt class="field-odd">Parameters</dt>
+                                        <dd class="field-odd">
+                                            <ul class="simple">
+                                                <li><p><strong>host</strong> – remote host</p></li>
+                                                <li><p><strong>user</strong> – username to authenticate on remote host
+                                                </p></li>
+                                            </ul>
+                                        </dd>
+                                        <dt class="field-even">Returns</dt>
+                                        <dd class="field-even"><p>fabric.Connection</p>
+                                        </dd>
+                                    </dl>
+                                </dd>
+                            </dl>
+
+                            <dl class="py function">
+                                <dt class="sig sig-object py" id="helper_functions.yes_or_no">
+                                    <span class="sig-prename descclassname"><span
+                                            class="pre">helper_functions.</span></span><span
+                                        class="sig-name descname"><span class="pre">yes_or_no</span></span><span
+                                        class="sig-paren">(</span><em class="sig-param"><span class="n"><span
+                                        class="pre">question</span></span></em><span class="sig-paren">)</span> <span
+                                        class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span
+                                        class="sig-return-typehint"><span class="pre">bool</span></span></span><a
+                                        class="headerlink" href="#helper_functions.yes_or_no"
+                                        title="Permalink to this definition"></a></dt>
+                                <dd><p>Input question yes or no.</p>
+                                    <dl class="field-list simple">
+                                        <dt class="field-odd">Parameters</dt>
+                                        <dd class="field-odd"><p><strong>question</strong> – question string</p>
+                                        </dd>
+                                        <dt class="field-even">Returns</dt>
+                                        <dd class="field-even"><p>bool</p>
+                                        </dd>
+                                    </dl>
+                                </dd>
+                            </dl>
+
+                        </div>
+
+
+                    </div>
+                </div>
+                <footer>
+                    <div aria-label="Footer" class="rst-footer-buttons" role="navigation">
+                        <a accesskey="p" class="btn btn-neutral float-left" href="helper_classes.html" rel="prev"
+                           title="helper_classes module"><span aria-hidden="true"
+                                                               class="fa fa-arrow-circle-left"></span> Previous</a>
+                    </div>
+
+                    <hr/>
+
+                    <div role="contentinfo">
+                        <p>&#169; Copyright 2021, Andrzej Zuranski, Ben Shields.</p>
+                    </div>
+
+                    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+                    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+                    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+
+                </footer>
+            </div>
+        </div>
+    </section>
+</div>
+<script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+
+</script>
+
+</body>
+</html>
