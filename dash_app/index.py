@@ -31,18 +31,23 @@ def display_page(pathname, search):
         if not search:
             return layout_table(queried=False)
         if search:
+            # unpack query search items
             items = [item.split("=") for item in search.split('?')[1].split("&")]
             items_dict = {key: unquote_plus(value) for key, value in items}
-            try:
-                if items_dict['substructure'] != "":
-                    assert Chem.MolFromSmarts(items_dict['substructure']) is not None
-                else:
-                    pass
+
+            # check for valid smiles/smarts if present
+            validation_errors = ""
+            if items_dict['substructure'] is not None and Chem.MolFromSmarts(items_dict['substructure']) is None:
+                validation_errors += f"Substructure '{items_dict['substructure']}' is an invalid SMARTS pattern.\n"
+            if items_dict['smiles'] is not None and Chem.MolFromSmiles(items_dict['smiles']) is None:
+                validation_errors += f"Smiles '{items_dict['smiles']}' is an invalid SMILES string.\n"
+
+            # return layout based on passing validation
+            if not validation_errors:
                 items_dict['queried'] = True
                 return layout_table(**items_dict)
-            except AssertionError as e:
-                return layout_table(None, None, message=f"Substructure '{items_dict['substructure']}'"
-                                                        f" is an invalid SMARTS pattern.")
+            else:
+                return layout_table(message=validation_errors)
     elif pathname.startswith(f"/detail/"):
         id = pathname.split('/')[-1]
         return layout_descriptors(id)
@@ -108,7 +113,7 @@ def on_post():
 
     if 'export' in items_dict:
         path = f"{app_path}/static/user_desc/summary_{ts}.xlsx"
-        df = get_table(tag=items_dict['tag'], substructure=items_dict['substructure'],
+        df = get_table(tag=items_dict['tag'], substructure=items_dict['substructure'], smiles=items_dict['smiles'],
                        solvent=items_dict['solvent'], functional=items_dict['functional'],
                        basis_set=items_dict['basis_set'])
         data = {'summary': df.drop(['image', 'detail', 'tag'], axis=1)}

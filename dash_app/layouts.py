@@ -33,7 +33,8 @@ def layout_navbar():
     return navbar
 
 
-def layout_table(tag='ALL', substructure=None, solvent='ALL', functional='ALL', basis_set='ALL', message="",
+def layout_table(tag='ALL', substructure=None, smiles=None, solvent='ALL', functional='ALL', basis_set='ALL',
+                 message="",
                  queried=False):
     """main layout with a table of molecules"""
 
@@ -123,6 +124,18 @@ def layout_table(tag='ALL', substructure=None, solvent='ALL', functional='ALL', 
                                                             persistence="session",
                                                             value=substructure,
                                                             ))]),
+                                          html.Tr([
+                                              html.Td(
+                                                  dbc.Button("Smiles", type='button', style={'width': '100%'}),
+                                                  style={'width': '80px'}),
+                                              html.Td(
+                                                  dbc.Input(name="smiles",
+                                                            id="smiles",
+                                                            placeholder="SMILES string",
+                                                            style={"width": "100%"},
+                                                            persistence="session",
+                                                            value=smiles,
+                                                            ))]),
                                           html.Tr(
                                               html.Td(
                                                   dbc.Button('Query', id='submit_query-form',
@@ -178,7 +191,8 @@ def layout_table(tag='ALL', substructure=None, solvent='ALL', functional='ALL', 
     if queried:
         cols = ['image', 'can', 'name', 'tags', 'solvent', 'theory', 'light_basis_set', 'heavy_basis_set',
                 'num_conf/max_conf', 'detail']
-        df = get_table(tag=tag, substructure=substructure, solvent=solvent, functional=functional, basis_set=basis_set)
+        df = get_table(tag=tag, substructure=substructure, smiles=smiles, solvent=solvent, functional=functional,
+                       basis_set=basis_set)
         if not df.empty:
             df = df[cols]
         else:

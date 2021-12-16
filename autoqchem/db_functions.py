@@ -138,7 +138,7 @@ def db_delete_molecule(mol_id):
     db['molecules'].delete_one({"_id": mol_id})  # molecule itself
 
 
-def db_select_molecules(tags=[], substructure="", solvent="ALL",
+def db_select_molecules(tags=[], substructure="", smiles="", solvent="ALL",
                         functional="ALL", basis_set="ALL", molecule_ids=[]) -> pd.DataFrame:
     """Get a summary frame of molecules in the database
 
@@ -146,6 +146,8 @@ def db_select_molecules(tags=[], substructure="", solvent="ALL",
     :type tags: list
     :param substructure: substructure SMARTS string
     :type substructure: str
+    :param smiles: smiles string
+    :type smiles: str
     :param solvent: solvent filter
     :type solvent: str
     :param functional: functional filter
@@ -178,6 +180,9 @@ def db_select_molecules(tags=[], substructure="", solvent="ALL",
         filter['metadata.gaussian_config.theory'] = re.compile(f"^{re.escape(functional)}$", re.IGNORECASE)
     if basis_set != 'ALL':
         filter['metadata.gaussian_config.light_basis_set'] = re.compile(f"^{re.escape(basis_set)}$", re.IGNORECASE)
+    if smiles != "":
+        inchi = Chem.MolToInchi(Chem.MolFromSmiles(smiles))
+        filter['inchi'] = inchi
 
     mols_cur = mols_coll.find(filter)
     mols_df = pd.DataFrame(mols_cur)
