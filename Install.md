@@ -21,20 +21,14 @@ conda activate autoqchem
 
 Install mainstream python packages
 ```bash
-conda install jupyter pandas scipy matplotlib pymongo pyyaml fabric xlrd appdirs openpyxl
+conda install jupyter pandas scipy matplotlib pymongo pyyaml fabric xlrd appdirs openpyxl ipywidgets
 ```
 Answer "y" to the questions. If you'd like to automatically say yes to all question you can
 add ```-y``` at the end of the command, e.g. ```conda install jupyter -y```
 
 Install openbabel v2.4.1 (v3.0.0 is available, but crashes on many structures) and rdkit
 ```bash
-conda install -c conda-forge openbabel=2.4.1
-conda install -c rdkit rdkit
-```
-
-Install imolecule (allows 3d rotateable renderings within jupyter), a specific version is required here
-```bash
-python -m pip install imolecule==0.1.13
+conda install -c conda-forge py3dmol rdkit openbabel=2.4.1
 ```
 
 Clone autoqchem from github. If you don't have ```git```, please install ```git``` for your OS [git installation webpage](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git). Note that
