@@ -5,11 +5,11 @@ import itertools
 from rdkit import Chem, Geometry
 from rdkit.Chem import AllChem
 
-from .molecule import GetSymbol
-from .helper_classes import slurm_status
-from .gaussian_log_extractor import gaussian_log_extractor
+from autoqchem.molecule import GetSymbol
+from autoqchem.helper_classes import slurm_status
+from autoqchem.gaussian_log_extractor import gaussian_log_extractor
 
-from .helper_classes import Hartree_in_kcal_per_mol
+from autoqchem.helper_classes import Hartree_in_kcal_per_mol
 
 
 def extract_from_rdmol(mol: Chem.Mol) -> tuple([list, np.ndarray, np.ndarray, np.ndarray]):
@@ -70,8 +70,8 @@ def get_rdkit_mol(elements: list, conformer_coordinates: np.ndarray,
 def add_conformers_to_rdmol(mol: Chem.Mol, conformer_coordinates: np.ndarray) -> None:
     """Add conformers to RDKit Mol object.
     Args:
-        mol: RDKit mol object
-        conformer_coordinates: Conformer coordinates (Å)
+    mol: RDKit mol object
+    conformer_coordinates: Conformer coordinates (Å)
     """
     conformer_coordinates = np.array(conformer_coordinates)
     if len(conformer_coordinates.shape) == 2:

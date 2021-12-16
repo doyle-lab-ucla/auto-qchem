@@ -66,7 +66,7 @@ class slurm_manager(object):
                                  molecule,
                                  workflow_type="equilibrium",
                                  theory="APFD",
-                                 solvent="None",
+                                 solvent=None,
                                  light_basis_set="6-31G*",
                                  heavy_basis_set="LANL2DZ",
                                  generic_basis_set="genecp",
@@ -78,13 +78,15 @@ class slurm_manager(object):
         :type molecule: molecule
         :param workflow_type: Gaussian workflow type, allowed types are: 'equilibrium' or 'transition_state'
         :type workflow_type: str
-        :param theory: Gaussian theory functional
+        :param theory: Gaussian supported Functional (e.g., B3LYP)
         :type theory: str
-        :param light_basis_set: basis set to use for light elements
+        :param solvent: Gaussian supported Solvent (e.g., TETRAHYDROFURAN)
+        :type solvent: str
+        :param light_basis_set: Gaussian supported basis set for elements up to `max_light_atomic_number` (e.g., 6-31G*)
         :type light_basis_set: str
-        :param heavy_basis_set: basis set to use for heavy elements
+        :param heavy_basis_set: Gaussin supported basis set for elements heavier than `max_light_atomic_number` (e.g., LANL2DZ)
         :type heavy_basis_set: str
-        :param generic_basis_set: basis set to use for generic elements
+        :param generic_basis_set: Gaussian supported basis set for generic elements (e.g., gencep)
         :type generic_basis_set: str
         :param max_light_atomic_number: maximum atomic number for light elements
         :type max_light_atomic_number: int
@@ -186,7 +188,7 @@ class slurm_manager(object):
             self._cache()
 
     def retrieve_jobs(self) -> None:
-        """Retrieve finished jobs from remote host and check which finished succesfully and which failed."""
+        """Retrieve finished jobs from remote host and check which finished successfully and which failed."""
 
         ids_to_check = [j.job_id for j in self.get_jobs(slurm_status.submitted).values()]
         if not ids_to_check:
@@ -278,7 +280,6 @@ class slurm_manager(object):
          Maximum number of allowed submission of the same job is 3.
 
         :param wall_time: wall time of the job in HH:MM:SS format
-        :return: None
         """
 
         incomplete_jobs = self.get_jobs(slurm_status.incomplete)
@@ -337,18 +338,16 @@ class slurm_manager(object):
 
         self.submit_jobs_from_jobs_dict(incomplete_jobs_to_resubmit)
 
-    def upload_done_molecules_to_db(self, tags, RMSD_threshold=0.35, symmetry=True) -> None:
+    def upload_done_molecules_to_db(self, tags, RMSD_threshold=0.35) -> None:
 
         """Upload done molecules to db. Molecules are considered done when all jobs for a given \
          smiles are in 'done' status. The conformers are deduplicated and uploaded to database using a metadata tag.
 
-        :param tag: metadata tag to use for these molecules in the database
-        :type tag: str
+        :param tags: a list of tags to create for this molecule
+        :type tags: list(str)
         :param RMSD_threshold: RMSD threshold (in Angstroms) to use when deduplicating multiple conformers \
         after Gaussian has found optimal geometry
         :type RMSD_threshold: float
-        :param symmetry: if True symmetry is taken into account when comparing molecules in OBAlign(symmetry=True)
-        :type symmetry: bool
         """
 
         done_jobs = self.get_jobs(slurm_status.done)
@@ -390,7 +389,7 @@ class slurm_manager(object):
 
         :param keys: list of keys to the self.jobs dictionary to upload
         :type keys: list
-        :param tags: metadata tag or tags
+        :param tags: tags
         :type tags: str or list
         """
 

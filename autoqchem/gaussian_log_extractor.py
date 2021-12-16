@@ -6,23 +6,6 @@ logger = logging.getLogger(__name__)
 float_or_int_regex = "[-+]?[0-9]*\.[0-9]+|[0-9]+"
 
 
-class NegativeFrequencyException(Exception):
-    """Raised when a negative frequency is found in the Gaussian log file. The geometry did not converge,
-    and the job shall be resubmitted."""
-    pass
-
-
-class NoGeometryException(Exception):
-    """Raised when Gaussian does not contain geometry information. Job failed early and cannot be fixed by
-    resubmission."""
-    pass
-
-
-class OptimizationIncompleteException(Exception):
-    """Raised when the optimization has not completed successfully."""
-    pass
-
-
 class gaussian_log_extractor(object):
     """"""
 
@@ -30,6 +13,7 @@ class gaussian_log_extractor(object):
         """Initialize the log extractor. Extract molecule geometry and atom labels.
 
         :param log_file_path: local path of the log file
+        :type log_file_path: str
         """
 
         with open(log_file_path) as f:
@@ -51,8 +35,6 @@ class gaussian_log_extractor(object):
     def check_for_exceptions(self):
         """Go through the log file and look for known exceptions, truncated file, negative frequencies,
         incomplete optimization, and raise a corresponding exception
-
-        :return: None
         """
         try:
             self.get_atom_labels()  # fetch atom labels
@@ -71,7 +53,7 @@ class gaussian_log_extractor(object):
     def get_descriptors(self) -> dict:
         """Extract and retrieve all descriptors as a dictionary.
 
-        :return: Dictionary of all extracted descriptors
+        :return: dict
         """
 
         self._extract_descriptors()
@@ -103,7 +85,7 @@ class gaussian_log_extractor(object):
         self._get_td_part_descriptors()  # fetch descriptors from TD section
 
     def get_atom_labels(self) -> None:
-        """Find the the z-matrix and collect atom labels."""
+        """Fetch the atom labels and store as attribute 'labels'."""
 
         # regex logic, fetch part between "Multiplicity =\d\n" and a double line
         # break (empty line may contain spaces)
@@ -128,7 +110,7 @@ class gaussian_log_extractor(object):
                 raise Exception("Cannot fetch labels from geometry block")
 
     def get_geometry(self) -> None:
-        """Extract geometry dataframe from the log."""
+        """Extract geometry dataframe and store as attribute 'geom'."""
 
         # regex logic: find parts between "Standard orientation.*X Y Z" and "Rotational constants"
         geoms = re.findall("Standard orientation:.*?X\s+Y\s+Z\n(.*?)\n\s*Rotational constants",
@@ -381,3 +363,20 @@ class gaussian_log_extractor(object):
                                                 'ES_root_NPA_Rydberg', 'ES_root_NPA_total'])
 
         self.atom_td_descriptors = pd.concat([mulliken, npa], axis=1)
+
+
+class NegativeFrequencyException(Exception):
+    """Raised when a negative frequency is found in the Gaussian log file. The geometry did not converge,
+    and the job shall be resubmitted."""
+    pass
+
+
+class NoGeometryException(Exception):
+    """Raised when Gaussian does not contain geometry information. Job failed early and cannot be fixed by
+    resubmission."""
+    pass
+
+
+class OptimizationIncompleteException(Exception):
+    """Raised when the optimization has not completed successfully."""
+    pass

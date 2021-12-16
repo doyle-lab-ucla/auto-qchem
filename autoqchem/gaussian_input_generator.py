@@ -6,11 +6,11 @@ logger = logging.getLogger(__name__)
 
 
 class gaussian_input_generator(object):
-    """Generator of gaussian input files class"""
+    """Generator of Gaussian input files"""
 
     def __init__(self, molecule, workflow_type, directory, theory, solvent, light_basis_set,
                  heavy_basis_set, generic_basis_set, max_light_atomic_number):
-        """Initialize input generator for a given molecule.
+        """Initializes Gaussian input generator for a given molecule.
 
         :param molecule: molecule object
         :type molecule: molecule
@@ -18,6 +18,19 @@ class gaussian_input_generator(object):
         :type workflow_type: str
         :param directory: local directory to store input files
         :type directory: str
+        :param theory: Gaussian supported Functional (e.g., B3LYP)
+        :type theory: str
+        :param solvent: Gaussian supported Solvent (e.g., TETRAHYDROFURAN)
+        :type solvent: str
+        :param light_basis_set: Gaussian supported basis set for elements up to `max_light_atomic_number` (e.g., 6-31G*)
+        :type light_basis_set: str
+        :param heavy_basis_set: Gaussin supported basis set for elements heavier than `max_light_atomic_number` (e.g., LANL2DZ)
+        :type heavy_basis_set: str
+        :param generic_basis_set: Gaussian supported basis set for generic elements (e.g., gencep)
+        :type generic_basis_set: str
+        :param max_light_atomic_number: maximum atomic number for light elements
+        :type max_light_atomic_number: int
+
         """
 
         self.directory = directory
@@ -38,16 +51,18 @@ class gaussian_input_generator(object):
         else:
             basis_set = light_basis_set
 
+        solvent_input = f"SCRF=(Solvent={solvent}) " if solvent is not None else ""
+
         if workflow_type == "equilibrium":
             self.tasks = (
-                f"opt=CalcFc {theory}/{basis_set} SCRF=(Solvent={solvent}) scf=xqc ",
-                f"freq {theory}/{basis_set} SCRF=(Solvent={solvent}) volume NMR pop=NPA density=current Geom=AllCheck Guess=Read",
-                f"TD(NStates=10, Root=1) {theory}/{basis_set} SCRF=(Solvent={solvent}) volume pop=NPA density=current Geom=AllCheck Guess=Read"
+                f"opt=CalcFc {theory}/{basis_set} {solvent_input}scf=xqc ",
+                f"freq {theory}/{basis_set} {solvent_input}volume NMR pop=NPA density=current Geom=AllCheck Guess=Read",
+                f"TD(NStates=10, Root=1) {theory}/{basis_set} {solvent_input}volume pop=NPA density=current Geom=AllCheck Guess=Read"
             )
         elif workflow_type == "transition_state":
             self.tasks = (
-                f"opt=(calcfc,ts,noeigentest) scf=xqc {theory}/{basis_set} SCRF=(Solvent={solvent})",
-                f"freq {theory}/{basis_set} SCRF=(Solvent={solvent}) volume NMR pop=NPA density=current Geom=AllCheck Guess=Read"
+                f"opt=(calcfc,ts,noeigentest) scf=xqc {theory}/{basis_set} {solvent_input}",
+                f"freq {theory}/{basis_set} {solvent_input}volume NMR pop=NPA density=current Geom=AllCheck Guess=Read"
             )
         elif workflow_type == "test":
             self.tasks = (
@@ -60,7 +75,7 @@ class gaussian_input_generator(object):
                              f"Allowed types are: equilibrium, transition_state.")
 
     def create_gaussian_files(self) -> None:
-        """Create the actual gaussian files for each conformer of the molecule."""
+        """Creates the Gaussian input files for each conformer of the molecule."""
 
         # prepare directory for gaussian files
         cleanup_directory_files(self.directory, types=["gjf"])
@@ -91,17 +106,6 @@ class gaussian_input_generator(object):
                                 self.molecule.spin)
 
     def _generate_file(self, tasks, name, resource_block, coords_block, charge, multiplicity) -> None:
-        """
-
-        :param tasks: tuple of Gaussian tasks
-        :param name:  conformation name
-        :param resource_block: resource block for the Gaussian input file
-        :param coords_block: coordinates block for the Gaussian input file
-        :param light_elements: list of light elements of the molecule
-        :param heavy_elements: list of heavy elements of the molecule
-        :param charge: molecule charge
-        :param multiplicity: molecule multiplicity
-        """
 
         output = ""
 
