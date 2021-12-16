@@ -51,7 +51,7 @@ class gaussian_input_generator(object):
         else:
             basis_set = light_basis_set
 
-        solvent_input = f"SCRF=(Solvent={solvent}) " if solvent is not None else ""
+        solvent_input = f"SCRF=(Solvent={solvent}) " if solvent.lower() != "none" else ""
 
         if workflow_type == "equilibrium":
             self.tasks = (

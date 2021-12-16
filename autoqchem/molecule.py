@@ -38,16 +38,13 @@ class molecule(object):
         :type ob_gen3D_option: str
         '''
 
-        # fetch number of threads
-        n_threads = os.cpu_count() - 1
-
         # run conformer generation
         if engine == 'rdkit':
             self.elements, \
             self.conformer_coordinates, \
             self.connectivity_matrix, \
             self.charges = generate_conformations_from_rdkit(smiles=smiles, num_conf=num_conf,
-                                                             rdkit_ff=rdkit_ff, n_threads=n_threads)
+                                                             rdkit_ff=rdkit_ff)
         elif engine == 'openbabel':
             self.elements, \
             self.conformer_coordinates, \

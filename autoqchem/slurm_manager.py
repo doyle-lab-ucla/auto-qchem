@@ -66,7 +66,7 @@ class slurm_manager(object):
                                  molecule,
                                  workflow_type="equilibrium",
                                  theory="APFD",
-                                 solvent=None,
+                                 solvent="None",
                                  light_basis_set="6-31G*",
                                  heavy_basis_set="LANL2DZ",
                                  generic_basis_set="genecp",
