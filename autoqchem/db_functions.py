@@ -22,14 +22,11 @@ conf_options_long = ['Boltzman Average', 'Lowest Energy Conformer', 'Highest Ene
                      'Standard Deviation', 'Random']
 
 
-class InconsistentLabelsException(Exception):
-    """Raised when a set of molecules is inconsistently labeled"""
-    pass
-
-
 def db_connect(collection=None) -> pymongo.collection.Collection:
     """Create a connection to the database and return the table (Collection).
 
+    :param collection: database collection name (optional)
+    :type collection: str
     :return: pymongo.collection.Collection
     """
 
@@ -44,8 +41,22 @@ def db_connect(collection=None) -> pymongo.collection.Collection:
 
 
 def db_upload_molecule(mol_data, tags, metadata, weights, conformations, logs) -> ObjectId:
-    """Upload single molecule to DB and all child objects tags, features
-    and log files for its conformations"""
+    """Upload single molecule to DB and all child objects tags, features and log files for its conformations
+
+    :param mol_data: molecule identity data (inchi, connectivity, etc.)
+    :type mol_data: dict
+    :param tags: list of tags to assign to this molecule
+    :type tags: list
+    :param metadata: Gaussian metadata specifying the configuration of the calculation
+    :type metadata: dict
+    :param weights: conformation weights
+    :type weights: list
+    :param conformations: list of extracted descriptors for each conformation
+    :type conformations: list
+    :param logs: list of log files for each conformation
+    :type logs: list
+    :return: bson.objectid.ObjectId
+    """
 
     db = db_connect()
     mols_coll = db['molecules']
@@ -72,8 +83,19 @@ def db_upload_molecule(mol_data, tags, metadata, weights, conformations, logs) -
 
 
 def db_upload_conformation(mol_id, weight, conformation, log, check_mol_exists=True):
-    """Upload single conformation features and log file to DB, requires a molecule
-    to be present"""
+    """Upload single conformation features and log file to DB, requires a molecule to be present
+
+    :param mol_id: molecule id in the DB
+    :type mol_id: bson.objectid.ObjectId
+    :param weight: conformation weight
+    :type weight: float
+    :param conformation: extracted descriptors for the conformation
+    :type conformation: dict
+    :param log: log file for the conformation
+    :type log: str
+    :param check_mol_exists: check whether the molecule exists in the database, default is TRUE, not recommended to change
+    :type check_mol_exists: bool
+    """
 
     db = db_connect()
     # check if the molecule with a given id exists in the DB
@@ -99,7 +121,11 @@ def db_upload_conformation(mol_id, weight, conformation, log, check_mol_exists=T
 
 
 def db_delete_molecule(mol_id):
-    """Delete molecule from DB, cascade all child objects: tags, features and log files"""
+    """Delete molecule from DB, cascade all child objects: tags, descriptors and log files
+
+    :param mol_id: molecule id in the DB
+    :type mol_id: bson.objectid.ObjectId
+    """
 
     db = db_connect()
     if isinstance(mol_id, str):
@@ -120,6 +146,14 @@ def db_select_molecules(tags=[], substructure="", solvent="ALL",
     :type tags: list
     :param substructure: substructure SMARTS string
     :type substructure: str
+    :param solvent: solvent filter
+    :type solvent: str
+    :param functional: functional filter
+    :type functional: str
+    :param basis_set: basis_set filter
+    :type basis_set: str
+    :param molecule_ids: filter on specific molecule ids in the DB
+    :type molecule_ids: list
     :return: pandas.core.frame.DataFrame
     """
 
@@ -192,13 +226,17 @@ def db_select_molecules(tags=[], substructure="", solvent="ALL",
 
 
 def db_check_exists(inchi, gaussian_config, max_num_conformers, conformer_engine) -> tuple:
-    """Check if a molecule is already present in the database with the same Gaussian config (theory, basis_sets, etc.)
+    """Check if a molecule is already present in the database with the same Gaussian config (function, basis_set, number of conformers, conformer engine)
 
-    :param can: canonical smiles
-    :type can: str
-    :param gaussian_config: gaussian config dictionary
+    :param inchi: inchi of the molecule
+    :type inchi: str
+    :param gaussian_config: gaussian config
     :type gaussian_config: dict
-    :return: exists(bool), list of tags that are associated with the molecule if it exists
+    :param max_num_conformers: maximum number of conformers to generate
+    :type max_num_conformers: int
+    :param conformer_engine: conformer engine used for conformer generation (rdkit or openbabel)
+    :type conformer_engine: str
+    :return: tuple(exists(bool), list of tags that are associated with the molecule if it exists)
     """
 
     db = db_connect()
@@ -217,8 +255,15 @@ def db_check_exists(inchi, gaussian_config, max_num_conformers, conformer_engine
     return exists, tags
 
 
-def db_get_molecule(can, tags=[]):
-    """Get an rdkit molecule from DB conformer geometries"""
+def db_get_molecule(inchi, tags=[]):
+    """Get an rdkit molecule from DB conformer geometries
+
+    :param inchi: inchi of the molecule
+    :type inchi: str
+    :param tags: optional list of tags to narrow the search
+    :type tags: list
+    :return: rdkit.Chem.Mol
+    """
 
     mols_coll = db_connect('molecules')
     tags_coll = db_connect('tags')
@@ -227,19 +272,24 @@ def db_get_molecule(can, tags=[]):
         # prefilter molecules that belong to a specific tag
         mol_ids = [record['molecule_id'] for record in tags_coll.find({'tag': {'$in': tags}},
                                                                       {'molecule_id': 1, '_id': 0})]
-        m = mols_coll.find_one({'can': can, '_id': {"$in": mol_ids}})
+        m = mols_coll.find_one({'inchi': inchi, '_id': {"$in": mol_ids}})
     else:
-        m = mols_coll.find_one({'can': can})
+        m = mols_coll.find_one({'inchi': inchi})
 
     if m is None:
-        logger.warning(f"Molecule {can} not found.")
+        logger.warning(f"Molecule {inchi} not found.")
         return None, None
 
     return db_get_rdkit_mol(m)
 
 
 def db_get_rdkit_mol(molecule_record) -> tuple([Chem.Mol, list]):
-    """Get an rdkit molecule from DB conformer geometries"""
+    """Get an rdkit molecule from DB conformer geometries
+
+    :param molecule_record: molecule record from the DB
+    :type molecule_record: dict
+    :return: rdkit.Chem.Mol
+    """
 
     feats_coll = db_connect("qchem_descriptors")
     feats = feats_coll.find({'molecule_id': molecule_record['_id']},
@@ -267,8 +317,8 @@ def db_get_rdkit_mol(molecule_record) -> tuple([Chem.Mol, list]):
 def descriptors(tags, presets, conf_option, solvent, functional, basis_set, substructure="") -> dict:
     """Retrieve DFT descriptors from the database
 
-    :param tag: metadata.tag of the db records
-    :type tag: str
+    :param tags: a list of tags of the db records
+    :type tags: list
     :param presets: list of descriptor presets from 'global' (molecule level descriptors), \
     'min_max' (min and max for each atomic descriptor across the molecule), 'substructure' \
     (atomic descriptors for each atom in the substructure)
@@ -277,9 +327,15 @@ def descriptors(tags, presets, conf_option, solvent, functional, basis_set, subs
     'max' (conformer with highest weight), 'mean' (arithmetic average), 'min' (conformer with smallest weight), \
     'any' (any single conformer), 'std' (std dev. over conformers)
     :type conf_option: str
+    :param solvent: solvent filter
+    :type solvent: str
+    :param functional: functional filter
+    :type functional: str
+    :param basis_set: basis_set filter
+    :type basis_set: str
     :param substructure: substructure SMARTS string
     :type substructure: str
-    :return:
+    :return: dict
     """
 
     # don't bother with extraction if there are not presets nor conf_option
@@ -431,8 +487,7 @@ def descriptors(tags, presets, conf_option, solvent, functional, basis_set, subs
 
 
 def descriptors_from_mol_df(mol_df, conf_option='max') -> dict:
-    """Get and weight descriptors given a set of molecules and a conformer reweighting option.
-    This function may involve a large query from the DB
+    """Get and weight descriptors given a set of molecules and a conformer reweighting option. This function involves a large query from the DB
 
     :param mol_df: dataframe returned by the autoqchem.db_functions.db_select_molecules function
     :type mol_df: pd.DataFrame
@@ -543,3 +598,8 @@ def _pandatize_record(record) -> dict:
     #    record['mode_vectors'] = pd.DataFrame()
 
     return record
+
+
+class InconsistentLabelsException(Exception):
+    """Raised when a set of molecules is inconsistently labeled"""
+    pass

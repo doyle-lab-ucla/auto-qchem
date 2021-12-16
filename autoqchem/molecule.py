@@ -1,4 +1,4 @@
-import hashlib
+import logging
 
 try:
     from openbabel import pybel  # openbabel 3.0.0

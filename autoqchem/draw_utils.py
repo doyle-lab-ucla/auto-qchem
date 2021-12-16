@@ -3,7 +3,7 @@ from rdkit import Chem
 import py3Dmol
 
 
-def graph_conf(m, confId=0, energies=[]):
+def _graph_conf(m, confId=0, energies=[]):
     mb = Chem.MolToMolBlock(m, confId=confId)
     p = py3Dmol.view(width=400, height=400)
     p.removeAllModels()
@@ -17,9 +17,16 @@ def graph_conf(m, confId=0, energies=[]):
 
 
 def draw(mol: Chem.Mol, energies: list = []) -> interact:
-    """Make a drawing of all conformers in 3d"""
+    """Make a drawing of all conformers in 3d
+
+    :param mol: rdkit molecule
+    :type mol: rdkit.Chem.Mol
+    :param energies: list of conformer energies
+    :type energies: list
+    :return: interact 3D object
+    """
 
     p = py3Dmol.view(width=400, height=400)
-    return interact(graph_conf, m=fixed(mol), p=fixed(p),
+    return interact(_graph_conf, m=fixed(mol), p=fixed(p),
                     confId=[c.GetId() for c in mol.GetConformers()],
                     energies=fixed(energies))

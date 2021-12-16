@@ -29,10 +29,22 @@ class slurm_job:
 
     :param can: canonical smiles
     :type can: str
+    :param inchi: inchi
+    :type inchi: str
+    :param inchikey: inchikey
+    :type inchikey: str
+    :param conformation: conformation number
+    :type conformation: int
+    :param charges: formal charges for all atoms
+    :type charges: list
+    :param connectivity_matrix: connectivity matrix
+    :type connectivity_matrix: np.ndarray
     :param conformation: conformation number
     :type conformation: int
     :param max_num_conformers: max number of conformers generated for the molecule
-    :type: max_num_conformers: int
+    :type max_num_conformers: int
+    :param conformer_engine: conformer engine
+    :type conformer_engine: str
     :param tasks: gaussian tasks tuple
     :type tasks: tuple
     :param config: gaussian configuration parameters dictionary
