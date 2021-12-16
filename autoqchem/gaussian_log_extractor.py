@@ -326,11 +326,11 @@ class gaussian_log_extractor(object):
         """Extract descriptors from TD part."""
 
         logger.debug("Extracting TD section descriptors")
-        if 'TD' not in self.parts:
+        if 'td' not in self.parts:
             logger.info("Output file does not have a 'TD' section. Cannot extract descriptors.")
             return
 
-        text = self.parts['TD']
+        text = self.parts['td']
 
         single_value_desc_list = [
             {"name": "ES_root_dipole", "prefix": "Dipole moment \(field-.*?, Debye\):.*?Tot=\s*", "type": float},
