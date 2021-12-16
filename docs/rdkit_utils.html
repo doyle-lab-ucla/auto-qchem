@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>rdkit_utils module &mdash; autoqchem 1 documentation</title>
+    <link href="_static/pygments.css" rel="stylesheet" type="text/css"/>
+    <link href="_static/css/theme.css" rel="stylesheet" type="text/css"/>
+    <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+    <![endif]-->
+
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link href="genindex.html" rel="index" title="Index"/>
+    <link href="search.html" rel="search" title="Search"/>
+    <link href="draw_utils.html" rel="next" title="draw_utils module"/>
+    <link href="openbabel_utils.html" rel="prev" title="openbabel_utils module"/>
+</head>
+
+<body class="wy-body-for-nav">
+<div class="wy-grid-for-nav">
+    <nav class="wy-nav-side" data-toggle="wy-nav-shift">
+        <div class="wy-side-scroll">
+            <div class="wy-side-nav-search">
+                <a class="icon icon-home" href="index.html"> autoqchem
+                </a>
+                <div role="search">
+                    <form action="search.html" class="wy-form" id="rtd-search-form" method="get">
+                        <input name="q" placeholder="Search docs" type="text"/>
+                        <input name="check_keywords" type="hidden" value="yes"/>
+                        <input name="area" type="hidden" value="default"/>
+                    </form>
+                </div>
+            </div>
+            <div aria-label="Navigation menu" class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation">
+                <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+                <ul class="current">
+                    <li class="toctree-l1 current"><a class="reference internal" href="modules.html">autoqchem</a>
+                        <ul class="current">
+                            <li class="toctree-l2"><a class="reference internal" href="molecule.html">molecule class</a>
+                            </li>
+                            <li class="toctree-l2"><a class="reference internal" href="slurm_manager.html">slurm_manager
+                                class</a></li>
+                            <li class="toctree-l2"><a class="reference internal" href="gaussian_input_generator.html">gaussian_input_generator
+                                class</a></li>
+                            <li class="toctree-l2"><a class="reference internal" href="gaussian_log_extractor.html">gaussian_log_extractor
+                                class</a></li>
+                            <li class="toctree-l2"><a class="reference internal" href="openbabel_utils.html">openbabel_utils
+                                module</a></li>
+                            <li class="toctree-l2 current"><a class="current reference internal" href="#">rdkit_utils
+                                module</a></li>
+                            <li class="toctree-l2"><a class="reference internal" href="draw_utils.html">draw_utils
+                                module</a></li>
+                            <li class="toctree-l2"><a class="reference internal" href="db_functions.html">db_functions
+                                module</a></li>
+                            <li class="toctree-l2"><a class="reference internal" href="descriptor_functions.html">descriptor_functions
+                                module</a></li>
+                            <li class="toctree-l2"><a class="reference internal" href="helper_classes.html">helper_classes
+                                module</a></li>
+                            <li class="toctree-l2"><a class="reference internal" href="helper_functions.html">helper_functions
+                                module</a></li>
+                        </ul>
+                    </li>
+                </ul>
+
+            </div>
+        </div>
+    </nav>
+
+    <section class="wy-nav-content-wrap" data-toggle="wy-nav-shift">
+        <nav aria-label="Mobile navigation menu" class="wy-nav-top">
+            <i class="fa fa-bars" data-toggle="wy-nav-top"></i>
+            <a href="index.html">autoqchem</a>
+        </nav>
+
+        <div class="wy-nav-content">
+            <div class="rst-content">
+                <div aria-label="Page navigation" role="navigation">
+                    <ul class="wy-breadcrumbs">
+                        <li><a class="icon icon-home" href="index.html"></a> &raquo;</li>
+                        <li><a href="modules.html">autoqchem</a> &raquo;</li>
+                        <li>rdkit_utils module</li>
+                        <li class="wy-breadcrumbs-aside">
+                            <a href="_sources/rdkit_utils.rst.txt" rel="nofollow"> View page source</a>
+                        </li>
+                    </ul>
+                    <hr/>
+                </div>
+                <div class="document" itemscope="itemscope" itemtype="http://schema.org/Article" role="main">
+                    <div itemprop="articleBody">
+
+                        <div class="section" id="module-rdkit_utils">
+                            <span id="rdkit-utils-module"></span>
+                            <h1>rdkit_utils module<a class="headerlink" href="#module-rdkit_utils"
+                                                     title="Permalink to this headline"></a></h1>
+                            <dl class="py function">
+                                <dt class="sig sig-object py" id="rdkit_utils.extract_from_rdmol">
+                                    <span class="sig-prename descclassname"><span class="pre">rdkit_utils.</span></span><span
+                                        class="sig-name descname"><span
+                                        class="pre">extract_from_rdmol</span></span><span class="sig-paren">(</span><em
+                                        class="sig-param"><span class="n"><span class="pre">mol</span></span><span
+                                        class="p"><span class="pre">:</span></span><span class="w"> </span><span
+                                        class="n"><span class="pre">rdkit.Chem.rdchem.Mol</span></span></em><span
+                                        class="sig-paren">)</span> <span class="sig-return"><span
+                                        class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span
+                                        class="pre">tuple</span></span></span><a class="headerlink"
+                                                                                 href="#rdkit_utils.extract_from_rdmol"
+                                                                                 title="Permalink to this definition"></a>
+                                </dt>
+                                <dd><p>Extract information from RDKit Mol object with conformers.</p>
+                                    <dl class="field-list simple">
+                                        <dt class="field-odd">Parameters</dt>
+                                        <dd class="field-odd"><p><strong>mol</strong> (<em>rdkit.Chem.Mol</em>) – rdkit
+                                            molecule</p>
+                                        </dd>
+                                        <dt class="field-even">Returns</dt>
+                                        <dd class="field-even"><p>tuple(elements, conformer_coordinates,
+                                            connectivity_matrix, charges)</p>
+                                        </dd>
+                                    </dl>
+                                </dd>
+                            </dl>
+
+                            <dl class="py function">
+                                <dt class="sig sig-object py" id="rdkit_utils.get_rdkit_mol">
+                                    <span class="sig-prename descclassname"><span class="pre">rdkit_utils.</span></span><span
+                                        class="sig-name descname"><span class="pre">get_rdkit_mol</span></span><span
+                                        class="sig-paren">(</span><em class="sig-param"><span class="n"><span
+                                        class="pre">elements</span></span><span class="p"><span
+                                        class="pre">:</span></span><span class="w"> </span><span class="n"><span
+                                        class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span
+                                        class="pre">conformer_coordinates</span></span><span class="p"><span
+                                        class="pre">:</span></span><span class="w"> </span><span class="n"><span
+                                        class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span
+                                        class="n"><span class="pre">connectivity_matrix</span></span><span
+                                        class="p"><span class="pre">:</span></span><span class="w"> </span><span
+                                        class="n"><span class="pre">numpy.ndarray</span></span></em>, <em
+                                        class="sig-param"><span class="n"><span class="pre">charges</span></span><span
+                                        class="p"><span class="pre">:</span></span><span class="w"> </span><span
+                                        class="n"><span class="pre">numpy.ndarray</span></span></em><span
+                                        class="sig-paren">)</span> <span class="sig-return"><span
+                                        class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span
+                                        class="pre">rdkit.Chem.rdchem.Mol</span></span></span><a class="headerlink"
+                                                                                                 href="#rdkit_utils.get_rdkit_mol"
+                                                                                                 title="Permalink to this definition"></a>
+                                </dt>
+                                <dd><p>Construct an rdkit molecule from elements, positions, connectivity matrix and
+                                    charges.</p>
+                                    <dl class="field-list simple">
+                                        <dt class="field-odd">Parameters</dt>
+                                        <dd class="field-odd">
+                                            <ul class="simple">
+                                                <li><p><strong>elements</strong> (<em>list</em>) – list of elements</p>
+                                                </li>
+                                                <li><p><strong>conformer_coordinates</strong> (<em>np.ndarray</em>) –
+                                                    list of conformers 3D coordinate arrays</p></li>
+                                                <li><p><strong>connectivity_matrix</strong> (<em>np.ndarray</em>) –
+                                                    connectivity matrix</p></li>
+                                                <li><p><strong>charges</strong> (<em>np.ndarray</em>) – list of formal
+                                                    charges for each element</p></li>
+                                            </ul>
+                                        </dd>
+                                        <dt class="field-even">Returns</dt>
+                                        <dd class="field-even"><p>rdkit.Chem.Mol</p>
+                                        </dd>
+                                    </dl>
+                                </dd>
+                            </dl>
+
+                            <dl class="py function">
+                                <dt class="sig sig-object py" id="rdkit_utils.add_conformers_to_rdmol">
+                                    <span class="sig-prename descclassname"><span class="pre">rdkit_utils.</span></span><span
+                                        class="sig-name descname"><span
+                                        class="pre">add_conformers_to_rdmol</span></span><span
+                                        class="sig-paren">(</span><em class="sig-param"><span class="n"><span
+                                        class="pre">mol</span></span><span class="p"><span
+                                        class="pre">:</span></span><span class="w"> </span><span class="n"><span
+                                        class="pre">rdkit.Chem.rdchem.Mol</span></span></em>, <em
+                                        class="sig-param"><span class="n"><span class="pre">conformer_coordinates</span></span><span
+                                        class="p"><span class="pre">:</span></span><span class="w"> </span><span
+                                        class="n"><span class="pre">numpy.ndarray</span></span></em><span
+                                        class="sig-paren">)</span> <span class="sig-return"><span
+                                        class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span
+                                        class="pre">None</span></span></span><a class="headerlink"
+                                                                                href="#rdkit_utils.add_conformers_to_rdmol"
+                                                                                title="Permalink to this definition"></a>
+                                </dt>
+                                <dd><p>Add conformers to RDKit Mol object.</p>
+                                    <dl class="field-list simple">
+                                        <dt class="field-odd">Parameters</dt>
+                                        <dd class="field-odd">
+                                            <ul class="simple">
+                                                <li><p><strong>mol</strong> (<em>rdkit.Chem.Mol</em>) – rdkit mol object
+                                                </p></li>
+                                                <li><p><strong>conformer_coordinates</strong> (<em>np.ndarray</em>) –
+                                                    list of conformers 3D coordinate arrays</p></li>
+                                            </ul>
+                                        </dd>
+                                    </dl>
+                                </dd>
+                            </dl>
+
+                            <dl class="py function">
+                                <dt class="sig sig-object py" id="rdkit_utils.generate_conformations_from_rdkit">
+                                    <span class="sig-prename descclassname"><span class="pre">rdkit_utils.</span></span><span
+                                        class="sig-name descname"><span
+                                        class="pre">generate_conformations_from_rdkit</span></span><span
+                                        class="sig-paren">(</span><em class="sig-param"><span class="n"><span
+                                        class="pre">smiles</span></span></em>, <em class="sig-param"><span
+                                        class="n"><span class="pre">num_conf</span></span></em>, <em
+                                        class="sig-param"><span class="n"><span class="pre">rdkit_ff</span></span><span
+                                        class="o"><span class="pre">=</span></span><span class="default_value"><span
+                                        class="pre">'MMFF94'</span></span></em><span class="sig-paren">)</span> <span
+                                        class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span
+                                        class="sig-return-typehint"><span class="pre">tuple</span></span></span><a
+                                        class="headerlink" href="#rdkit_utils.generate_conformations_from_rdkit"
+                                        title="Permalink to this definition"></a></dt>
+                                <dd><p>Generate conformational ensemble using rdkit</p>
+                                    <dl class="field-list simple">
+                                        <dt class="field-odd">Parameters</dt>
+                                        <dd class="field-odd">
+                                            <ul class="simple">
+                                                <li><p><strong>smiles</strong> (<em>str</em>) – SMILES string</p></li>
+                                                <li><p><strong>num_conf</strong> (<em>int</em>) – maximum number of
+                                                    conformations to generate</p></li>
+                                                <li><p><strong>rdkit_ff</strong> (<em>str</em>) – force field that is
+                                                    supported by rdkit (MMFF94, MMFF94s, UFF)</p></li>
+                                            </ul>
+                                        </dd>
+                                        <dt class="field-even">Returns</dt>
+                                        <dd class="field-even"><p>tuple(elements, conformer_coordinates,
+                                            connectivity_matrix, charges)</p>
+                                        </dd>
+                                    </dl>
+                                </dd>
+                            </dl>
+
+                            <dl class="py function">
+                                <dt class="sig sig-object py" id="rdkit_utils.get_light_and_heavy_elements">
+                                    <span class="sig-prename descclassname"><span class="pre">rdkit_utils.</span></span><span
+                                        class="sig-name descname"><span class="pre">get_light_and_heavy_elements</span></span><span
+                                        class="sig-paren">(</span><em class="sig-param"><span class="n"><span
+                                        class="pre">mol</span></span><span class="p"><span
+                                        class="pre">:</span></span><span class="w"> </span><span class="n"><span
+                                        class="pre">rdkit.Chem.rdchem.Mol</span></span></em>, <em
+                                        class="sig-param"><span class="n"><span
+                                        class="pre">max_light_atomic_number</span></span><span class="p"><span
+                                        class="pre">:</span></span><span class="w"> </span><span class="n"><span
+                                        class="pre">int</span></span></em><span class="sig-paren">)</span> <span
+                                        class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span
+                                        class="sig-return-typehint"><span class="pre">tuple</span></span></span><a
+                                        class="headerlink" href="#rdkit_utils.get_light_and_heavy_elements"
+                                        title="Permalink to this definition"></a></dt>
+                                <dd><p>Extract light and heavy elements present in the molecule.</p>
+                                    <dl class="field-list simple">
+                                        <dt class="field-odd">Parameters</dt>
+                                        <dd class="field-odd">
+                                            <ul class="simple">
+                                                <li><p><strong>mol</strong> (<em>rdkit.Chem.Mol</em>) – rdkit molecule
+                                                </p></li>
+                                                <li><p><strong>max_light_atomic_number</strong> (<em>int</em>) – atomic
+                                                    number of the heaviest element to be treated with light_basis_set
+                                                </p></li>
+                                            </ul>
+                                        </dd>
+                                        <dt class="field-even">Returns</dt>
+                                        <dd class="field-even"><p>tuple(light_elements, heavy_elements</p>
+                                        </dd>
+                                    </dl>
+                                </dd>
+                            </dl>
+
+                            <dl class="py function">
+                                <dt class="sig sig-object py" id="rdkit_utils.rdmol_from_slurm_jobs">
+                                    <span class="sig-prename descclassname"><span class="pre">rdkit_utils.</span></span><span
+                                        class="sig-name descname"><span
+                                        class="pre">rdmol_from_slurm_jobs</span></span><span
+                                        class="sig-paren">(</span><em class="sig-param"><span class="n"><span
+                                        class="pre">jobs</span></span></em>, <em class="sig-param"><span class="n"><span
+                                        class="pre">postDFT</span></span><span class="o"><span
+                                        class="pre">=</span></span><span class="default_value"><span
+                                        class="pre">True</span></span></em><span class="sig-paren">)</span> <span
+                                        class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span
+                                        class="sig-return-typehint"><span
+                                        class="pre">rdkit.Chem.rdchem.Mol</span></span></span><a class="headerlink"
+                                                                                                 href="#rdkit_utils.rdmol_from_slurm_jobs"
+                                                                                                 title="Permalink to this definition"></a>
+                                </dt>
+                                <dd><p>Create and rdkit molecule from a set of slurm jobs.</p>
+                                    <dl class="field-list simple">
+                                        <dt class="field-odd">Parameters</dt>
+                                        <dd class="field-odd">
+                                            <ul class="simple">
+                                                <li><p><strong>jobs</strong> (<em>list</em>) – list of jobs for the
+                                                    molecule</p></li>
+                                                <li><p><strong>postDFT</strong> (<em>bool</em>) – if the DFT
+                                                    calculations are already available, the optimized geomtries will be
+                                                    used, if not the initial geometries.</p></li>
+                                            </ul>
+                                        </dd>
+                                        <dt class="field-even">Returns</dt>
+                                        <dd class="field-even"><p>rdkit.Chem.Mol</p>
+                                        </dd>
+                                    </dl>
+                                </dd>
+                            </dl>
+
+                            <dl class="py function">
+                                <dt class="sig sig-object py" id="rdkit_utils.get_rmsd_rdkit">
+                                    <span class="sig-prename descclassname"><span class="pre">rdkit_utils.</span></span><span
+                                        class="sig-name descname"><span class="pre">get_rmsd_rdkit</span></span><span
+                                        class="sig-paren">(</span><em class="sig-param"><span class="n"><span
+                                        class="pre">rdmol</span></span></em><span class="sig-paren">)</span> <span
+                                        class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span
+                                        class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a
+                                        class="headerlink" href="#rdkit_utils.get_rmsd_rdkit"
+                                        title="Permalink to this definition"></a></dt>
+                                <dd><p>Calculate RMSD row-wise with RDKit. This is a computationally slower version, but
+                                    takes symmetry into account (explores permutations of atom order).</p>
+                                    <dl class="field-list simple">
+                                        <dt class="field-odd">Parameters</dt>
+                                        <dd class="field-odd"><p><strong>rdmol</strong> (<em>rdkit.Chem.Mol</em>) –
+                                            rdkit molecule</p>
+                                        </dd>
+                                        <dt class="field-even">Returns</dt>
+                                        <dd class="field-even"><p>np.ndarray</p>
+                                        </dd>
+                                    </dl>
+                                </dd>
+                            </dl>
+
+                            <dl class="py function">
+                                <dt class="sig sig-object py" id="rdkit_utils.prune_rmsds">
+                                    <span class="sig-prename descclassname"><span class="pre">rdkit_utils.</span></span><span
+                                        class="sig-name descname"><span class="pre">prune_rmsds</span></span><span
+                                        class="sig-paren">(</span><em class="sig-param"><span class="n"><span
+                                        class="pre">rdmol</span></span></em>, <em class="sig-param"><span
+                                        class="n"><span class="pre">thres</span></span></em><span
+                                        class="sig-paren">)</span><a class="headerlink" href="#rdkit_utils.prune_rmsds"
+                                                                     title="Permalink to this definition"></a></dt>
+                                <dd><p>Get a list of conformer indices to keep</p>
+                                    <dl class="field-list simple">
+                                        <dt class="field-odd">Parameters</dt>
+                                        <dd class="field-odd">
+                                            <ul class="simple">
+                                                <li><p><strong>rdmol</strong> (<em>rdkit.Chem.Mol</em>) – rdkit molecule
+                                                </p></li>
+                                                <li><p><strong>thres</strong> (<em>float</em>) – RMSD threshold below
+                                                    which conformers are considered identical (in Angstrom)</p></li>
+                                            </ul>
+                                        </dd>
+                                        <dt class="field-even">Returns</dt>
+                                        <dd class="field-even"><p>list(indices of conformers to keep)</p>
+                                        </dd>
+                                    </dl>
+                                </dd>
+                            </dl>
+
+                        </div>
+
+
+                    </div>
+                </div>
+                <footer>
+                    <div aria-label="Footer" class="rst-footer-buttons" role="navigation">
+                        <a accesskey="p" class="btn btn-neutral float-left" href="openbabel_utils.html" rel="prev"
+                           title="openbabel_utils module"><span aria-hidden="true"
+                                                                class="fa fa-arrow-circle-left"></span> Previous</a>
+                        <a accesskey="n" class="btn btn-neutral float-right" href="draw_utils.html" rel="next"
+                           title="draw_utils module">Next <span aria-hidden="true"
+                                                                class="fa fa-arrow-circle-right"></span></a>
+                    </div>
+
+                    <hr/>
+
+                    <div role="contentinfo">
+                        <p>&#169; Copyright 2021, Andrzej Zuranski, Ben Shields.</p>
+                    </div>
+
+                    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+                    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+                    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+
+                </footer>
+            </div>
+        </div>
+    </section>
+</div>
+<script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,9 @@
+openbabel\_utils module
+=======================
+
+.. automodule:: openbabel_utils
+   :members:
+   :special-members:
+   :undoc-members:
+   :exclude-members: __weakref__, __dict__, __module__
+   :member-order: bysource
