@@ -1,3 +1,5 @@
+import hashlib
+
 from autoqchem.db_functions import *
 from autoqchem.molecule import *
 
@@ -9,10 +11,14 @@ app_path = "/home/ubuntu/github/auto-qchem/dash_app"
 
 def image(can):
     hash_str = hashlib.md5(can.encode()).hexdigest()
+    conv = pybel.ob.OBConversion()
 
     if not os.path.exists(f"{app_path}/static/{hash_str}.svg"):
-        mol = input_to_OBMol(can, input_type="string", input_format="can")
-        OBMol_to_file(mol, "svg", f"{app_path}/static/{hash_str}.svg")
+        mol = pybel.ob.OBMol()
+        conv.SetInFormat("can")
+        conv.ReadString(mol, can)
+        conv.SetOutFormat("svg")
+        conv.WriteFile(mol, f"{app_path}/static/{hash_str}.svg")
     return f"/static/{hash_str}.svg"
 
 
@@ -63,6 +69,7 @@ def get_tags_dropdown(basis_set, functional, solvent):
                     dict(label="-------------------------------", value="", disabled="disabled")] + \
                    [dict(
                        label=f'''{tag} ({len(tags_coll.distinct("molecule_id", {"tag": tag, 'molecule_id': {'$in': mol_ids}}))} molecules)''',
-                       value=tag) for tag in available_tags]
+                       value=tag
+                   ) for tag in available_tags]
 
     return options_tags
