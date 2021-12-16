@@ -122,18 +122,15 @@ def on_post():
         path = f"{app_path}/static/user_desc/descriptors_{ts}.xlsx"
         items_dict['PresetOptions'] = items_dict['PresetOptions'].split(",")
         # extract the descriptors (this can take long)
-        try:
-            data = descriptors(
-                tags=[items_dict['tag']] if items_dict['tag'] != 'ALL' else [],
-                presets=items_dict['PresetOptions'],
-                conf_option=items_dict['ConformerOptions'],
-                solvent=items_dict['solvent'],
-                functional=items_dict['functional'],
-                basis_set=items_dict['basis_set'],
-                substructure=items_dict['substructure']
-            )
-        except InconsistentLabelsException as e:
-            return ('Molecules in the set have inconsistent labels', 200)
+        data = descriptors(
+            tags=[items_dict['tag']] if items_dict['tag'] != 'ALL' else [],
+            presets=items_dict['PresetOptions'],
+            conf_option=items_dict['ConformerOptions'],
+            solvent=items_dict['solvent'],
+            functional=items_dict['functional'],
+            basis_set=items_dict['basis_set'],
+            substructure=items_dict['substructure']
+        )
     else:
         return ('', 204)
 

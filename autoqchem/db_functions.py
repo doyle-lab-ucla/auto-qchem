@@ -14,8 +14,8 @@ from autoqchem.rdkit_utils import get_rdkit_mol
 
 logger = logging.getLogger(__name__)
 
-desc_presets = ['global', 'min_max', 'substructure', 'core', 'labeled', 'transitions']
-desc_presets_long = ['Global', 'Min Max Atomic', 'Substructure Atomic', 'Common Core Atomic', 'Labeled Atomic',
+desc_presets = ['global', 'min_max', 'substructure', 'core', 'transitions']
+desc_presets_long = ['Global', 'Min Max Atomic', 'Substructure Atomic', 'Common Core Atomic',
                      "Excited State Transitions"]
 conf_options = ['boltzmann', 'max', 'min', 'mean', 'std', 'any']
 conf_options_long = ['Boltzman Average', 'Lowest Energy Conformer', 'Highest Energy Conformer', 'Arithmetic Average',
@@ -461,33 +461,6 @@ def descriptors(tags, presets, conf_option, solvent, functional, basis_set, subs
                 data[label] = pd.concat(to_concat, axis=1, sort=True)
                 data[label].columns = descs_df.index
                 data[label] = data[label].T
-
-    if 'labeled' in presets:
-        # extract the positions of the labeled atoms in the atom lists for each molecule
-        labels = descs_df.map(lambda d: [re.sub("\D", "", l) for l in d['labels']])
-        labels = labels.map(lambda ls: [(index, l) for index, l in enumerate(ls) if l])
-        labels = labels.map(lambda ls: sorted(ls, key=lambda l: l[1]))
-
-        # verify that the atomic labels are consistent across all molecules
-        atom_numbers = labels.map(lambda ls: [l[1] for l in ls])
-        atom_numbers_dedup = atom_numbers.map(tuple).drop_duplicates()
-        if len(atom_numbers_dedup) == 1:
-            matches = labels.map(lambda ls: [l[0] for l in ls])
-
-            # create a frame with descriptors large structure in one column, and substructure match
-            # indices in the second column
-            tmp_df = descs_df.to_frame('descs')
-            tmp_df['matches'] = matches
-
-            for i, label in enumerate(atom_numbers_dedup.iloc[0]):
-                label = 'A' + label
-                data[label] = pd.concat([row['descs']['atom_descriptors'].loc[row['matches'][i]]
-                                         for c, row in tmp_df.iterrows()], axis=1, sort=True)
-                data[label].columns = descs_df.index
-                data[label] = data[label].T
-        else:
-            logger.warning("Atomic labels are inconsistent. Not all molecules have the same set of labeled atoms")
-            raise InconsistentLabelsException
     return data
 
 
