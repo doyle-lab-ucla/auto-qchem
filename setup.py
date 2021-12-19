@@ -18,7 +18,8 @@ setup(
                       'paramiko',
                       'pymongo',
                       'appdirs',
-                      'rdkit',
+                      # 'rdkit',
                       'ipywidgets',
-                      'py3Dmol']
+                      'py3Dmol'
+                      ]
 )
