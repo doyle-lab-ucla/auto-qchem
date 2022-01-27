@@ -255,7 +255,7 @@ class gaussian_log_extractor(object):
             logger.warning("Log file does not have optimization convergence information")
 
         # energies, regex-logic: find all floats in energy block, split by occupied, virtual orbitals
-        string = re.search("Population.*?SCF density.*?(\sAlph.*?)\n\s*Condensed", text, re.DOTALL).group(1)
+        string = re.search("Population.*?SCF [Dd]ensity.*?(\sAlph.*?)\n\s*Condensed", text, re.DOTALL).group(1)
         if self.descriptors['multiplicity'] == 1:
             energies = [re.findall(f"({float_or_int_regex})", s_part) for s_part in string.split("Alpha virt.", 1)]
             occupied_energies, unoccupied_energies = [map(float, e) for e in energies]
