@@ -7,7 +7,7 @@ app = dash.Dash(__name__, external_stylesheets=[dbc.themes.SANDSTONE],
                 meta_tags=[
                     {"name": "image",
                      "property": "og:image",
-                     "content": "assets/acq_thumb.png"},
+                     "content": "https://autoqchem.org/assets/acq_thumb.png"},
                     {"name": "description",
                      "property": "og:description",
                      "content": "Auto-QChem is an automated workflow for the generation, storage, and retrieval of Density Functional Theory calculations for organic molecules."}
