@@ -5,9 +5,12 @@ app = dash.Dash(__name__, external_stylesheets=[dbc.themes.SANDSTONE],
                 title='Auto-QChem DB',
                 update_title="Loading...",
                 meta_tags=[
-                    {"name": "og image",
+                    {"name": "image",
                      "property": "og:image",
-                     "content": "assets/acq_thumb.png"}
+                     "content": "assets/acq_thumb.png"},
+                    {"name": "description",
+                     "property": "og:description",
+                     "content": "Auto-QChem is an automated workflow for the generation, storage, and retrieval of Density Functional Theory calculations for organic molecules."}
                 ])
 server = app.server
 app.config.suppress_callback_exceptions = True
