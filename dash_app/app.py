@@ -17,3 +17,11 @@ app = dash.Dash(__name__, external_stylesheets=[dbc.themes.SANDSTONE],
                 ])
 server = app.server
 app.config.suppress_callback_exceptions = True
+
+app.scripts.config.serve_locally = False
+app.scripts.append_script({
+    'external_url': 'https://autoqchem.org/assets/async_src.js'
+})
+app.scripts.append_script({
+    'external_url': 'https://autoqchem.org/assets/gtag.js'
+})
