@@ -319,7 +319,7 @@ def db_get_rdkit_mol(molecule_record) -> tuple([Chem.Mol, list]):
     return rdmol, energies[order]
 
 
-def descriptors(tags, presets, conf_option, solvent, functional, basis_set, substructure="") -> dict:
+def descriptors(tags, presets, conf_option, solvent, functional, basis_set, substructure="", smiles="") -> dict:
     """Retrieve DFT descriptors from the database
 
     :param tags: a list of tags of the db records
@@ -359,7 +359,7 @@ def descriptors(tags, presets, conf_option, solvent, functional, basis_set, subs
         return {}
 
     mol_df = db_select_molecules(tags=tags, substructure=substructure, solvent=solvent, functional=functional,
-                                 basis_set=basis_set)
+                                 basis_set=basis_set, smiles=smiles)
     descs_df = descriptors_from_mol_df(mol_df, conf_option)  # this is the heavy query from DB
 
     data = {}

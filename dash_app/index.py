@@ -129,7 +129,8 @@ def on_post():
             solvent=items_dict['solvent'],
             functional=items_dict['functional'],
             basis_set=items_dict['basis_set'],
-            substructure=items_dict['substructure']
+            substructure=items_dict['substructure'],
+            smiles=items_dict['smiles']
         )
     else:
         return ('', 204)

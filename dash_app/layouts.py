@@ -284,12 +284,12 @@ def layout_descriptors(id):
     can = mols_df['can'].iloc[0]
     desc = descriptors_from_mol_df(mols_df, conf_option='boltzmann').iloc[0]
 
-    d = desc['descriptors'].to_frame().T
-    df_atom = desc['atom_descriptors']
+    d = desc['descriptors'].to_frame().T.round(decimals=2)
+    df_atom = desc['atom_descriptors'].round(decimals=2)
     df_atom.insert(0, 'label', desc['labels'])
     df_atom.insert(0, 'atom_idx', range(df_atom.shape[0]))
 
-    trans = desc['transitions']
+    trans = desc['transitions'].round(decimals=2)
 
     return html.Div(children=[
         dcc.Store(id='store', data={'elements': elements, 'coords': coords, 'conn': conn, 'energies': energies})
