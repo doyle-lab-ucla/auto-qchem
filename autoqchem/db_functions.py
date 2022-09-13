@@ -260,6 +260,23 @@ def db_check_exists(inchi, gaussian_config, max_num_conformers, conformer_engine
     return exists, tags
 
 
+def db_reweight_molecule(molecule_id) -> None:
+    """If the weights do not sum to 1, reweight the conformers
+
+    :param molecule_id: db id from the molecules collection
+    :type molecule_id: string
+    :return:
+    """
+
+    feats_coll = db_connect("qchem_descriptors")
+
+    desc_list = pd.DataFrame((feats_coll.find({"molecule_id": ObjectId(molecule_id)}, {"weight": 1})))
+    desc_list['new_weight'] = desc_list["weight"].div(desc_list['weight'].sum())
+
+    _ = desc_list.apply(lambda r: feats_coll.update_one({"_id": r["_id"]},
+                                                        {"$set": {"weight": r["new_weight"]}}), axis=1)
+
+
 def db_get_molecule(inchi, tags=[]):
     """Get an rdkit molecule from DB conformer geometries
 
@@ -494,7 +511,10 @@ def descriptors_from_mol_df(mol_df, conf_option='max') -> dict:
     # helper function to manage different conf_options
     def filter_ids(group):
         # this function assumes each group is reverse ordered by weight (highest weight comes first)
-        assert abs(group.weight.sum() - 1.) < 1e-6
+        try:
+            assert abs(group.weight.sum() - 1.) < 1e-6
+        except AssertionError:
+            db_reweight_molecule(group.name)
 
         if conf_option == 'max':
             _ids = [group['_id'].iloc[0]]
