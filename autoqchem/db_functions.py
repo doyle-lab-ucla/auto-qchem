@@ -432,7 +432,6 @@ def descriptors(tags, presets, conf_option, solvent, functional, basis_set, subs
             for c, row in tmp_df.iterrows():
                 atom_descs = row['descs']['atom_descriptors']
                 atom_descs['labels'] = row['descs']['labels']
-                atom_descs = atom_descs[~atom_descs['labels'].str.startswith("H")]  # need to remove hydrogens
                 to_concat.append(atom_descs.iloc[row['matches'][i]])
             data[label] = pd.concat(to_concat, axis=1, sort=True)
             data[label].columns = descs_df.index
