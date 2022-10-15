@@ -6,7 +6,7 @@ Installation instructions https://github.com/PrincetonUniversity/auto-qchem/blob
 
 DB interface user guide https://github.com/PrincetonUniversity/auto-qchem/blob/master/DB.md
 
-Functional documentation https://princetonuniversity.github.io/auto-qchem
+Functional documentation https://doyle-lab-ucla.github.io/auto-qchem
 
 ### Update your version
 
