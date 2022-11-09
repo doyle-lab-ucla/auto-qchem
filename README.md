@@ -1,4 +1,4 @@
-# Welcome to Auto-QChem!
+# Welcome to Auto-QChem
 
 ### Quick links
 
@@ -46,3 +46,4 @@ jupyter-notebook
 A new tab will open in your system web browser from which you can run the notebooks. An excellent documentation 
 on jupyter notebooks and how to run them exists
  [here](https://jupyter-notebook.readthedocs.io/en/stable/examples/Notebook/Running%20Code.html).
+
