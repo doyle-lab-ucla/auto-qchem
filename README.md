@@ -1,12 +1,17 @@
-# Welcome to Auto-QChem!
+
+<img src="https://github.com/beef-broccoli/misc-files/blob/9332ec68f7f798a3c2819dad9a0d2280769985ee/autoqchem.png" alt="logo" width="600" align="center"/>
+
+### Link to publication
+
+[Auto-QChem is published!](https://pubs.rsc.org/en/content/articlelanding/2022/re/d2re00030j#!divCitation). Free pdf is accessible [here](https://drive.google.com/file/d/1M8Ydqlk5Kbc_8WoR5dAm_JIbf2IBJTlU/view?usp=share_link)
 
 ### Quick links
 
-Installation instructions https://github.com/PrincetonUniversity/auto-qchem/blob/master/Install.md
+[Installation instructions](https://github.com/PrincetonUniversity/auto-qchem/blob/master/Install.md)
 
-DB interface user guide https://github.com/PrincetonUniversity/auto-qchem/blob/master/DB.md
+[DB interface user guide](https://github.com/PrincetonUniversity/auto-qchem/blob/master/DB.md)
 
-Functional documentation https://princetonuniversity.github.io/auto-qchem
+[Functional documentation](https://doyle-lab-ucla.github.io/auto-qchem)
 
 ### Update your version
 
