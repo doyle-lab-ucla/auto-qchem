@@ -213,8 +213,8 @@ def db_select_molecules(tags=[], substructure="", smiles="", solvent="ALL",
     df['metadata_str'] = df['metadata'].map(repr)
     grouped = df.groupby(['can', 'metadata_str'])
     # groupby tags
-    df = pd.concat([grouped['metadata', 'molecule_id', 'name'].first(),
-                    grouped['tag'].apply(list)], axis=1).reset_index().drop('metadata_str', axis=1)
+    df = pd.concat([grouped[['metadata', 'molecule_id', 'name']].first(),
+                    grouped[['tag']].apply(list)], axis=1).reset_index().drop(['metadata_str'], axis=1)
 
     # fetch ids and weights
     feats_cur = feats_coll.find({'molecule_id': {'$in': df.molecule_id.tolist()}},
