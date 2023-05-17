@@ -16,10 +16,8 @@ logger = logging.getLogger(__name__)
 class sge_manager(object):
     """SGE manager class."""
 
-    """TO-DO: Translate all slurm to sge """
-
     def __init__(self, user, host):
-        """Initialize slurm manager and load the cache file.
+        """Initialize sge manager and load the cache file.
 
         :param user: username at remote host
         :type user: str
@@ -29,7 +27,7 @@ class sge_manager(object):
 
         # set workdir and cache file
         self.workdir = appdirs.user_data_dir(appauthor="autoqchem", appname=host.split('.')[0])
-        self.cache_file = os.path.join(self.workdir, "slurm_manager.pkl")
+        self.cache_file = os.path.join(self.workdir, "sge_manager.pkl")
         os.makedirs(self.workdir, exist_ok=True)
 
         self.jobs = {}  # jobs under management
@@ -41,7 +39,7 @@ class sge_manager(object):
 
         self.host = host
         self.user = user
-        self.remote_dir = f"/scratch/{'gpfs' if 'della' in host else 'network'}/{self.user}/gaussian"
+        self.remote_dir = f"/u/scratch/{self.user[0]}]/{self.user}/gaussian"
         self.connection = None
 
     def connect(self) -> None:
@@ -74,7 +72,7 @@ class sge_manager(object):
                                  generic_basis_set="genecp",
                                  max_light_atomic_number=36,
                                  wall_time='23:59:00') -> None:
-        """Generate slurm jobs for a molecule. Gaussian input files are also generated.
+        """Generate sge jobs for a molecule. Gaussian input files are also generated.
 
         :param molecule: molecule object
         :type molecule: molecule
@@ -117,13 +115,13 @@ class sge_manager(object):
 
         gig.create_gaussian_files()
 
-        # create slurm files
+        # create sge files
         for gjf_file in glob.glob(f"{molecule_workdir}/*.gjf"):
 
             base_name = os.path.basename(os.path.splitext(gjf_file)[0])
-            self._create_slurm_file_from_gaussian_file(base_name, molecule_workdir, wall_time)
+            self._create_sge_file_from_gaussian_file(base_name, molecule_workdir, wall_time)
             # create job structure
-            job = slurm_job(can=molecule.can,
+            job = sge_job(can=molecule.can,
                             inchi=molecule.inchi,
                             inchikey=molecule.inchikey,
                             elements=molecule.elements,
@@ -137,7 +135,7 @@ class sge_manager(object):
                             job_id=-1,  # job_id (not assigned yet)
                             directory=gig.directory,  # filesystem path
                             base_name=base_name,  # filesystem basename
-                            status=slurm_status.created,
+                            status=sge_status.created,
                             n_submissions=0,
                             n_success_tasks=0)  # status
 
@@ -158,7 +156,7 @@ class sge_manager(object):
     def submit_jobs(self) -> None:
         """Submit jobs that have status 'created' to remote host."""
 
-        jobs = self.get_jobs(slurm_status.created)
+        jobs = self.get_jobs(sge_status.created)
         logger.info(f"Submitting {len(jobs)} jobs.")
         self.submit_jobs_from_jobs_dict(jobs)
 
@@ -181,9 +179,9 @@ class sge_manager(object):
                 self.connection.put(f"{job.directory}/{job.base_name}.gjf", self.remote_dir)
 
                 with self.connection.cd(self.remote_dir):
-                    ret = self.connection.run(f"sbatch {self.remote_dir}/{job.base_name}.sh", hide=True)
+                    ret = self.connection.run(f"qsub {self.remote_dir}/{job.base_name}.sh", hide=True)
                     job.job_id = re.search("job\s*(\d+)\n", ret.stdout).group(1)
-                    job.status = slurm_status.submitted
+                    job.status = sge_status.submitted
                     job.n_submissions = job.n_submissions + 1
                     logger.info(f"Submitted job {name}, job_id: {job.job_id}.")
 
@@ -192,7 +190,7 @@ class sge_manager(object):
     def retrieve_jobs(self) -> None:
         """Retrieve finished jobs from remote host and check which finished successfully and which failed."""
 
-        ids_to_check = [j.job_id for j in self.get_jobs(slurm_status.submitted).values()]
+        ids_to_check = [j.job_id for j in self.get_jobs(sge_status.submitted).values()]
         if not ids_to_check:
             logger.info(f"There are no jobs submitted to cluster. Nothing to retrieve.")
             return
@@ -200,9 +198,9 @@ class sge_manager(object):
         # get or create connection
         self.connect()
 
-        # retrieve job ids that are running on the server
-        ret = self.connection.run(f"squeue -u {self.user} -o %A,%T", hide=True)
-        user_running_ids = [s.split(',')[0] for s in ret.stdout.splitlines()[1:]]
+        # retrieve job ids that are running and waiting on the server
+        ret = self.connection.run(f"qstat -u {self.user}", hide=True)
+        user_running_ids = [l.split()[0] for l in ret.stdout.readlines()[2:]]
         running_ids = [id for id in user_running_ids if id in ids_to_check]
         finished_ids = [id for id in ids_to_check if id not in running_ids]
 
@@ -216,18 +214,18 @@ class sge_manager(object):
             logger.info(f"Retrieving log files of finished jobs.")
             for job in finished_jobs.values():
                 status = self._retrieve_single_job(job)
-                if status.value == slurm_status.done.value:
+                if status.value == sge_status.done.value:
                     done_jobs += 1
 
             self._cache()
             logger.info(f"{done_jobs} jobs finished successfully (all Gaussian steps finished normally)."
                         f" {len(finished_jobs) - done_jobs} jobs failed.")
 
-    def _retrieve_single_job(self, job) -> slurm_status:
+    def _retrieve_single_job(self, job) -> sge_status:
         """Retrieve single job from remote host and check its status
 
         :param job: job
-        :return: :py:meth:`~helper_classes.helper_classes.slurm_status`, resulting status
+        :return: :py:meth:`~helper_classes.helper_classes.sge_status`, resulting status
         """
 
         try:  # try to fetch the file
@@ -237,35 +235,35 @@ class sge_manager(object):
             # initialize the log extractor, it will try to read basic info from the file
             le = gaussian_log_extractor(log_file.local)
             if len(job.tasks) == le.n_tasks:
-                job.status = slurm_status.done
+                job.status = sge_status.done
             else:
                 try:  # look for more specific exception
                     le.check_for_exceptions()
 
                 except NoGeometryException:
-                    job.status = slurm_status.failed
+                    job.status = sge_status.failed
                     logger.warning(
                         f"Job {job.base_name} failed - the log file does not contain geometry. Cannot resubmit.")
 
                 except NegativeFrequencyException:
-                    job.status = slurm_status.incomplete
+                    job.status = sge_status.incomplete
                     logger.warning(
                         f"Job {job.base_name} incomplete - log file contains negative frequencies. Resubmit job.")
 
                 except OptimizationIncompleteException:
-                    job.status = slurm_status.incomplete
+                    job.status = sge_status.incomplete
                     logger.warning(f"Job {job.base_name} incomplete - geometry optimization did not complete.")
 
                 except Exception as e:
-                    job.status = slurm_status.failed
+                    job.status = sge_status.failed
                     logger.warning(f"Job {job.base_name} failed with unhandled exception: {e}")
 
                 else:  # no exceptions were thrown, but still the job is incomplete
-                    job.status = slurm_status.incomplete
+                    job.status = sge_status.incomplete
                     logger.warning(f"Job {job.base_name} incomplete.")
 
         except FileNotFoundError:
-            job.status = slurm_status.failed
+            job.status = sge_status.failed
             logger.warning(f"Job {job.base_name} failed  - could not retrieve log file. Cannot resubmit.")
 
         # clean up files on the remote site - do not cleanup anything, the /scratch/network cleans
@@ -278,13 +276,13 @@ class sge_manager(object):
         and a log file has been retrieved, then \
         the last geometry will be used for the next submission. For failed jobs \
          the job input files will need to be fixed manually and submitted using the \
-        function :py:meth:`~slurm_manager.slurm_manager.submit_jobs_from_jobs_dict`.\
+        function :py:meth:`~sge_manager.sge_manager.submit_jobs_from_jobs_dict`.\
          Maximum number of allowed submission of the same job is 3.
 
         :param wall_time: wall time of the job in HH:MM:SS format
         """
 
-        incomplete_jobs = self.get_jobs(slurm_status.incomplete)
+        incomplete_jobs = self.get_jobs(sge_status.incomplete)
         incomplete_jobs_to_resubmit = {}
 
         if not incomplete_jobs:
@@ -329,7 +327,7 @@ class sge_manager(object):
             job_sh = f"{job.directory}/{job.base_name}.sh"
             with open(job_sh, "r") as f:
                 file_string = f.read()
-            old_wall_time = re.search(f"#SBATCH -t (\d\d:\d\d:\d\d)", file_string).group(1)
+            old_wall_time = re.search(f".*h_rt=(\d\d:\d\d:\d\d).*", file_string).group(1)
             file_string = file_string.replace(old_wall_time, wall_time)
             with open(job_sh, "w") as f:
                 f.write(file_string)
@@ -352,9 +350,9 @@ class sge_manager(object):
         :type RMSD_threshold: float
         """
 
-        done_jobs = self.get_jobs(slurm_status.done)
+        done_jobs = self.get_jobs(sge_status.done)
         if not done_jobs:
-            logger.info("There are no jobs in done status. Exitting.")
+            logger.info("There are no jobs in done status. Exiting.")
             return
 
         # check if there are molecules with all jobs done
@@ -363,7 +361,7 @@ class sge_manager(object):
         done_cans = dfj_done.index.tolist()
 
         if not done_cans:
-            logger.info("There are no molecules with all jobs done. Exitting.")
+            logger.info("There are no molecules with all jobs done. Exiting.")
             return
 
         logger.info(f"There are {len(done_cans)} finished molecules {done_cans}.")
@@ -371,7 +369,7 @@ class sge_manager(object):
 
         for done_can in done_cans:
             (keys, jobs) = zip(*self.get_jobs(can=done_can).items())
-            rdmol, energies = rdmol_from_slurm_jobs(jobs, postDFT=True)
+            rdmol, energies = rdmol_from_sge_jobs(jobs, postDFT=True)
             keep = prune_rmsds(rdmol, RMSD_threshold)
             logger.info(f"Molecule {done_can} has {len(keys) - len(keep)} / {len(keys)} duplicate conformers.")
 
@@ -448,14 +446,14 @@ class sge_manager(object):
             f"Uploaded descriptors to DB for smiles: {mol_data['can']}, number of conformers: {len(conformations)},"
             f" DB molecule id {mol_id}.")
         for key in keys:
-            self.jobs[key].status = slurm_status.uploaded
+            self.jobs[key].status = sge_status.uploaded
         self._cache()
 
     def get_jobs(self, status=None, can=None) -> dict:
         """Get a dictionary of jobs, optionally filter by status and canonical smiles.
 
-        :param status: slurm status of the jobs
-        :type status: slurm_status
+        :param status: sge status of the jobs
+        :type status: sge_status
         :param can: canonical smiles of the molecules, single string for one smiles, a list for multiple smiles
         :type can: str or list
         :return: dict
@@ -499,20 +497,20 @@ class sge_manager(object):
             logger.debug(f"Removing job {name}.")
             # remove local files
             try:
-                os.remove(f"{job.directory}/{job.base_name}.sh")  # slurm file
+                os.remove(f"{job.directory}/{job.base_name}.sh")  # sge file
                 os.remove(f"{job.directory}/{job.base_name}.gjf")  # gaussian file
             except:
                 pass
             if os.path.exists(f"{job.directory}/{job.base_name}.log"):
                 os.remove(f"{job.directory}/{job.base_name}.log")  # log file
             # remove remote files
-            self.connection.run(f"rm -f {self.remote_dir}/slurm-{job.job_id}.out")
+            self.connection.run(f"rm -f {self.remote_dir}/sge-{job.job_id}.out")
             self.connection.run(f"rm -f {self.remote_dir}/{job.base_name}*")
             del self.jobs[name]
         self._cache()
 
-    def squeue(self, summary=True) -> pd.DataFrame:
-        """Run 'squeue -u $user' command on the server.
+    def qstat(self, summary=True) -> pd.DataFrame:
+        """Run 'qstat -u $user' command on the server.
 
         :param summary: if True only a summary frame is displayed with counts of jobs in each status
         :return: pandas.core.frame.DataFrame
@@ -520,20 +518,27 @@ class sge_manager(object):
 
         self.connect()
         if summary:
-            ret = self.connection.run(f"squeue -u {self.user} -o %T", hide=True)
-            status_series = pd.Series(ret.stdout.splitlines()[1:])
-            return status_series.groupby(status_series).size().to_frame("jobs").T
+            ret = self.connection.run(f"qstat -u {self.user}", hide=True)
+            user_running_ids = [l.split()[0] for l in ret.stdout.readlines()[2:]]
+            running, queued = 0, 0
+            for jobid in user_running_ids:
+                ret = self.connection.run(f"qstat -j {jobid}", hide=True)
+                if len([l for l in ret.stdout.splitlines()[1:-1] if 'job_state' in l]) > 0:
+                    running += 1
+                else:
+                    queued += 1
+            return pd.DataFrame([["running",running],["queued",queued]],columns=['Status',"Count"])
         else:
-            ret = self.connection.run(f"squeue -u {self.user}", hide=True)
+            ret = self.connection.run(f"qstat -u {self.user}", hide=True)
             data = np.array(list(map(str.split, ret.stdout.splitlines())))
             return pd.DataFrame(data[1:], columns=data[0])
 
-    def _scancel(self) -> None:
-        """Run 'scancel -u $user' command on the server."""
+    def _qdel(self) -> None:
+        """Run 'qdel -u $user' command on the server."""
 
         self.connect()
-        self.connection.run(f"scancel -u {self.user}")
-        self.remove_jobs(self.get_jobs(status=slurm_status.submitted))
+        self.connection.run(f"qdel -u {self.user}")
+        self.remove_jobs(self.get_jobs(status=sge_status.submitted))
 
     def _cache(self) -> None:
         """save jobs under management and cleanup empty directories"""
@@ -543,8 +548,8 @@ class sge_manager(object):
 
         cleanup_empty_dirs(self.workdir)
 
-    def _create_slurm_file_from_gaussian_file(self, base_name, directory, wall_time) -> None:
-        """Generate a single slurm submission file based on the Gaussian input file.
+    def _create_sge_file_from_gaussian_file(self, base_name, directory, wall_time) -> None:
+        """Generate a single sge submission file based on the Gaussian input file.
 
         :param base_name: base name of the Gaussian file
         :param directory: directory location of the Gaussian file
@@ -558,23 +563,41 @@ class sge_manager(object):
         host = self.host.split(".")[0]
 
         n_processors = re.search("nprocshared=(.*?)\n", file_string).group(1)
-        constraint = {'della': '\"haswell|skylake\"', 'adroit': '\"skylake\"'}[host]
+        mem = re.search("mem=(.*?)GB\n", file_string).group(1)
 
         output = ""
         output += f"#!/bin/bash\n"
-        output += f"#SBATCH -N 1\n" \
-                  f"#SBATCH --ntasks-per-node={n_processors}\n" \
-                  f"#SBATCH -t {wall_time}\n" \
-                  f"#SBATCH --constraint={constraint}\n\n"
-        if host == "adroit":
-            output += f"module load gaussian/g16\n\n"
-        output += f"input={base_name}\n\n"
-        output += f"# run the code \n" \
+        output += f"#$ -cwd\n"      # run in same directory as where submit it
+        output += f"#$ -o {base_name}.joblog.$JOB_ID\n"   # direct output to a file
+        output += f"#$ -j y\n"      
+        output += f"#$ -l h_data={mem}GB,h_rt={wall_time},arch=intel*\n"   # specifies list of resources for job
+        #output += f"#$ -l h_data={mem}GB,h_rt={wall_time},arch=intel*,highp\n"   # specifies list of resources for job (highp to run only on group resources)
+        output += f"#$ -pe dc* {n_processors}\n\n"      ## What about specifying n_processors? Is dc* right setting or shared? Or not at all?
+        
+        output += f"# echo job info to joblog\n" \
+                  f"echo 'Job {base_name} started on:   ' `hostname -s`\n" \
+                  f"echo 'Job {base_name} started on:   ' `date `\n\n"
+
+        output += f"# set job environment and GAUSS_SCRDIR variable\n" \
+                  f". /u/local/Modules/default/init/modules.sh\n" \
+                  f"module load gaussian/g16_sse4\n" \
+                  f"export GAUSS_SCRDIR=$TMPDIR\n\n"
+
+        output += f"# echo current module used to joblog\n" \
+                  f"module li\n" \
+                  f'echo "GAUSS_SCRDIR=$GAUSS_SCRDIR"\n' \
+                  f"# another compiled version: $g16root/16_avx/g16\n" \
+                  f"echo '/usr/bin/time -v $g16root/g16_sse4/g16 < {base_name}.gjf > {base_name}.log'\n\n" \
                   f"cd {self.remote_dir}\n" \
-                  f"g16 ${{input}}.gjf\n\n"
+                  f"# run command\n" \
+                  f"/usr/bin/time -v $g16root/g16_sse4/g16 < {base_name}.gjf > {base_name}.log\n\n" 
+
+        output += f"# echo job info to joblog\n" \
+                  f"echo 'Job $JOB_ID ended on:   '' `hostname -s`\n" \
+                  f"echo 'Job $JOB_ID ended on:   ' `date `"
 
         sh_file_path = f"{directory}/{base_name}.sh"
         with open(sh_file_path, "w") as f:
             f.write(output)
         convert_crlf_to_lf(sh_file_path)
-        logger.debug(f"Created a Slurm job file in {sh_file_path}")
+        logger.debug(f"Created a SGE job file: {sh_file_path}")

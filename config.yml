@@ -1,4 +1,4 @@
-slurm:
+resources:
     wall_time: "23:59:00"
     atoms_per_processor: 6
     max_processors: 20

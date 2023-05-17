@@ -82,10 +82,10 @@ class gaussian_input_generator(object):
         os.makedirs(self.directory, exist_ok=True)
 
         # resources configuration
-        n_processors = max(1, min(config['slurm']['max_processors'],
-                                  self.molecule.mol.GetNumAtoms() // config['slurm']['atoms_per_processor']))
-        ram = n_processors * config['slurm']['ram_per_processor']
-        resource_block = f"%nprocshared={n_processors}\n%Mem={ram}GB\n"
+        n_processors = max(1, min(config['resources']['max_processors'],
+                                  self.molecule.mol.GetNumAtoms() // config['resources']['atoms_per_processor']))
+        ram = n_processors * config['resources']['ram_per_processor']
+        resource_block = f"%nprocshared={n_processors}\n%mem={ram}GB\n"
 
         logger.info(f"Generating Gaussian input files for {self.molecule.mol.GetNumConformers()} conformations.")
 
