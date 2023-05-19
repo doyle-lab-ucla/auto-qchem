@@ -167,6 +167,7 @@ def db_select_molecules(tags=[], substructure="", smiles="", solvent="ALL",
     tags_cur = tags_coll.find({'tag': {'$in': tags}} if tags else {})
     tags_df = pd.DataFrame(tags_cur)
 
+
     # filter
     filter = {}
     if molecule_ids:
