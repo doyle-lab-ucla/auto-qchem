@@ -39,6 +39,31 @@ def ssh_connect(host, user) -> fabric.Connection:
     return c
 
 
+def ssh_connect_password(host, user) -> fabric.Connection:
+    """Create ssh connection using fabric and paramiko, password only (without DUO authentication).
+
+    :param host: remote host
+    :param user: username to authenticate on remote host
+    :return: fabric.Connection
+    """
+
+    client = paramiko.SSHClient()
+    client.load_system_host_keys()
+
+    try:
+        client.connect(host,username=user)
+    except paramiko.ssh_exception.SSHException:
+        pass
+
+    client.get_transport().auth_password(username=user,password=getpass.getpass(f"{user}@{host}'s password:"))
+
+    c = fabric.Connection(host)
+    c.client = client
+    c.transport = client.get_transport()
+
+    return c
+
+
 def cleanup_directory_files(dir_path, types=()) -> None:
     """Remove files with specific extension(s) from a directory.
 

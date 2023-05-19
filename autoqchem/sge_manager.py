@@ -26,9 +26,9 @@ class sge_manager(object):
         """
 
         # set workdir and cache file
-        self.workdir = appdirs.user_data_dir(appauthor="autoqchem", appname=host.split('.')[0])
-        self.cache_file = os.path.join(self.workdir, "sge_manager.pkl")
-        os.makedirs(self.workdir, exist_ok=True)
+        self.workdir = appdirs.user_data_dir(appauthor="autoqchem", appname=host.split('.')[0]) # filepath may include spaces on Mac so enclose in quotes when used
+        self.cache_file = os.path.join(f"{self.workdir}", "sge_manager.pkl")
+        os.makedirs(f"{self.workdir}", exist_ok=True)
 
         self.jobs = {}  # jobs under management
 
@@ -39,7 +39,7 @@ class sge_manager(object):
 
         self.host = host
         self.user = user
-        self.remote_dir = f"/u/scratch/{self.user[0]}]/{self.user}/gaussian"
+        self.remote_dir = f"/u/scratch/{self.user[0]}/{self.user}/gaussian"
         self.connection = None
 
     def connect(self) -> None:
@@ -58,7 +58,7 @@ class sge_manager(object):
             logger.info(f"Creating connection to {self.host} as {self.user}")
             create_new_connection = True
         if create_new_connection:
-            self.connection = ssh_connect(self.host, self.user)
+            self.connection = ssh_connect_password(self.host, self.user)    # hoffman2 requires connecting with password (no DUO)
             self.connection.run(f"mkdir -p {self.remote_dir}")
             logger.info(f"Connected to {self.host} as {self.user}.")
 
@@ -95,7 +95,7 @@ class sge_manager(object):
         """
 
         # create gaussian files
-        molecule_workdir = os.path.join(self.workdir, molecule.inchikey)
+        molecule_workdir = os.path.join(f"{self.workdir}", molecule.inchikey)
         gig = gaussian_input_generator(molecule, workflow_type, molecule_workdir, theory, solvent, light_basis_set,
                                        heavy_basis_set, generic_basis_set, max_light_atomic_number)
         gaussian_config = {'theory': theory,
@@ -180,7 +180,7 @@ class sge_manager(object):
 
                 with self.connection.cd(self.remote_dir):
                     ret = self.connection.run(f"qsub {self.remote_dir}/{job.base_name}.sh", hide=True)
-                    job.job_id = re.search("job\s*(\d+)\n", ret.stdout).group(1)
+                    job.job_id = re.search(".*job\s*(\d+)\s*[(].*\n", ret.stdout).group(1)
                     job.status = sge_status.submitted
                     job.n_submissions = job.n_submissions + 1
                     logger.info(f"Submitted job {name}, job_id: {job.job_id}.")
@@ -200,7 +200,7 @@ class sge_manager(object):
 
         # retrieve job ids that are running and waiting on the server
         ret = self.connection.run(f"qstat -u {self.user}", hide=True)
-        user_running_ids = [l.split()[0] for l in ret.stdout.readlines()[2:]]
+        user_running_ids = [re.search(".* (\d{7}) .*", l).group(1) for l  in ret.stdout.splitlines()[2:]] # looking for exactly 7 digit number
         running_ids = [id for id in user_running_ids if id in ids_to_check]
         finished_ids = [id for id in ids_to_check if id not in running_ids]
 
@@ -519,19 +519,28 @@ class sge_manager(object):
         self.connect()
         if summary:
             ret = self.connection.run(f"qstat -u {self.user}", hide=True)
-            user_running_ids = [l.split()[0] for l in ret.stdout.readlines()[2:]]
+            #user_running_ids = [l.split()[0] for l in ret.stdout.readlines()[2:]]
+            user_running_ids = [re.search(".* (\d{7}) .*", l).group(1) for l  in ret.stdout.splitlines()[2:]] # looking for exactly 7 digit number
             running, queued = 0, 0
             for jobid in user_running_ids:
-                ret = self.connection.run(f"qstat -j {jobid}", hide=True)
-                if len([l for l in ret.stdout.splitlines()[1:-1] if 'job_state' in l]) > 0:
-                    running += 1
-                else:
-                    queued += 1
-            return pd.DataFrame([["running",running],["queued",queued]],columns=['Status',"Count"])
+                try:
+                    ret = self.connection.run(f"qstat -j {jobid}", hide=True) # will error if job finsishes before able to check all in list
+                    if len([l for l in ret.stdout.splitlines()[1:-1] if 'job_state' in l]) > 0:
+                        running += 1
+                    else:
+                        queued += 1
+                except:
+                    pass
+            return pd.DataFrame([[running],[queued]],columns=['Count'],index=['running','queued'])
         else:
             ret = self.connection.run(f"qstat -u {self.user}", hide=True)
-            data = np.array(list(map(str.split, ret.stdout.splitlines())))
-            return pd.DataFrame(data[1:], columns=data[0])
+            #data = np.array(list(map(str.split, ret.stdout.splitlines())))
+            if len(ret.stdout) > 0:
+                #return pd.DataFrame(data[1:], columns=data[0])
+                for l in ret.stdout.splitlines():
+                    print(l)
+            else: 
+                return "No jobs in queue"
 
     def _qdel(self) -> None:
         """Run 'qdel -u $user' command on the server."""
@@ -546,7 +555,7 @@ class sge_manager(object):
         with open(self.cache_file, 'wb') as cf:
             pickle.dump(self.jobs, cf)
 
-        cleanup_empty_dirs(self.workdir)
+        cleanup_empty_dirs(f"{self.workdir}")
 
     def _create_sge_file_from_gaussian_file(self, base_name, directory, wall_time) -> None:
         """Generate a single sge submission file based on the Gaussian input file.
@@ -570,9 +579,9 @@ class sge_manager(object):
         output += f"#$ -cwd\n"      # run in same directory as where submit it
         output += f"#$ -o {base_name}.joblog.$JOB_ID\n"   # direct output to a file
         output += f"#$ -j y\n"      
-        output += f"#$ -l h_data={mem}GB,h_rt={wall_time},arch=intel*\n"   # specifies list of resources for job
-        #output += f"#$ -l h_data={mem}GB,h_rt={wall_time},arch=intel*,highp\n"   # specifies list of resources for job (highp to run only on group resources)
-        output += f"#$ -pe dc* {n_processors}\n\n"      ## What about specifying n_processors? Is dc* right setting or shared? Or not at all?
+        output += f"#$ -l h_data={mem}g,h_rt={wall_time},arch=intel*\n"   # specifies list of resources for job
+        #output += f"#$ -l h_data={mem}g,h_rt={wall_time},arch=intel*,highp\n"   # specifies list of resources for job (highp to run only on group resources)
+        output += f"#$ -pe dc* {n_processors}\n\n"      # What about specifying n_processors? dc* means allocates computing cores on any node on cluster
         
         output += f"# echo job info to joblog\n" \
                   f"echo 'Job {base_name} started on:   ' `hostname -s`\n" \
@@ -587,10 +596,10 @@ class sge_manager(object):
                   f"module li\n" \
                   f'echo "GAUSS_SCRDIR=$GAUSS_SCRDIR"\n' \
                   f"# another compiled version: $g16root/16_avx/g16\n" \
-                  f"echo '/usr/bin/time -v $g16root/g16_sse4/g16 < {base_name}.gjf > {base_name}.log'\n\n" \
+                  f"echo '/usr/bin/time -v $g16root/16_sse4/g16 < {base_name}.gjf > {base_name}.log'\n\n" \
                   f"cd {self.remote_dir}\n" \
                   f"# run command\n" \
-                  f"/usr/bin/time -v $g16root/g16_sse4/g16 < {base_name}.gjf > {base_name}.log\n\n" 
+                  f"/usr/bin/time -v $g16root/16_sse4/g16 < {base_name}.gjf > {base_name}.log\n\n" 
 
         output += f"# echo job info to joblog\n" \
                   f"echo 'Job $JOB_ID ended on:   '' `hostname -s`\n" \
