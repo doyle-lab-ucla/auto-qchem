@@ -5446,3 +5446,5 @@ Mercury.modules
 *.lvlps
 .cache/
 
+dash_app/static
+dash_app/logs
