@@ -7,7 +7,7 @@ from rdkit import Chem, Geometry
 from rdkit.Chem import AllChem
 
 from autoqchem.molecule import GetSymbol
-from autoqchem.helper_classes import slurm_status
+from autoqchem.helper_classes import slurm_status, sge_status
 from autoqchem.gaussian_log_extractor import gaussian_log_extractor
 
 from autoqchem.helper_classes import Hartree_in_kcal_per_mol
@@ -177,6 +177,59 @@ def rdmol_from_slurm_jobs(jobs, postDFT=True) -> Chem.Mol:
     if postDFT:
         # check that the jobs are in done status
         assert all(j.status.value == slurm_status.done.value for j in jobs)
+
+    elements, connectivity_matrix, charges = jobs[0].elements, jobs[0].connectivity_matrix, jobs[0].charges
+    conformer_coordinates = []
+    energies = []
+    for j in jobs:
+        if postDFT:
+
+            le = gaussian_log_extractor(f"{j.directory}/{j.base_name}.log")
+            le.check_for_exceptions()
+            le.get_atom_labels()
+
+            # verify that the labels are in the same order in gaussian after running it
+            assert tuple(le.labels) == tuple(elements)
+
+            le.get_geometry()
+            conformer_coordinates.append(le.geom[list('XYZ')].values)
+
+            le.get_descriptors()
+            energies.append(le.descriptors['G'] * Hartree_in_kcal_per_mol)
+
+        else:
+            with open(f"{j.directory}/{j.base_name}.gjf") as f:
+                text = f.read()
+                geom = re.findall(f"{j.base_name}\n\n\d\s\d\n(.*?)\n\n\n--Link1--", text, re.DOTALL)[0]
+                geom = map(str.split, map(str.strip, geom.splitlines()))
+                geom = np.array(list(geom))
+                geom = geom[:, 1:].astype(float)
+                conformer_coordinates.append(geom)
+
+    rdmol = get_rdkit_mol(elements, conformer_coordinates, connectivity_matrix, charges)
+    if not postDFT:
+        props = AllChem.MMFFGetMoleculeProperties(rdmol)
+        energies = [AllChem.MMFFGetMoleculeForceField(rdmol, props, confId=i).CalcEnergy()
+                    for i in range(rdmol.GetNumConformers())]
+
+    return rdmol, energies
+
+
+def rdmol_from_sge_jobs(jobs, postDFT=True) -> Chem.Mol:
+    """Create and rdkit molecule from a set of sge jobs.
+
+    :param jobs: list of jobs for the molecule
+    :type jobs: list
+    :param postDFT: if the DFT calculations are already available, the optimized geomtries will be used, if not the initial geometries.
+    :type postDFT: bool
+    :return: rdkit.Chem.Mol
+    """
+
+    # check that these are jobs for the same molecule
+    assert len(set(j.inchi for j in jobs)) == 1
+    if postDFT:
+        # check that the jobs are in done status
+        assert all(j.status.value == sge_status.done.value for j in jobs)
 
     elements, connectivity_matrix, charges = jobs[0].elements, jobs[0].connectivity_matrix, jobs[0].charges
     conformer_coordinates = []
