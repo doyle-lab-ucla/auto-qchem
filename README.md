@@ -7,9 +7,9 @@
 
 ### Quick links
 
-[Installation instructions](https://github.com/PrincetonUniversity/auto-qchem/blob/master/Install.md)
+[Installation instructions](https://github.com/doyle-lab-ucla/auto-qchem/blob/master/Install.md)
 
-[DB interface user guide](https://github.com/PrincetonUniversity/auto-qchem/blob/master/DB.md)
+[DB interface user guide](https://github.com/doyle-lab-ucla/auto-qchem/blob/master/DB.md)
 
 [Descriptor database](https://autoqchem.org)
 
