@@ -1,0 +1,1346 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>autoqchem package &#8212; autoqchem 1.2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/nature.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="autoqchem" href="modules.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="modules.html" title="autoqchem"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">autoqchem 1.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="modules.html" accesskey="U">autoqchem</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">autoqchem package</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="autoqchem-package">
+<h1>autoqchem package<a class="headerlink" href="#autoqchem-package" title="Permalink to this heading">¶</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading">¶</a></h2>
+</section>
+<section id="module-autoqchem.db_functions">
+<span id="autoqchem-db-functions-module"></span><h2>autoqchem.db_functions module<a class="headerlink" href="#module-autoqchem.db_functions" title="Permalink to this heading">¶</a></h2>
+<dl class="py exception">
+<dt class="sig sig-object py" id="autoqchem.db_functions.InconsistentLabelsException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autoqchem.db_functions.</span></span><span class="sig-name descname"><span class="pre">InconsistentLabelsException</span></span><a class="headerlink" href="#autoqchem.db_functions.InconsistentLabelsException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>Raised when a set of molecules is inconsistently labeled</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoqchem.db_functions.db_check_exists">
+<span class="sig-prename descclassname"><span class="pre">autoqchem.db_functions.</span></span><span class="sig-name descname"><span class="pre">db_check_exists</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inchi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gaussian_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_num_conformers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conformer_engine</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span></span></span><a class="headerlink" href="#autoqchem.db_functions.db_check_exists" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if a molecule is already present in the database with the same Gaussian config (function, basis_set, number of conformers, conformer engine)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>inchi</strong> (<em>str</em>) – inchi of the molecule</p></li>
+<li><p><strong>gaussian_config</strong> (<em>dict</em>) – gaussian config</p></li>
+<li><p><strong>max_num_conformers</strong> (<em>int</em>) – maximum number of conformers to generate</p></li>
+<li><p><strong>conformer_engine</strong> (<em>str</em>) – conformer engine used for conformer generation (rdkit or openbabel)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>tuple(exists(bool), list of tags that are associated with the molecule if it exists)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoqchem.db_functions.db_connect">
+<span class="sig-prename descclassname"><span class="pre">autoqchem.db_functions.</span></span><span class="sig-name descname"><span class="pre">db_connect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">collection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Collection</span></span></span><a class="headerlink" href="#autoqchem.db_functions.db_connect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a connection to the database and return the table (Collection).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>collection</strong> (<em>str</em>) – database collection name (optional)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>pymongo.collection.Collection</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoqchem.db_functions.db_delete_molecule">
+<span class="sig-prename descclassname"><span class="pre">autoqchem.db_functions.</span></span><span class="sig-name descname"><span class="pre">db_delete_molecule</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autoqchem.db_functions.db_delete_molecule" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delete molecule from DB, cascade all child objects: tags, descriptors and log files</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>mol_id</strong> (<em>bson.objectid.ObjectId</em>) – molecule id in the DB</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoqchem.db_functions.db_get_molecule">
+<span class="sig-prename descclassname"><span class="pre">autoqchem.db_functions.</span></span><span class="sig-name descname"><span class="pre">db_get_molecule</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inchi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tags</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autoqchem.db_functions.db_get_molecule" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get an rdkit molecule from DB conformer geometries</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>inchi</strong> (<em>str</em>) – inchi of the molecule</p></li>
+<li><p><strong>tags</strong> (<em>list</em>) – optional list of tags to narrow the search</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>rdkit.Chem.Mol</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoqchem.db_functions.db_get_rdkit_mol">
+<span class="sig-prename descclassname"><span class="pre">autoqchem.db_functions.</span></span><span class="sig-name descname"><span class="pre">db_get_rdkit_mol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">molecule_record)</span> <span class="pre">-&gt;</span> <span class="pre">(&lt;class</span> <span class="pre">'rdkit.Chem.rdchem.Mol'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">&lt;class</span> <span class="pre">'list'&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autoqchem.db_functions.db_get_rdkit_mol" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get an rdkit molecule from DB conformer geometries</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>molecule_record</strong> (<em>dict</em>) – molecule record from the DB</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>rdkit.Chem.Mol</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoqchem.db_functions.db_reweight_molecule">
+<span class="sig-prename descclassname"><span class="pre">autoqchem.db_functions.</span></span><span class="sig-name descname"><span class="pre">db_reweight_molecule</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">molecule_id</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autoqchem.db_functions.db_reweight_molecule" title="Permalink to this definition">¶</a></dt>
+<dd><p>If the weights do not sum to 1, reweight the conformers</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>molecule_id</strong> (<em>string</em>) – db id from the molecules collection</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoqchem.db_functions.db_select_molecules">
+<span class="sig-prename descclassname"><span class="pre">autoqchem.db_functions.</span></span><span class="sig-name descname"><span class="pre">db_select_molecules</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tags</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">substructure</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solvent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ALL'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">functional</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ALL'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">basis_set</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ALL'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">molecule_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="headerlink" href="#autoqchem.db_functions.db_select_molecules" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a summary frame of molecules in the database</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tags</strong> (<em>list</em>) – a list of tags of the db records (if multiple an ‘OR’ is taken)</p></li>
+<li><p><strong>substructure</strong> (<em>str</em>) – substructure SMARTS string</p></li>
+<li><p><strong>smiles</strong> (<em>str</em>) – smiles string</p></li>
+<li><p><strong>solvent</strong> (<em>str</em>) – solvent filter</p></li>
+<li><p><strong>functional</strong> (<em>str</em>) – functional filter</p></li>
+<li><p><strong>basis_set</strong> (<em>str</em>) – basis_set filter</p></li>
+<li><p><strong>molecule_ids</strong> (<em>list</em>) – filter on specific molecule ids in the DB</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>pandas.core.frame.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoqchem.db_functions.db_upload_conformation">
+<span class="sig-prename descclassname"><span class="pre">autoqchem.db_functions.</span></span><span class="sig-name descname"><span class="pre">db_upload_conformation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conformation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_mol_exists</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autoqchem.db_functions.db_upload_conformation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Upload single conformation features and log file to DB, requires a molecule to be present</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mol_id</strong> (<em>bson.objectid.ObjectId</em>) – molecule id in the DB</p></li>
+<li><p><strong>weight</strong> (<em>float</em>) – conformation weight</p></li>
+<li><p><strong>conformation</strong> (<em>dict</em>) – extracted descriptors for the conformation</p></li>
+<li><p><strong>log</strong> (<em>str</em>) – log file for the conformation</p></li>
+<li><p><strong>check_mol_exists</strong> (<em>bool</em>) – check whether the molecule exists in the database, default is TRUE, not recommended to change</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoqchem.db_functions.db_upload_molecule">
+<span class="sig-prename descclassname"><span class="pre">autoqchem.db_functions.</span></span><span class="sig-name descname"><span class="pre">db_upload_molecule</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tags</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conformations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ObjectId</span></span></span><a class="headerlink" href="#autoqchem.db_functions.db_upload_molecule" title="Permalink to this definition">¶</a></dt>
+<dd><p>Upload single molecule to DB and all child objects tags, features and log files for its conformations</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mol_data</strong> (<em>dict</em>) – molecule identity data (inchi, connectivity, etc.)</p></li>
+<li><p><strong>tags</strong> (<em>list</em>) – list of tags to assign to this molecule</p></li>
+<li><p><strong>metadata</strong> (<em>dict</em>) – Gaussian metadata specifying the configuration of the calculation</p></li>
+<li><p><strong>weights</strong> (<em>list</em>) – conformation weights</p></li>
+<li><p><strong>conformations</strong> (<em>list</em>) – list of extracted descriptors for each conformation</p></li>
+<li><p><strong>logs</strong> (<em>list</em>) – list of log files for each conformation</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>bson.objectid.ObjectId</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoqchem.db_functions.descriptors">
+<span class="sig-prename descclassname"><span class="pre">autoqchem.db_functions.</span></span><span class="sig-name descname"><span class="pre">descriptors</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tags</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">presets</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conf_option</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solvent</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">functional</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">basis_set</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">substructure</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#autoqchem.db_functions.descriptors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve DFT descriptors from the database</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tags</strong> (<em>list</em>) – a list of tags of the db records</p></li>
+<li><p><strong>presets</strong> (<em>list</em>) – list of descriptor presets from ‘global’ (molecule level descriptors),     ‘min_max’ (min and max for each atomic descriptor across the molecule), ‘substructure’     (atomic descriptors for each atom in the substructure)</p></li>
+<li><p><strong>conf_option</strong> (<em>str</em>) – conformer averaging option: ‘boltzmann’ (Boltzmann average),     ‘max’ (conformer with highest weight), ‘mean’ (arithmetic average), ‘min’ (conformer with smallest weight),     ‘any’ (any single conformer), ‘std’ (std dev. over conformers)</p></li>
+<li><p><strong>solvent</strong> (<em>str</em>) – solvent filter</p></li>
+<li><p><strong>functional</strong> (<em>str</em>) – functional filter</p></li>
+<li><p><strong>basis_set</strong> (<em>str</em>) – basis_set filter</p></li>
+<li><p><strong>substructure</strong> (<em>str</em>) – substructure SMARTS string</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoqchem.db_functions.descriptors_from_mol_df">
+<span class="sig-prename descclassname"><span class="pre">autoqchem.db_functions.</span></span><span class="sig-name descname"><span class="pre">descriptors_from_mol_df</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conf_option</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'max'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#autoqchem.db_functions.descriptors_from_mol_df" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get and weight descriptors given a set of molecules and a conformer reweighting option. This function involves a large query from the DB</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mol_df</strong> (<em>pd.DataFrame</em>) – dataframe returned by the autoqchem.db_functions.db_select_molecules function</p></li>
+<li><p><strong>conf_option</strong> (<em>str</em>) – conformer averaging option: ‘boltzmann’ (Boltzmann average),      ‘max’ (conformer with highest weight), ‘mean’ (arithmetic average), ‘min’ (conformer with smallest weight),      ‘any’ (any single conformer), ‘std’ (std dev. over conformers)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-autoqchem.descriptor_functions">
+<span id="autoqchem-descriptor-functions-module"></span><h2>autoqchem.descriptor_functions module<a class="headerlink" href="#module-autoqchem.descriptor_functions" title="Permalink to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="autoqchem.descriptor_functions.occupied_volume">
+<span class="sig-prename descclassname"><span class="pre">autoqchem.descriptor_functions.</span></span><span class="sig-name descname"><span class="pre">occupied_volume</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">geometry_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atom_idx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mesh_density</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#autoqchem.descriptor_functions.occupied_volume" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute occupied volume fraction within a sphere of radius ‘r’ for an atom at position ‘atom_idx’. Each atom     radius is taken to be its Van der Waals radius.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>geometry_df</strong> (<em>pd.DataFrame</em>) – geometry dataframe, must contain ‘X’, ‘Y’, ‘Z’ and ‘AN’ (atomic number) columns</p></li>
+<li><p><strong>atom_idx</strong> (<em>int</em>) – index of the atom to use as ‘central’ atom</p></li>
+<li><p><strong>r</strong> (<em>float</em>) – occupied volume radius in Angstroms</p></li>
+<li><p><strong>mesh_density</strong> (<em>int</em>) – density of the mesh for numerical integration (MAX=100)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>float, occupied volume fraction</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-autoqchem.draw_utils">
+<span id="autoqchem-draw-utils-module"></span><h2>autoqchem.draw_utils module<a class="headerlink" href="#module-autoqchem.draw_utils" title="Permalink to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="autoqchem.draw_utils.draw">
+<span class="sig-prename descclassname"><span class="pre">autoqchem.draw_utils.</span></span><span class="sig-name descname"><span class="pre">draw</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Mol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energies</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">&lt;ipywidgets.widgets.interaction._InteractFactory</span> <span class="pre">object</span> <span class="pre">at</span> <span class="pre">0x7fb5201d9fd0&gt;</span></span></span><a class="headerlink" href="#autoqchem.draw_utils.draw" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make a drawing of all conformers in 3d</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mol</strong> (<em>rdkit.Chem.Mol</em>) – rdkit molecule</p></li>
+<li><p><strong>energies</strong> (<em>list</em>) – list of conformer energies</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>interact 3D object</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-autoqchem.gaussian_input_generator">
+<span id="autoqchem-gaussian-input-generator-module"></span><h2>autoqchem.gaussian_input_generator module<a class="headerlink" href="#module-autoqchem.gaussian_input_generator" title="Permalink to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="autoqchem.gaussian_input_generator.gaussian_input_generator">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autoqchem.gaussian_input_generator.</span></span><span class="sig-name descname"><span class="pre">gaussian_input_generator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">molecule</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workflow_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">directory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solvent</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">light_basis_set</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">heavy_basis_set</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">generic_basis_set</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_light_atomic_number</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autoqchem.gaussian_input_generator.gaussian_input_generator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Generator of Gaussian input files</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="autoqchem.gaussian_input_generator.gaussian_input_generator.create_gaussian_files">
+<span class="sig-name descname"><span class="pre">create_gaussian_files</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autoqchem.gaussian_input_generator.gaussian_input_generator.create_gaussian_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates the Gaussian input files for each conformer of the molecule.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-autoqchem.gaussian_log_extractor">
+<span id="autoqchem-gaussian-log-extractor-module"></span><h2>autoqchem.gaussian_log_extractor module<a class="headerlink" href="#module-autoqchem.gaussian_log_extractor" title="Permalink to this heading">¶</a></h2>
+<dl class="py exception">
+<dt class="sig sig-object py" id="autoqchem.gaussian_log_extractor.NegativeFrequencyException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autoqchem.gaussian_log_extractor.</span></span><span class="sig-name descname"><span class="pre">NegativeFrequencyException</span></span><a class="headerlink" href="#autoqchem.gaussian_log_extractor.NegativeFrequencyException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>Raised when a negative frequency is found in the Gaussian log file. The geometry did not converge,
+and the job shall be resubmitted.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="autoqchem.gaussian_log_extractor.NoGeometryException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autoqchem.gaussian_log_extractor.</span></span><span class="sig-name descname"><span class="pre">NoGeometryException</span></span><a class="headerlink" href="#autoqchem.gaussian_log_extractor.NoGeometryException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>Raised when Gaussian does not contain geometry information. Job failed early and cannot be fixed by
+resubmission.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="autoqchem.gaussian_log_extractor.OptimizationIncompleteException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autoqchem.gaussian_log_extractor.</span></span><span class="sig-name descname"><span class="pre">OptimizationIncompleteException</span></span><a class="headerlink" href="#autoqchem.gaussian_log_extractor.OptimizationIncompleteException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>Raised when the optimization has not completed successfully.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="autoqchem.gaussian_log_extractor.gaussian_log_extractor">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autoqchem.gaussian_log_extractor.</span></span><span class="sig-name descname"><span class="pre">gaussian_log_extractor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">log_file_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autoqchem.gaussian_log_extractor.gaussian_log_extractor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="autoqchem.gaussian_log_extractor.gaussian_log_extractor.check_for_exceptions">
+<span class="sig-name descname"><span class="pre">check_for_exceptions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autoqchem.gaussian_log_extractor.gaussian_log_extractor.check_for_exceptions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Go through the log file and look for known exceptions, truncated file, negative frequencies,
+incomplete optimization, and raise a corresponding exception</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autoqchem.gaussian_log_extractor.gaussian_log_extractor.get_atom_labels">
+<span class="sig-name descname"><span class="pre">get_atom_labels</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autoqchem.gaussian_log_extractor.gaussian_log_extractor.get_atom_labels" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch the atom labels and store as attribute ‘labels’.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autoqchem.gaussian_log_extractor.gaussian_log_extractor.get_descriptors">
+<span class="sig-name descname"><span class="pre">get_descriptors</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#autoqchem.gaussian_log_extractor.gaussian_log_extractor.get_descriptors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract and retrieve all descriptors as a dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autoqchem.gaussian_log_extractor.gaussian_log_extractor.get_geometry">
+<span class="sig-name descname"><span class="pre">get_geometry</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autoqchem.gaussian_log_extractor.gaussian_log_extractor.get_geometry" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract geometry dataframe and store as attribute ‘geom’.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-autoqchem.helper_classes">
+<span id="autoqchem-helper-classes-module"></span><h2>autoqchem.helper_classes module<a class="headerlink" href="#module-autoqchem.helper_classes" title="Permalink to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="autoqchem.helper_classes.sge_job">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autoqchem.helper_classes.</span></span><span class="sig-name descname"><span class="pre">sge_job</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">can</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inchi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inchikey</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">elements</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">charges</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connectivity_matrix</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conformation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_num_conformers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conformer_engine</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tasks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">job_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">directory</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#autoqchem.helper_classes.sge_status" title="autoqchem.helper_classes.sge_status"><span class="pre">sge_status</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_submissions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_success_tasks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autoqchem.helper_classes.sge_job" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Dataclass for SGE job.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>can</strong> (<em>str</em>) – canonical smiles</p></li>
+<li><p><strong>inchi</strong> (<em>str</em>) – inchi</p></li>
+<li><p><strong>inchikey</strong> (<em>str</em>) – inchikey</p></li>
+<li><p><strong>conformation</strong> (<em>int</em>) – conformation number</p></li>
+<li><p><strong>charges</strong> (<em>list</em>) – formal charges for all atoms</p></li>
+<li><p><strong>connectivity_matrix</strong> (<em>np.ndarray</em>) – connectivity matrix</p></li>
+<li><p><strong>conformation</strong> – conformation number</p></li>
+<li><p><strong>max_num_conformers</strong> (<em>int</em>) – max number of conformers generated for the molecule</p></li>
+<li><p><strong>conformer_engine</strong> (<em>str</em>) – conformer engine</p></li>
+<li><p><strong>tasks</strong> (<em>tuple</em>) – gaussian tasks tuple</p></li>
+<li><p><strong>config</strong> (<em>dict</em>) – gaussian configuration parameters dictionary</p></li>
+<li><p><strong>job_id</strong> (<em>int</em>) – job id on the remote host</p></li>
+<li><p><strong>directory</strong> (<em>str</em>) – job local directory</p></li>
+<li><p><strong>base_name</strong> (<em>str</em>) – job local base_name</p></li>
+<li><p><strong>status</strong> (<a class="reference internal" href="#autoqchem.helper_classes.sge_status" title="autoqchem.helper_classes.sge_status"><em>sge_status</em></a>) – sge_status of the job</p></li>
+<li><p><strong>n_submission</strong> (<em>int</em>) – number of times the job has been submitted</p></li>
+<li><p><strong>n_success_tasks</strong> (<em>int</em>) – number of successfully completed tasks</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autoqchem.helper_classes.sge_job.base_name">
+<span class="sig-name descname"><span class="pre">base_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#autoqchem.helper_classes.sge_job.base_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autoqchem.helper_classes.sge_job.can">
+<span class="sig-name descname"><span class="pre">can</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#autoqchem.helper_classes.sge_job.can" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autoqchem.helper_classes.sge_job.charges">
+<span class="sig-name descname"><span class="pre">charges</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span></em><a class="headerlink" href="#autoqchem.helper_classes.sge_job.charges" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autoqchem.helper_classes.sge_job.config">
+<span class="sig-name descname"><span class="pre">config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span></em><a class="headerlink" href="#autoqchem.helper_classes.sge_job.config" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autoqchem.helper_classes.sge_job.conformation">
+<span class="sig-name descname"><span class="pre">conformation</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#autoqchem.helper_classes.sge_job.conformation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autoqchem.helper_classes.sge_job.conformer_engine">
+<span class="sig-name descname"><span class="pre">conformer_engine</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#autoqchem.helper_classes.sge_job.conformer_engine" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autoqchem.helper_classes.sge_job.connectivity_matrix">
+<span class="sig-name descname"><span class="pre">connectivity_matrix</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ndarray</span></em><a class="headerlink" href="#autoqchem.helper_classes.sge_job.connectivity_matrix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autoqchem.helper_classes.sge_job.directory">
+<span class="sig-name descname"><span class="pre">directory</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#autoqchem.helper_classes.sge_job.directory" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autoqchem.helper_classes.sge_job.elements">
+<span class="sig-name descname"><span class="pre">elements</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span></em><a class="headerlink" href="#autoqchem.helper_classes.sge_job.elements" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autoqchem.helper_classes.sge_job.inchi">
+<span class="sig-name descname"><span class="pre">inchi</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#autoqchem.helper_classes.sge_job.inchi" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autoqchem.helper_classes.sge_job.inchikey">
+<span class="sig-name descname"><span class="pre">inchikey</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#autoqchem.helper_classes.sge_job.inchikey" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autoqchem.helper_classes.sge_job.job_id">
+<span class="sig-name descname"><span class="pre">job_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#autoqchem.helper_classes.sge_job.job_id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autoqchem.helper_classes.sge_job.max_num_conformers">
+<span class="sig-name descname"><span class="pre">max_num_conformers</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#autoqchem.helper_classes.sge_job.max_num_conformers" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autoqchem.helper_classes.sge_job.n_submissions">
+<span class="sig-name descname"><span class="pre">n_submissions</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#autoqchem.helper_classes.sge_job.n_submissions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autoqchem.helper_classes.sge_job.n_success_tasks">
+<span class="sig-name descname"><span class="pre">n_success_tasks</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#autoqchem.helper_classes.sge_job.n_success_tasks" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autoqchem.helper_classes.sge_job.status">
+<span class="sig-name descname"><span class="pre">status</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#autoqchem.helper_classes.sge_status" title="autoqchem.helper_classes.sge_status"><span class="pre">sge_status</span></a></em><a class="headerlink" href="#autoqchem.helper_classes.sge_job.status" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autoqchem.helper_classes.sge_job.tasks">
+<span class="sig-name descname"><span class="pre">tasks</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">tuple</span></em><a class="headerlink" href="#autoqchem.helper_classes.sge_job.tasks" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="autoqchem.helper_classes.sge_status">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autoqchem.helper_classes.</span></span><span class="sig-name descname"><span class="pre">sge_status</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autoqchem.helper_classes.sge_status" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">IntEnum</span></code></p>
+<p>SGE job status enumerator.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autoqchem.helper_classes.sge_status.created">
+<span class="sig-name descname"><span class="pre">created</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#autoqchem.helper_classes.sge_status.created" title="Permalink to this definition">¶</a></dt>
+<dd><p>job files have been created and stored locally</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autoqchem.helper_classes.sge_status.done">
+<span class="sig-name descname"><span class="pre">done</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></em><a class="headerlink" href="#autoqchem.helper_classes.sge_status.done" title="Permalink to this definition">¶</a></dt>
+<dd><p>job finished successfully (all gaussian steps finished) and have been retrieved from host</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autoqchem.helper_classes.sge_status.failed">
+<span class="sig-name descname"><span class="pre">failed</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">4</span></em><a class="headerlink" href="#autoqchem.helper_classes.sge_status.failed" title="Permalink to this definition">¶</a></dt>
+<dd><p>job failed</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autoqchem.helper_classes.sge_status.incomplete">
+<span class="sig-name descname"><span class="pre">incomplete</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">5</span></em><a class="headerlink" href="#autoqchem.helper_classes.sge_status.incomplete" title="Permalink to this definition">¶</a></dt>
+<dd><p>job is incomplete, it should be resubmitted</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autoqchem.helper_classes.sge_status.submitted">
+<span class="sig-name descname"><span class="pre">submitted</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></em><a class="headerlink" href="#autoqchem.helper_classes.sge_status.submitted" title="Permalink to this definition">¶</a></dt>
+<dd><p>jobs has been submitted to SGE on remote host</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autoqchem.helper_classes.sge_status.uploaded">
+<span class="sig-name descname"><span class="pre">uploaded</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">6</span></em><a class="headerlink" href="#autoqchem.helper_classes.sge_status.uploaded" title="Permalink to this definition">¶</a></dt>
+<dd><p>job has been uploaded to the DB succesfully</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="autoqchem.helper_classes.slurm_job">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autoqchem.helper_classes.</span></span><span class="sig-name descname"><span class="pre">slurm_job</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">can</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inchi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inchikey</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">elements</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">charges</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connectivity_matrix</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conformation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_num_conformers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conformer_engine</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tasks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">job_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">directory</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#autoqchem.helper_classes.slurm_status" title="autoqchem.helper_classes.slurm_status"><span class="pre">slurm_status</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_submissions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_success_tasks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autoqchem.helper_classes.slurm_job" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Dataclass for slurm job.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>can</strong> (<em>str</em>) – canonical smiles</p></li>
+<li><p><strong>inchi</strong> (<em>str</em>) – inchi</p></li>
+<li><p><strong>inchikey</strong> (<em>str</em>) – inchikey</p></li>
+<li><p><strong>conformation</strong> (<em>int</em>) – conformation number</p></li>
+<li><p><strong>charges</strong> (<em>list</em>) – formal charges for all atoms</p></li>
+<li><p><strong>connectivity_matrix</strong> (<em>np.ndarray</em>) – connectivity matrix</p></li>
+<li><p><strong>conformation</strong> – conformation number</p></li>
+<li><p><strong>max_num_conformers</strong> (<em>int</em>) – max number of conformers generated for the molecule</p></li>
+<li><p><strong>conformer_engine</strong> (<em>str</em>) – conformer engine</p></li>
+<li><p><strong>tasks</strong> (<em>tuple</em>) – gaussian tasks tuple</p></li>
+<li><p><strong>config</strong> (<em>dict</em>) – gaussian configuration parameters dictionary</p></li>
+<li><p><strong>job_id</strong> (<em>int</em>) – job id on the remote host</p></li>
+<li><p><strong>directory</strong> (<em>str</em>) – job local directory</p></li>
+<li><p><strong>base_name</strong> (<em>str</em>) – job local base_name</p></li>
+<li><p><strong>status</strong> (<a class="reference internal" href="#autoqchem.helper_classes.slurm_status" title="autoqchem.helper_classes.slurm_status"><em>slurm_status</em></a>) – slurm_status of the job</p></li>
+<li><p><strong>n_submission</strong> (<em>int</em>) – number of times the job has been submitted</p></li>
+<li><p><strong>n_success_tasks</strong> (<em>int</em>) – number of successfully completed tasks</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autoqchem.helper_classes.slurm_job.base_name">
+<span class="sig-name descname"><span class="pre">base_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#autoqchem.helper_classes.slurm_job.base_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autoqchem.helper_classes.slurm_job.can">
+<span class="sig-name descname"><span class="pre">can</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#autoqchem.helper_classes.slurm_job.can" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autoqchem.helper_classes.slurm_job.charges">
+<span class="sig-name descname"><span class="pre">charges</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span></em><a class="headerlink" href="#autoqchem.helper_classes.slurm_job.charges" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autoqchem.helper_classes.slurm_job.config">
+<span class="sig-name descname"><span class="pre">config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span></em><a class="headerlink" href="#autoqchem.helper_classes.slurm_job.config" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autoqchem.helper_classes.slurm_job.conformation">
+<span class="sig-name descname"><span class="pre">conformation</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#autoqchem.helper_classes.slurm_job.conformation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autoqchem.helper_classes.slurm_job.conformer_engine">
+<span class="sig-name descname"><span class="pre">conformer_engine</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#autoqchem.helper_classes.slurm_job.conformer_engine" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autoqchem.helper_classes.slurm_job.connectivity_matrix">
+<span class="sig-name descname"><span class="pre">connectivity_matrix</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ndarray</span></em><a class="headerlink" href="#autoqchem.helper_classes.slurm_job.connectivity_matrix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autoqchem.helper_classes.slurm_job.directory">
+<span class="sig-name descname"><span class="pre">directory</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#autoqchem.helper_classes.slurm_job.directory" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autoqchem.helper_classes.slurm_job.elements">
+<span class="sig-name descname"><span class="pre">elements</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span></em><a class="headerlink" href="#autoqchem.helper_classes.slurm_job.elements" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autoqchem.helper_classes.slurm_job.inchi">
+<span class="sig-name descname"><span class="pre">inchi</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#autoqchem.helper_classes.slurm_job.inchi" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autoqchem.helper_classes.slurm_job.inchikey">
+<span class="sig-name descname"><span class="pre">inchikey</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#autoqchem.helper_classes.slurm_job.inchikey" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autoqchem.helper_classes.slurm_job.job_id">
+<span class="sig-name descname"><span class="pre">job_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#autoqchem.helper_classes.slurm_job.job_id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autoqchem.helper_classes.slurm_job.max_num_conformers">
+<span class="sig-name descname"><span class="pre">max_num_conformers</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#autoqchem.helper_classes.slurm_job.max_num_conformers" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autoqchem.helper_classes.slurm_job.n_submissions">
+<span class="sig-name descname"><span class="pre">n_submissions</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#autoqchem.helper_classes.slurm_job.n_submissions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autoqchem.helper_classes.slurm_job.n_success_tasks">
+<span class="sig-name descname"><span class="pre">n_success_tasks</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#autoqchem.helper_classes.slurm_job.n_success_tasks" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autoqchem.helper_classes.slurm_job.status">
+<span class="sig-name descname"><span class="pre">status</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#autoqchem.helper_classes.slurm_status" title="autoqchem.helper_classes.slurm_status"><span class="pre">slurm_status</span></a></em><a class="headerlink" href="#autoqchem.helper_classes.slurm_job.status" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autoqchem.helper_classes.slurm_job.tasks">
+<span class="sig-name descname"><span class="pre">tasks</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">tuple</span></em><a class="headerlink" href="#autoqchem.helper_classes.slurm_job.tasks" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="autoqchem.helper_classes.slurm_status">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autoqchem.helper_classes.</span></span><span class="sig-name descname"><span class="pre">slurm_status</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autoqchem.helper_classes.slurm_status" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">IntEnum</span></code></p>
+<p>Slurm job status enumerator.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autoqchem.helper_classes.slurm_status.created">
+<span class="sig-name descname"><span class="pre">created</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#autoqchem.helper_classes.slurm_status.created" title="Permalink to this definition">¶</a></dt>
+<dd><p>job files have been created and stored locally</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autoqchem.helper_classes.slurm_status.done">
+<span class="sig-name descname"><span class="pre">done</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></em><a class="headerlink" href="#autoqchem.helper_classes.slurm_status.done" title="Permalink to this definition">¶</a></dt>
+<dd><p>job finished successfully (all gaussian steps finished) and have been retrieved from host</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autoqchem.helper_classes.slurm_status.failed">
+<span class="sig-name descname"><span class="pre">failed</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">4</span></em><a class="headerlink" href="#autoqchem.helper_classes.slurm_status.failed" title="Permalink to this definition">¶</a></dt>
+<dd><p>job failed</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autoqchem.helper_classes.slurm_status.incomplete">
+<span class="sig-name descname"><span class="pre">incomplete</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">5</span></em><a class="headerlink" href="#autoqchem.helper_classes.slurm_status.incomplete" title="Permalink to this definition">¶</a></dt>
+<dd><p>job is incomplete, it should be resubmitted</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autoqchem.helper_classes.slurm_status.submitted">
+<span class="sig-name descname"><span class="pre">submitted</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></em><a class="headerlink" href="#autoqchem.helper_classes.slurm_status.submitted" title="Permalink to this definition">¶</a></dt>
+<dd><p>jobs has been submitted to slurm on remote host</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autoqchem.helper_classes.slurm_status.uploaded">
+<span class="sig-name descname"><span class="pre">uploaded</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">6</span></em><a class="headerlink" href="#autoqchem.helper_classes.slurm_status.uploaded" title="Permalink to this definition">¶</a></dt>
+<dd><p>job has been uploaded to the DB succesfully</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-autoqchem.helper_functions">
+<span id="autoqchem-helper-functions-module"></span><h2>autoqchem.helper_functions module<a class="headerlink" href="#module-autoqchem.helper_functions" title="Permalink to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="autoqchem.helper_functions.add_numbers_to_repeated_items">
+<span class="sig-prename descclassname"><span class="pre">autoqchem.helper_functions.</span></span><span class="sig-name descname"><span class="pre">add_numbers_to_repeated_items</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">items_list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="headerlink" href="#autoqchem.helper_functions.add_numbers_to_repeated_items" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add numeric consecutive labels to repeated items in a list.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>items_list</strong> – list of strings</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoqchem.helper_functions.cleanup_directory_files">
+<span class="sig-prename descclassname"><span class="pre">autoqchem.helper_functions.</span></span><span class="sig-name descname"><span class="pre">cleanup_directory_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dir_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">types</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autoqchem.helper_functions.cleanup_directory_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove files with specific extension(s) from a directory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dir_path</strong> – path of the directory to cleanup</p></li>
+<li><p><strong>types</strong> – a tuple with file extenstions that will be removed</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoqchem.helper_functions.cleanup_empty_dirs">
+<span class="sig-prename descclassname"><span class="pre">autoqchem.helper_functions.</span></span><span class="sig-name descname"><span class="pre">cleanup_empty_dirs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dir_path</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autoqchem.helper_functions.cleanup_empty_dirs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove empty directories 1-level under the specified directory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>dir_path</strong> – path of the directory to cleanup</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoqchem.helper_functions.convert_crlf_to_lf">
+<span class="sig-prename descclassname"><span class="pre">autoqchem.helper_functions.</span></span><span class="sig-name descname"><span class="pre">convert_crlf_to_lf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_path</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autoqchem.helper_functions.convert_crlf_to_lf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert windows line endings CRLF to unix line endings LF in a given file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>file_path</strong> – file path to convert</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoqchem.helper_functions.ssh_connect">
+<span class="sig-prename descclassname"><span class="pre">autoqchem.helper_functions.</span></span><span class="sig-name descname"><span class="pre">ssh_connect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">host</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Connection</span></span></span><a class="headerlink" href="#autoqchem.helper_functions.ssh_connect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create ssh connection using fabric and paramiko, supports DUO authentication.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>host</strong> – remote host</p></li>
+<li><p><strong>user</strong> – username to authenticate on remote host</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>fabric.Connection</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoqchem.helper_functions.ssh_connect_password">
+<span class="sig-prename descclassname"><span class="pre">autoqchem.helper_functions.</span></span><span class="sig-name descname"><span class="pre">ssh_connect_password</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">host</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Connection</span></span></span><a class="headerlink" href="#autoqchem.helper_functions.ssh_connect_password" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create ssh connection using fabric and paramiko, password only (without DUO authentication).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>host</strong> – remote host</p></li>
+<li><p><strong>user</strong> – username to authenticate on remote host</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>fabric.Connection</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoqchem.helper_functions.yes_or_no">
+<span class="sig-prename descclassname"><span class="pre">autoqchem.helper_functions.</span></span><span class="sig-name descname"><span class="pre">yes_or_no</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">question</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#autoqchem.helper_functions.yes_or_no" title="Permalink to this definition">¶</a></dt>
+<dd><p>Input question yes or no.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>question</strong> – question string</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-autoqchem.molecule">
+<span id="autoqchem-molecule-module"></span><h2>autoqchem.molecule module<a class="headerlink" href="#module-autoqchem.molecule" title="Permalink to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="autoqchem.molecule.molecule">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autoqchem.molecule.</span></span><span class="sig-name descname"><span class="pre">molecule</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">smiles</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_conf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">engine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'rdkit'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rdkit_ff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'MMFF94'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ob_gen3D_option</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'best'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autoqchem.molecule.molecule" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Wrapper class for molecule</p>
+</dd></dl>
+
+</section>
+<section id="module-autoqchem.openbabel_utils">
+<span id="autoqchem-openbabel-utils-module"></span><h2>autoqchem.openbabel_utils module<a class="headerlink" href="#module-autoqchem.openbabel_utils" title="Permalink to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="autoqchem.openbabel_utils.extract_from_obmol">
+<span class="sig-prename descclassname"><span class="pre">autoqchem.openbabel_utils.</span></span><span class="sig-name descname"><span class="pre">extract_from_obmol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span></span></span><a class="headerlink" href="#autoqchem.openbabel_utils.extract_from_obmol" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract information from Openbabel OBMol object with conformers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>mol</strong> (<em>pybel.ob.OBMol</em>) – pybel.ob.OBMol object</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>tuple(elements, conformer_coordinates, connectivity_matrix, charges)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoqchem.openbabel_utils.generate_conformations_from_openbabel">
+<span class="sig-prename descclassname"><span class="pre">autoqchem.openbabel_utils.</span></span><span class="sig-name descname"><span class="pre">generate_conformations_from_openbabel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">smiles</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_conf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ob_gen3D_option</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'best'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span></span></span><a class="headerlink" href="#autoqchem.openbabel_utils.generate_conformations_from_openbabel" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>smiles</strong> (<em>str</em>) – SMILES string</p></li>
+<li><p><strong>num_conf</strong> (<em>int</em>) – maximum number of conformations to generate</p></li>
+<li><p><strong>ob_gen3D_option</strong> (<em>str</em>) – option to use with openbabel gen3D for search of initial geometry</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>tuple(elements, conformer_coordinates, connectivity_matrix, charges)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-autoqchem.rdkit_utils">
+<span id="autoqchem-rdkit-utils-module"></span><h2>autoqchem.rdkit_utils module<a class="headerlink" href="#module-autoqchem.rdkit_utils" title="Permalink to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="autoqchem.rdkit_utils.add_conformers_to_rdmol">
+<span class="sig-prename descclassname"><span class="pre">autoqchem.rdkit_utils.</span></span><span class="sig-name descname"><span class="pre">add_conformers_to_rdmol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Mol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conformer_coordinates</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autoqchem.rdkit_utils.add_conformers_to_rdmol" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add conformers to RDKit Mol object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mol</strong> (<em>rdkit.Chem.Mol</em>) – rdkit mol object</p></li>
+<li><p><strong>conformer_coordinates</strong> (<em>np.ndarray</em>) – list of conformers 3D coordinate arrays</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoqchem.rdkit_utils.extract_from_rdmol">
+<span class="sig-prename descclassname"><span class="pre">autoqchem.rdkit_utils.</span></span><span class="sig-name descname"><span class="pre">extract_from_rdmol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Mol</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span></span></span><a class="headerlink" href="#autoqchem.rdkit_utils.extract_from_rdmol" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract information from RDKit Mol object with conformers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>mol</strong> (<em>rdkit.Chem.Mol</em>) – rdkit molecule</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>tuple(elements, conformer_coordinates, connectivity_matrix, charges)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoqchem.rdkit_utils.generate_conformations_from_rdkit">
+<span class="sig-prename descclassname"><span class="pre">autoqchem.rdkit_utils.</span></span><span class="sig-name descname"><span class="pre">generate_conformations_from_rdkit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">smiles</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_conf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rdkit_ff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'MMFF94'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span></span></span><a class="headerlink" href="#autoqchem.rdkit_utils.generate_conformations_from_rdkit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate conformational ensemble using rdkit</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>smiles</strong> (<em>str</em>) – SMILES string</p></li>
+<li><p><strong>num_conf</strong> (<em>int</em>) – maximum number of conformations to generate</p></li>
+<li><p><strong>rdkit_ff</strong> (<em>str</em>) – force field that is supported by rdkit (MMFF94, MMFF94s, UFF)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>tuple(elements, conformer_coordinates, connectivity_matrix, charges)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoqchem.rdkit_utils.get_light_and_heavy_elements">
+<span class="sig-prename descclassname"><span class="pre">autoqchem.rdkit_utils.</span></span><span class="sig-name descname"><span class="pre">get_light_and_heavy_elements</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Mol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_light_atomic_number</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span></span></span><a class="headerlink" href="#autoqchem.rdkit_utils.get_light_and_heavy_elements" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract light and heavy elements present in the molecule.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mol</strong> (<em>rdkit.Chem.Mol</em>) – rdkit molecule</p></li>
+<li><p><strong>max_light_atomic_number</strong> (<em>int</em>) – atomic number of the heaviest element to be treated with light_basis_set</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>tuple(light_elements, heavy_elements</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoqchem.rdkit_utils.get_rdkit_mol">
+<span class="sig-prename descclassname"><span class="pre">autoqchem.rdkit_utils.</span></span><span class="sig-name descname"><span class="pre">get_rdkit_mol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elements</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conformer_coordinates</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connectivity_matrix</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">charges</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Mol</span></span></span><a class="headerlink" href="#autoqchem.rdkit_utils.get_rdkit_mol" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct an rdkit molecule from elements, positions, connectivity matrix and charges.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>elements</strong> (<em>list</em>) – list of elements</p></li>
+<li><p><strong>conformer_coordinates</strong> (<em>np.ndarray</em>) – list of conformers 3D coordinate arrays</p></li>
+<li><p><strong>connectivity_matrix</strong> (<em>np.ndarray</em>) – connectivity matrix</p></li>
+<li><p><strong>charges</strong> (<em>np.ndarray</em>) – list of formal charges for each element</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>rdkit.Chem.Mol</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoqchem.rdkit_utils.get_rmsd_rdkit">
+<span class="sig-prename descclassname"><span class="pre">autoqchem.rdkit_utils.</span></span><span class="sig-name descname"><span class="pre">get_rmsd_rdkit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rdmol</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#autoqchem.rdkit_utils.get_rmsd_rdkit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate RMSD row-wise with RDKit. This is a computationally slower version, but takes symmetry into account (explores permutations of atom order).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>rdmol</strong> (<em>rdkit.Chem.Mol</em>) – rdkit molecule</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoqchem.rdkit_utils.prune_rmsds">
+<span class="sig-prename descclassname"><span class="pre">autoqchem.rdkit_utils.</span></span><span class="sig-name descname"><span class="pre">prune_rmsds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rdmol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thres</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autoqchem.rdkit_utils.prune_rmsds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a list of conformer indices to keep</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rdmol</strong> (<em>rdkit.Chem.Mol</em>) – rdkit molecule</p></li>
+<li><p><strong>thres</strong> (<em>float</em>) – RMSD threshold below which conformers are considered identical (in Angstrom)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>list(indices of conformers to keep)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoqchem.rdkit_utils.rdmol_from_sge_jobs">
+<span class="sig-prename descclassname"><span class="pre">autoqchem.rdkit_utils.</span></span><span class="sig-name descname"><span class="pre">rdmol_from_sge_jobs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">jobs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">postDFT</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Mol</span></span></span><a class="headerlink" href="#autoqchem.rdkit_utils.rdmol_from_sge_jobs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create and rdkit molecule from a set of sge jobs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>jobs</strong> (<em>list</em>) – list of jobs for the molecule</p></li>
+<li><p><strong>postDFT</strong> (<em>bool</em>) – if the DFT calculations are already available, the optimized geomtries will be used, if not the initial geometries.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>rdkit.Chem.Mol</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoqchem.rdkit_utils.rdmol_from_slurm_jobs">
+<span class="sig-prename descclassname"><span class="pre">autoqchem.rdkit_utils.</span></span><span class="sig-name descname"><span class="pre">rdmol_from_slurm_jobs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">jobs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">postDFT</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Mol</span></span></span><a class="headerlink" href="#autoqchem.rdkit_utils.rdmol_from_slurm_jobs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create and rdkit molecule from a set of slurm jobs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>jobs</strong> (<em>list</em>) – list of jobs for the molecule</p></li>
+<li><p><strong>postDFT</strong> (<em>bool</em>) – if the DFT calculations are already available, the optimized geomtries will be used, if not the initial geometries.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>rdkit.Chem.Mol</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-autoqchem.sge_manager">
+<span id="autoqchem-sge-manager-module"></span><h2>autoqchem.sge_manager module<a class="headerlink" href="#module-autoqchem.sge_manager" title="Permalink to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="autoqchem.sge_manager.sge_manager">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autoqchem.sge_manager.</span></span><span class="sig-name descname"><span class="pre">sge_manager</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">user</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">host</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autoqchem.sge_manager.sge_manager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>SGE manager class.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="autoqchem.sge_manager.sge_manager.connect">
+<span class="sig-name descname"><span class="pre">connect</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autoqchem.sge_manager.sge_manager.connect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Connect to remote host.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autoqchem.sge_manager.sge_manager.create_jobs_for_molecule">
+<span class="sig-name descname"><span class="pre">create_jobs_for_molecule</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">molecule</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workflow_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'equilibrium'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'APFD'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solvent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'None'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">light_basis_set</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'6-31G*'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">heavy_basis_set</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'LANL2DZ'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">generic_basis_set</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'genecp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_light_atomic_number</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">36</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'23:59:00'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autoqchem.sge_manager.sge_manager.create_jobs_for_molecule" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate sge jobs for a molecule. Gaussian input files are also generated.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>molecule</strong> (<a class="reference internal" href="#autoqchem.molecule.molecule" title="autoqchem.molecule.molecule"><em>molecule</em></a>) – molecule object</p></li>
+<li><p><strong>workflow_type</strong> (<em>str</em>) – Gaussian workflow type, allowed types are: ‘equilibrium’ or ‘transition_state’</p></li>
+<li><p><strong>theory</strong> (<em>str</em>) – Gaussian supported Functional (e.g., B3LYP)</p></li>
+<li><p><strong>solvent</strong> (<em>str</em>) – Gaussian supported Solvent (e.g., TETRAHYDROFURAN)</p></li>
+<li><p><strong>light_basis_set</strong> (<em>str</em>) – Gaussian supported basis set for elements up to <cite>max_light_atomic_number</cite> (e.g., 6-31G*)</p></li>
+<li><p><strong>heavy_basis_set</strong> (<em>str</em>) – Gaussin supported basis set for elements heavier than <cite>max_light_atomic_number</cite> (e.g., LANL2DZ)</p></li>
+<li><p><strong>generic_basis_set</strong> (<em>str</em>) – Gaussian supported basis set for generic elements (e.g., gencep)</p></li>
+<li><p><strong>max_light_atomic_number</strong> (<em>int</em>) – maximum atomic number for light elements</p></li>
+<li><p><strong>wall_time</strong> (<em>str</em>) – wall time of the job in HH:MM:SS format</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autoqchem.sge_manager.sge_manager.get_job_stats">
+<span class="sig-name descname"><span class="pre">get_job_stats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">split_by_can</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="headerlink" href="#autoqchem.sge_manager.sge_manager.get_job_stats" title="Permalink to this definition">¶</a></dt>
+<dd><p>Job stats for jobs currently under management, optionally split by canonical smiles.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>split_by_can</strong> (<em>bool</em>) – if True each canonical smiles will be listed separately</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>pandas.core.frame.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autoqchem.sge_manager.sge_manager.get_jobs">
+<span class="sig-name descname"><span class="pre">get_jobs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">status</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">can</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#autoqchem.sge_manager.sge_manager.get_jobs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a dictionary of jobs, optionally filter by status and canonical smiles.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>status</strong> (<a class="reference internal" href="#autoqchem.helper_classes.sge_status" title="autoqchem.helper_classes.sge_status"><em>sge_status</em></a>) – sge status of the jobs</p></li>
+<li><p><strong>can</strong> (<em>str</em><em> or </em><em>list</em>) – canonical smiles of the molecules, single string for one smiles, a list for multiple smiles</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autoqchem.sge_manager.sge_manager.qstat">
+<span class="sig-name descname"><span class="pre">qstat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">summary</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="headerlink" href="#autoqchem.sge_manager.sge_manager.qstat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run ‘qstat -u $user’ command on the server.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>summary</strong> – if True only a summary frame is displayed with counts of jobs in each status</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>pandas.core.frame.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autoqchem.sge_manager.sge_manager.remove_jobs">
+<span class="sig-name descname"><span class="pre">remove_jobs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">jobs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autoqchem.sge_manager.sge_manager.remove_jobs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove jobs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>jobs</strong> (<em>dict</em>) – dictionary of jobs to remove</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autoqchem.sge_manager.sge_manager.resubmit_incomplete_jobs">
+<span class="sig-name descname"><span class="pre">resubmit_incomplete_jobs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wall_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'24:59:00'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autoqchem.sge_manager.sge_manager.resubmit_incomplete_jobs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resubmit jobs that are incomplete. If the job has failed because the optimization has not completed         and a log file has been retrieved, then         the last geometry will be used for the next submission. For failed jobs          the job input files will need to be fixed manually and submitted using the         function <code class="xref py py-meth docutils literal notranslate"><span class="pre">submit_jobs_from_jobs_dict()</span></code>.         Maximum number of allowed submission of the same job is 3.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>wall_time</strong> – wall time of the job in HH:MM:SS format</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autoqchem.sge_manager.sge_manager.retrieve_jobs">
+<span class="sig-name descname"><span class="pre">retrieve_jobs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autoqchem.sge_manager.sge_manager.retrieve_jobs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve finished jobs from remote host and check which finished successfully and which failed.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autoqchem.sge_manager.sge_manager.submit_jobs">
+<span class="sig-name descname"><span class="pre">submit_jobs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autoqchem.sge_manager.sge_manager.submit_jobs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Submit jobs that have status ‘created’ to remote host.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autoqchem.sge_manager.sge_manager.submit_jobs_from_jobs_dict">
+<span class="sig-name descname"><span class="pre">submit_jobs_from_jobs_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">jobs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autoqchem.sge_manager.sge_manager.submit_jobs_from_jobs_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Submit jobs to remote host.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>jobs</strong> (<em>dict</em>) – dictionary of jobs to submit</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autoqchem.sge_manager.sge_manager.upload_done_molecules_to_db">
+<span class="sig-name descname"><span class="pre">upload_done_molecules_to_db</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tags</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">RMSD_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.35</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autoqchem.sge_manager.sge_manager.upload_done_molecules_to_db" title="Permalink to this definition">¶</a></dt>
+<dd><p>Upload done molecules to db. Molecules are considered done when all jobs for a given          smiles are in ‘done’ status. The conformers are deduplicated and uploaded to database using a metadata tag.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tags</strong> (<em>list</em><em>(</em><em>str</em><em>)</em>) – a list of tags to create for this molecule</p></li>
+<li><p><strong>RMSD_threshold</strong> (<em>float</em>) – RMSD threshold (in Angstroms) to use when deduplicating multiple conformers         after Gaussian has found optimal geometry</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-autoqchem.slurm_manager">
+<span id="autoqchem-slurm-manager-module"></span><h2>autoqchem.slurm_manager module<a class="headerlink" href="#module-autoqchem.slurm_manager" title="Permalink to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="autoqchem.slurm_manager.slurm_manager">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autoqchem.slurm_manager.</span></span><span class="sig-name descname"><span class="pre">slurm_manager</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">user</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">host</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autoqchem.slurm_manager.slurm_manager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Slurm manager class.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="autoqchem.slurm_manager.slurm_manager.connect">
+<span class="sig-name descname"><span class="pre">connect</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autoqchem.slurm_manager.slurm_manager.connect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Connect to remote host.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autoqchem.slurm_manager.slurm_manager.create_jobs_for_molecule">
+<span class="sig-name descname"><span class="pre">create_jobs_for_molecule</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">molecule</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workflow_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'equilibrium'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'APFD'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solvent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'None'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">light_basis_set</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'6-31G*'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">heavy_basis_set</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'LANL2DZ'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">generic_basis_set</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'genecp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_light_atomic_number</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">36</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'23:59:00'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autoqchem.slurm_manager.slurm_manager.create_jobs_for_molecule" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate slurm jobs for a molecule. Gaussian input files are also generated.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>molecule</strong> (<a class="reference internal" href="#autoqchem.molecule.molecule" title="autoqchem.molecule.molecule"><em>molecule</em></a>) – molecule object</p></li>
+<li><p><strong>workflow_type</strong> (<em>str</em>) – Gaussian workflow type, allowed types are: ‘equilibrium’ or ‘transition_state’</p></li>
+<li><p><strong>theory</strong> (<em>str</em>) – Gaussian supported Functional (e.g., B3LYP)</p></li>
+<li><p><strong>solvent</strong> (<em>str</em>) – Gaussian supported Solvent (e.g., TETRAHYDROFURAN)</p></li>
+<li><p><strong>light_basis_set</strong> (<em>str</em>) – Gaussian supported basis set for elements up to <cite>max_light_atomic_number</cite> (e.g., 6-31G*)</p></li>
+<li><p><strong>heavy_basis_set</strong> (<em>str</em>) – Gaussin supported basis set for elements heavier than <cite>max_light_atomic_number</cite> (e.g., LANL2DZ)</p></li>
+<li><p><strong>generic_basis_set</strong> (<em>str</em>) – Gaussian supported basis set for generic elements (e.g., gencep)</p></li>
+<li><p><strong>max_light_atomic_number</strong> (<em>int</em>) – maximum atomic number for light elements</p></li>
+<li><p><strong>wall_time</strong> (<em>str</em>) – wall time of the job in HH:MM:SS format</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autoqchem.slurm_manager.slurm_manager.get_job_stats">
+<span class="sig-name descname"><span class="pre">get_job_stats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">split_by_can</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="headerlink" href="#autoqchem.slurm_manager.slurm_manager.get_job_stats" title="Permalink to this definition">¶</a></dt>
+<dd><p>Job stats for jobs currently under management, optionally split by canonical smiles.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>split_by_can</strong> (<em>bool</em>) – if True each canonical smiles will be listed separately</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>pandas.core.frame.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autoqchem.slurm_manager.slurm_manager.get_jobs">
+<span class="sig-name descname"><span class="pre">get_jobs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">status</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">can</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#autoqchem.slurm_manager.slurm_manager.get_jobs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a dictionary of jobs, optionally filter by status and canonical smiles.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>status</strong> (<a class="reference internal" href="#autoqchem.helper_classes.slurm_status" title="autoqchem.helper_classes.slurm_status"><em>slurm_status</em></a>) – slurm status of the jobs</p></li>
+<li><p><strong>can</strong> (<em>str</em><em> or </em><em>list</em>) – canonical smiles of the molecules, single string for one smiles, a list for multiple smiles</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autoqchem.slurm_manager.slurm_manager.remove_jobs">
+<span class="sig-name descname"><span class="pre">remove_jobs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">jobs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autoqchem.slurm_manager.slurm_manager.remove_jobs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove jobs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>jobs</strong> (<em>dict</em>) – dictionary of jobs to remove</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autoqchem.slurm_manager.slurm_manager.resubmit_incomplete_jobs">
+<span class="sig-name descname"><span class="pre">resubmit_incomplete_jobs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wall_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'24:59:00'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autoqchem.slurm_manager.slurm_manager.resubmit_incomplete_jobs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resubmit jobs that are incomplete. If the job has failed because the optimization has not completed         and a log file has been retrieved, then         the last geometry will be used for the next submission. For failed jobs          the job input files will need to be fixed manually and submitted using the         function <code class="xref py py-meth docutils literal notranslate"><span class="pre">submit_jobs_from_jobs_dict()</span></code>.         Maximum number of allowed submission of the same job is 3.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>wall_time</strong> – wall time of the job in HH:MM:SS format</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autoqchem.slurm_manager.slurm_manager.retrieve_jobs">
+<span class="sig-name descname"><span class="pre">retrieve_jobs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autoqchem.slurm_manager.slurm_manager.retrieve_jobs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve finished jobs from remote host and check which finished successfully and which failed.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autoqchem.slurm_manager.slurm_manager.squeue">
+<span class="sig-name descname"><span class="pre">squeue</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">summary</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="headerlink" href="#autoqchem.slurm_manager.slurm_manager.squeue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run ‘squeue -u $user’ command on the server.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>summary</strong> – if True only a summary frame is displayed with counts of jobs in each status</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>pandas.core.frame.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autoqchem.slurm_manager.slurm_manager.submit_jobs">
+<span class="sig-name descname"><span class="pre">submit_jobs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autoqchem.slurm_manager.slurm_manager.submit_jobs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Submit jobs that have status ‘created’ to remote host.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autoqchem.slurm_manager.slurm_manager.submit_jobs_from_jobs_dict">
+<span class="sig-name descname"><span class="pre">submit_jobs_from_jobs_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">jobs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autoqchem.slurm_manager.slurm_manager.submit_jobs_from_jobs_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Submit jobs to remote host.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>jobs</strong> (<em>dict</em>) – dictionary of jobs to submit</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autoqchem.slurm_manager.slurm_manager.upload_done_molecules_to_db">
+<span class="sig-name descname"><span class="pre">upload_done_molecules_to_db</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tags</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">RMSD_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.35</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autoqchem.slurm_manager.slurm_manager.upload_done_molecules_to_db" title="Permalink to this definition">¶</a></dt>
+<dd><p>Upload done molecules to db. Molecules are considered done when all jobs for a given          smiles are in ‘done’ status. The conformers are deduplicated and uploaded to database using a metadata tag.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tags</strong> (<em>list</em><em>(</em><em>str</em><em>)</em>) – a list of tags to create for this molecule</p></li>
+<li><p><strong>RMSD_threshold</strong> (<em>float</em>) – RMSD threshold (in Angstroms) to use when deduplicating multiple conformers         after Gaussian has found optimal geometry</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-autoqchem">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-autoqchem" title="Permalink to this heading">¶</a></h2>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">autoqchem package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-autoqchem.db_functions">autoqchem.db_functions module</a></li>
+<li><a class="reference internal" href="#module-autoqchem.descriptor_functions">autoqchem.descriptor_functions module</a></li>
+<li><a class="reference internal" href="#module-autoqchem.draw_utils">autoqchem.draw_utils module</a></li>
+<li><a class="reference internal" href="#module-autoqchem.gaussian_input_generator">autoqchem.gaussian_input_generator module</a></li>
+<li><a class="reference internal" href="#module-autoqchem.gaussian_log_extractor">autoqchem.gaussian_log_extractor module</a></li>
+<li><a class="reference internal" href="#module-autoqchem.helper_classes">autoqchem.helper_classes module</a></li>
+<li><a class="reference internal" href="#module-autoqchem.helper_functions">autoqchem.helper_functions module</a></li>
+<li><a class="reference internal" href="#module-autoqchem.molecule">autoqchem.molecule module</a></li>
+<li><a class="reference internal" href="#module-autoqchem.openbabel_utils">autoqchem.openbabel_utils module</a></li>
+<li><a class="reference internal" href="#module-autoqchem.rdkit_utils">autoqchem.rdkit_utils module</a></li>
+<li><a class="reference internal" href="#module-autoqchem.sge_manager">autoqchem.sge_manager module</a></li>
+<li><a class="reference internal" href="#module-autoqchem.slurm_manager">autoqchem.slurm_manager module</a></li>
+<li><a class="reference internal" href="#module-autoqchem">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="modules.html"
+                          title="previous chapter">autoqchem</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/autoqchem.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="modules.html" title="autoqchem"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">autoqchem 1.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="modules.html" >autoqchem</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">autoqchem package</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2023, AMZ, BJS, JYW, WCG.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.0.2.
+    </div>
+  </body>
+</html>
