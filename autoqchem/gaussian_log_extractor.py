@@ -46,8 +46,10 @@ class gaussian_log_extractor(object):
             self._get_frequencies_and_moment_vectors()  # fetch vibration table and vectors
             freqs = [*map(float, self.modes['Frequencies'])]  # extract frequencies
             if [*filter(lambda x: x < 0., freqs)]:  # check for negative frequencies
+                print(self.log.name)
                 raise NegativeFrequencyException()
         except TypeError:  # no frequencies
+            print(self.log.name)
             raise OptimizationIncompleteException()
 
     def get_descriptors(self) -> dict:
