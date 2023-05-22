@@ -1,9 +1,0 @@
-descriptor\_functions module
-============================
-
-.. automodule:: descriptor_functions
-   :members:
-   :special-members:
-   :undoc-members:
-   :exclude-members: __weakref__, __dict__, __module__
-   :member-order: bysource

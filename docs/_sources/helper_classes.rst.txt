@@ -1,7 +1,0 @@
-helper\_classes module
-======================
-
-.. automodule:: helper_classes
-   :members:
-   :exclude-members: __weakref__, __dict__, __module__
-   :member-order: bysource
