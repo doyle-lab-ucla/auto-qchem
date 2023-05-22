@@ -11,6 +11,8 @@
 
 [DB interface user guide](https://github.com/PrincetonUniversity/auto-qchem/blob/master/DB.md)
 
+[Database](https://autoqchem.org)
+
 [Functional documentation](https://doyle-lab-ucla.github.io/auto-qchem)
 
 ### Update your version
