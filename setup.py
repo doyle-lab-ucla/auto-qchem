@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='auto-qchem',
-    version='0.1',
+    version='1.2.0',
     packages=['autoqchem'],
     data_files=['config.yml'],
     url='https://github.com/PrincetonUniversity/auto-qchem',
