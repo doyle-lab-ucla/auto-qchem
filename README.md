@@ -7,7 +7,9 @@
 
 ### Note to external user
 Auto-QChem currently supports Slurm scheduler at Princeton via slurm_manager.py; and SGE/UGE-type scheduler at UCLA via sge_manager.py. 
+
 If you are an external user and your computational cluster uses either slurm or sge scheduler, you just need to make some minor changes to either .py files to make sure you can log in with credentials at your institution.
+
 If you are an external user and your computational cluster uses other schedulers, you can still modify either .py files to adapt to your cluster, but significant changes might be required and we unfortunatey won't be able to help without access to your cluster. 
 
 ### Quick links
