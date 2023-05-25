@@ -449,7 +449,7 @@ class sge_manager(object):
             self.jobs[key].status = sge_status.uploaded
         self._cache()
 
-    def get_jobs(self, status=None, can=None) -> dict:
+    def get_jobs(self, status=None, can=None, inchikey=None) -> dict:
         """Get a dictionary of jobs, optionally filter by status and canonical smiles.
 
         :param status: sge status of the jobs
@@ -459,7 +459,7 @@ class sge_manager(object):
         :return: dict
         """
 
-        def match(job, status, can):
+        def match(job, status, can, inchikey):
             match = True
             if status is not None:
                 match = match and job.status.value == status.value
@@ -467,9 +467,13 @@ class sge_manager(object):
                 if isinstance(can, str):
                     can = [can]
                 match = match and (job.can in can)
+            if inchikey is not None:
+                if isinstance(inchikey, str):
+                    inchikey = [inchikey]
+                match = match and (job.inchikey in inchikey)
             return match
 
-        return {name: job for name, job in self.jobs.items() if match(job, status, can)}
+        return {name: job for name, job in self.jobs.items() if match(job, status, can, inchikey)}
 
     def get_job_stats(self, split_by_can=False) -> pd.DataFrame:
         """Job stats for jobs currently under management, optionally split by canonical smiles.
