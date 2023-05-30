@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 class molecule(object):
     """Wrapper class for molecule"""
 
-    def __init__(self, smiles, num_conf, engine='rdkit', rdkit_ff='MMFF94', ob_gen3D_option='best') -> None:
+    def __init__(self, smiles, num_conf=5, engine='rdkit', rdkit_ff='MMFF94', ob_gen3D_option='best') -> None:
         """Initialize the molecule with a conformational ensemble
 
         :arg smiles: SMILES string
