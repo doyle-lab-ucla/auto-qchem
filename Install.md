@@ -1,63 +1,69 @@
 # auto-qchem installation instructions
 
+### New installation instructions
+1. Install conda: https://www.anaconda.com. I find it easier to just download the installer and install like how you would with any software.
+2. Conda allows you to create separate software development environments for different purposes. We will create an environment just for auto-qchem. Open terminal and run this, and answer "y" to the prompt:
+```
+conda create --name autoqchem python=3.7 ipython
+```
+3. With conda environments, you need to activate them before you use. Run this in terminal: 
+ ```
+ conda activate autoqchem 
+ ```
+4. We have some separate packages to install first.
+(These packages are a little finicky, to ensure expected behavior it's best to install them as specified here). Run the following commands in terminal one by one, and answer "y": 
+ ```
+conda install -c conda-forge openbabel=2.4.1
+conda install -c conda-forge py3dmol
+pip install rdkit-pypi
+ ```
+5. Finally, we can install auto-qchem directly through pip 
+(Previously, we had to build from sources, but auto-qchem is now a proper python package. We also add a dash for the package name, just to make it clearer)
+ ```
+pip install auto-qchem
+ ```
+6. That's it, you are ready to use auto-qchem. 
+
+### If you want to start over...
+Sometimes things don't work, and you might want to delete the autoqchem environment and start over with a clean install. To remove the conda environment and all packages associated with it, run:
+
+**(Optional)** if you are in the autoqchem environment, deactivate first:
+ ```
+conda deactivate
+ ```
+then run this to remove autoqchem environment:
+ ```
+conda remove -n autoqchem --all
+ ```
+And you are ready to start over at step 2 in the new installation instructions. 
+
+### If you haven't used auto-qchem for a while...
+Chances are there have been updates for the software.
+
+**(Optional)** if you are NOT in the autoqchem environment, activate first:
+ ```
+conda activate autoqchem
+ ```
+
+**(Optional)** you can check the current version of auto-qchem:
+ ```
+conda list auto-qchem
+ ```
+
+run this to update:
+ ```
+pip install auto-qchem --upgrade
+ ```
+
+---
+
+---
+
+---
+
+
 ### Prerequisite for Windows users only
 Install openbabel binaries (comes with a GUI)
 https://github.com/openbabel/openbabel/releases/download/openbabel-2-4-1/OpenBabel-2.4.1.exe
-
-### Installation with Miniconda (Windows, MacOS)
-
-Install the miniconda with python=3.7 suitable for your OS: [miniconda installation webpage](https://docs.conda.io/en/latest/miniconda.html)
-
-In anaconda prompt (Windows) or terminal (MacOS) create a conda environment. You can use a different environment name, in this instructions we will use ```autoqchem```.
-For Windows 'Anaconda Powershell Prompt' has more functionality than 'Anaconda Prompt', e.g. tab-completion, but either
-one works fine.
-```bash
-conda create --name autoqchem python=3.7
-```
-Activate the environment
-```bash
-conda activate autoqchem
-```
-
-Install mainstream python packages
-```bash
-conda install jupyter pandas scipy matplotlib pymongo pyyaml fabric xlrd appdirs openpyxl ipywidgets
-```
-Answer "y" to the questions. If you'd like to automatically say yes to all question you can
-add ```-y``` at the end of the command, e.g. ```conda install jupyter -y```
-
-Install openbabel v2.4.1 (v3.0.0 is available, but crashes on many structures) and rdkit
-```bash
-conda install -c conda-forge py3dmol rdkit openbabel=2.4.1
-```
-
-Clone autoqchem from github. If you don't have ```git```, please install ```git``` for your OS [git installation webpage](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git). Note that
- the last argument to the command below is a local directory to which auto-qchem will be installed, please update it to 
- a suitable one. It can be anywhere, but it needs to either be empty or not yet existing. For the purpose of this instructions I will use ```some_directory```.
-  A good example would be ```~/software/github/auto-qchem```.
-```bash
-git clone https://github.com/PrincetonUniversity/auto-qchem.git some_directory
-```
-Navigate to the directory where auto-qchem github repository is installed (a file ```setup.py``` should be present in that directory) and run the setup script
-```bash
-cd some_directory
-python setup.py install
-```
-
-That's it!
-
-### Verify the installation
-Verify the installation by running a special template notebook ```framework_functionality_test.ipynb```. It doesn't do a whole lot, but 
-runs through some key functions.
-
-Navigate to notebooks directory
-```bash
-cd some_directory/notebooks
-```
-Fire up jupyter-notebook
-```bash
-jupyter-notebook framework_functionality_test.ipynb
-```
-Run the notebook!
 
 
