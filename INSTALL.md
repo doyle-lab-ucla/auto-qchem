@@ -24,6 +24,8 @@ pip install auto-qchem
  ```
 6. That's it, you are ready to use auto-qchem. 
 
+---
+
 ### If you want to start over...
 Sometimes things don't work, and you might want to delete the autoqchem environment and start over with a clean install. To remove the conda environment and all packages associated with it, run:
 
@@ -36,6 +38,8 @@ then run this to remove autoqchem environment:
 conda remove -n autoqchem --all
  ```
 And you are ready to start over at step 2 in the new installation instructions. 
+
+---
 
 ### If you haven't used auto-qchem for a while...
 Chances are there have been updates for the software.
