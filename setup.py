@@ -10,7 +10,7 @@ setup(
     author='Andrzej Zuranski, Benjamin Shields, Jason Wang, Winston Gee',
     description='auto-qchem',
     long_description='automated dft calculation management software',
-    install_requires=['numpy==1.21',
+    install_requires=['numpy==1.22.0',
                       'pandas==1.3',
                       'pyyaml==6.0',
                       'scipy==1.7',
