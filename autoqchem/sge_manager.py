@@ -271,7 +271,7 @@ class sge_manager(object):
 
         return job.status
 
-    def resubmit_incomplete_jobs(self, wall_time="24:59:00") -> None:
+    def resubmit_incomplete_jobs(self, wall_time="23:59:00") -> None:
         """Resubmit jobs that are incomplete. If the job has failed because the optimization has not completed \
         and a log file has been retrieved, then \
         the last geometry will be used for the next submission. For failed jobs \
@@ -544,7 +544,7 @@ class sge_manager(object):
                 for l in ret.stdout.splitlines():
                     print(l)
             else: 
-                return "No jobs in queue"
+                print("No jobs in queue")
 
     def _qdel(self) -> None:
         """Run 'qdel -u $user' command on the server."""
