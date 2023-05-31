@@ -18,6 +18,7 @@ class gaussian_log_extractor(object):
 
         with open(log_file_path) as f:
             self.log = f.read()
+        self.log_file_path = log_file_path  # record keeping; used to output log file path in case of exception
 
         # initialize descriptors
         self.descriptors = {}
@@ -46,10 +47,10 @@ class gaussian_log_extractor(object):
             self._get_frequencies_and_moment_vectors()  # fetch vibration table and vectors
             freqs = [*map(float, self.modes['Frequencies'])]  # extract frequencies
             if [*filter(lambda x: x < 0., freqs)]:  # check for negative frequencies
-                print(self.log.name)
+                print(self.log_file_path)
                 raise NegativeFrequencyException()
         except TypeError:  # no frequencies
-            print(self.log.name)
+            print(self.log_file_path)
             raise OptimizationIncompleteException()
 
     def get_descriptors(self) -> dict:

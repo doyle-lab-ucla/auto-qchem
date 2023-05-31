@@ -5,7 +5,22 @@ from dataclasses import dataclass
 
 import yaml
 
-config = yaml.safe_load(open(os.path.join(os.path.dirname(__file__), "..", "config.yml")))
+#config = yaml.safe_load(open(os.path.join(os.path.dirname(__file__), "..", "config.yml")))
+config = {
+    'resources': {
+        'wall_time': "23:59:00",
+        'atoms_per_processor': 6,
+        'max_processors': 20,
+        'ram_per_processor': 2,
+    },
+    'mongoDB':{
+        'host': "autoqchem.org",
+        'port': '27017',
+        'user': "acqWriter",
+        'password': "dftworks",
+    }
+}
+
 k_in_kcal_per_mol_K = 0.0019872041
 Hartree_in_kcal_per_mol = 627.5
 T = 298
