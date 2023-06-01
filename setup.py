@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='auto-qchem',
-    version='1.3.0',
+    version='1.3.1',
     packages=['autoqchem'],
     data_files=['config.yml'],
     url='https://github.com/doyle-lab-ucla/auto-qchem',

@@ -122,22 +122,22 @@ class sge_manager(object):
             self._create_sge_file_from_gaussian_file(base_name, molecule_workdir, wall_time)
             # create job structure
             job = sge_job(can=molecule.can,
-                            inchi=molecule.inchi,
-                            inchikey=molecule.inchikey,
-                            elements=molecule.elements,
-                            charges=molecule.charges,
-                            connectivity_matrix=molecule.connectivity_matrix,
-                            conformation=int(base_name.split("_conf_")[1]),
-                            max_num_conformers=molecule.max_num_conformers,
-                            tasks=gig.tasks,
-                            config=gaussian_config,
-                            conformer_engine=molecule.conformer_engine,
-                            job_id=-1,  # job_id (not assigned yet)
-                            directory=gig.directory,  # filesystem path
-                            base_name=base_name,  # filesystem basename
-                            status=sge_status.created,
-                            n_submissions=0,
-                            n_success_tasks=0)  # status
+                          inchi=molecule.inchi,
+                          inchikey=molecule.inchikey,
+                          elements=molecule.elements,
+                          charges=molecule.charges,
+                          connectivity_matrix=molecule.connectivity_matrix,
+                          conformation=int(base_name.split("_conf_")[1]),
+                          max_num_conformers=molecule.max_num_conformers,
+                          tasks=gig.tasks,
+                          config=gaussian_config,
+                          conformer_engine=molecule.conformer_engine,
+                          job_id=-1,  # job_id (not assigned yet)
+                          directory=gig.directory,  # filesystem path
+                          base_name=base_name,  # filesystem basename
+                          status=sge_status.created,
+                          n_submissions=0,
+                          n_success_tasks=0)  # status
 
             # create a key for the job
             key = hashlib.md5((job.can + str(job.conformation) +

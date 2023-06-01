@@ -15,7 +15,7 @@ config = {
     },
     'mongoDB':{
         'host': "autoqchem.org",
-        'port': '27017',
+        'port': 27017,
         'user': "acqWriter",
         'password': "dftworks",
     }
