@@ -106,7 +106,7 @@ def add_conformers_to_rdmol(mol: Chem.Mol, conformer_coordinates: np.ndarray) ->
         mol.AddConformer(conformer, assignId=True)
 
 
-def generate_conformations_from_rdkit(smiles, num_conf, rdkit_ff='MMFF94') -> tuple:
+def generate_conformations_from_rdkit(smiles, num_conf, rdkit_ff, large_mol) -> tuple:
     """Generate conformational ensemble using rdkit
 
     :param smiles: SMILES string
@@ -131,6 +131,8 @@ def generate_conformations_from_rdkit(smiles, num_conf, rdkit_ff='MMFF94') -> tu
     params.ETversion = 2
     params.pruneRmsThresh = 0.35
     params.numThreads = n_threads
+    if large_mol:
+        params.useRandomCoords = True
 
     # embed and optimized conformers
     AllChem.EmbedMultipleConfs(rdmol, num_conf, params)

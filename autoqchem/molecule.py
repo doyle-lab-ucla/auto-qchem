@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 class molecule(object):
     """Wrapper class for molecule"""
 
-    def __init__(self, smiles, num_conf=5, engine='rdkit', rdkit_ff='MMFF94', ob_gen3D_option='best') -> None:
+    def __init__(self, smiles, num_conf=5, engine='rdkit', rdkit_ff='MMFF94', ob_gen3D_option='best', large_mol=False) -> None:
         """Initialize the molecule with a conformational ensemble
 
         :arg smiles: SMILES string
@@ -43,8 +43,8 @@ class molecule(object):
             self.elements, \
             self.conformer_coordinates, \
             self.connectivity_matrix, \
-            self.charges = generate_conformations_from_rdkit(smiles=smiles, num_conf=num_conf,
-                                                             rdkit_ff=rdkit_ff)
+            self.charges = generate_conformations_from_rdkit(smiles=smiles, num_conf=num_conf, rdkit_ff=rdkit_ff, large_mol=large_mol)
+
         elif engine == 'openbabel':
             self.elements, \
             self.conformer_coordinates, \
