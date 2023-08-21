@@ -36,6 +36,8 @@ class molecule(object):
         :type rdkit_ff: str
         :param ob_gen3D_option: option to use with openbabel gen3D for search of initial geometry
         :type ob_gen3D_option: str
+        :param large_mol: large molecule or not (esp with long alkyl chains). Helps with conformer generation, which often fails with rdkit default setting
+        :type large_mol: bool
         """
 
         # run conformer generation

@@ -115,6 +115,8 @@ def generate_conformations_from_rdkit(smiles, num_conf, rdkit_ff, large_mol) -> 
     :type num_conf: int
     :param rdkit_ff: force field that is supported by rdkit (MMFF94, MMFF94s, UFF)
     :type rdkit_ff: str
+    :param large_mol: if true, use random coordinates for conformer generation
+    :type large_mol: bool
     :return: tuple(elements, conformer_coordinates, connectivity_matrix, charges)
     """
 
