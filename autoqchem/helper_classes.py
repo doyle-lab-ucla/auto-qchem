@@ -48,6 +48,7 @@ class sge_status(enum.IntEnum):
     failed = 4  #: job failed
     incomplete = 5  #: job is incomplete, it should be resubmitted
     uploaded = 6  #: job has been uploaded to the DB succesfully
+    inspect = 7  #: job needs to be inspected due to problematic labeling
 
 
 @dataclass
