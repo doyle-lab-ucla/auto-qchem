@@ -238,15 +238,17 @@ def rdmol_from_sge_jobs(jobs, postDFT=True) -> Chem.Mol:
     elements, connectivity_matrix, charges = jobs[0].elements, jobs[0].connectivity_matrix, jobs[0].charges
     conformer_coordinates = []
     energies = []
+    labels_ok = True
     for j in jobs:
         if postDFT:
-
+            
             le = gaussian_log_extractor(f"{j.directory}/{j.base_name}.log")
             le.check_for_exceptions()
             le.get_atom_labels()
 
             # verify that the labels are in the same order in gaussian after running it
-            assert tuple(le.labels) == tuple(elements)
+            if tuple(le.labels) != tuple(elements):
+                labels_ok = False
 
             le.get_geometry()
             conformer_coordinates.append(le.geom[list('XYZ')].values)
@@ -269,7 +271,7 @@ def rdmol_from_sge_jobs(jobs, postDFT=True) -> Chem.Mol:
         energies = [AllChem.MMFFGetMoleculeForceField(rdmol, props, confId=i).CalcEnergy()
                     for i in range(rdmol.GetNumConformers())]
 
-    return rdmol, energies
+    return rdmol, energies, labels_ok
 
 
 def get_rmsd_rdkit(rdmol) -> np.ndarray:
