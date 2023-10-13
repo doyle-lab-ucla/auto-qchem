@@ -385,7 +385,6 @@ class sge_manager(object):
                 can_keys_to_keep = [key for i, key in enumerate(keys) if i in keep]
                 self._upload_can_to_db(can_keys_to_keep, tags)
             else:
-                
                 for key in keys:
                     self.jobs[key].status = sge_status.inspect
                 self._cache()
