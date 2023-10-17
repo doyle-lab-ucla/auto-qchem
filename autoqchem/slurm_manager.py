@@ -234,33 +234,33 @@ class slurm_manager(object):
 
             # initialize the log extractor, it will try to read basic info from the file
             le = gaussian_log_extractor(log_file.local)
+            
+            try:  # look for more specific exception
+                le.check_for_exceptions()
+
+            except NoGeometryException:
+                job.status = slurm_status.failed
+                logger.warning(
+                    f"Job {job.base_name} failed - the log file does not contain geometry. Cannot resubmit.")
+
+            except NegativeFrequencyException:
+                job.status = slurm_status.incomplete
+                logger.warning(
+                    f"Job {job.base_name} incomplete - log file contains negative frequencies. Resubmit job.")
+
+            except OptimizationIncompleteException:
+                job.status = slurm_status.incomplete
+                logger.warning(f"Job {job.base_name} incomplete - geometry optimization did not complete.")
+
+            except Exception as e:
+                job.status = slurm_status.failed
+                logger.warning(f"Job {job.base_name} failed with unhandled exception: {e}")
+
             if len(job.tasks) == le.n_tasks:
                 job.status = slurm_status.done
-            else:
-                try:  # look for more specific exception
-                    le.check_for_exceptions()
-
-                except NoGeometryException:
-                    job.status = slurm_status.failed
-                    logger.warning(
-                        f"Job {job.base_name} failed - the log file does not contain geometry. Cannot resubmit.")
-
-                except NegativeFrequencyException:
-                    job.status = slurm_status.incomplete
-                    logger.warning(
-                        f"Job {job.base_name} incomplete - log file contains negative frequencies. Resubmit job.")
-
-                except OptimizationIncompleteException:
-                    job.status = slurm_status.incomplete
-                    logger.warning(f"Job {job.base_name} incomplete - geometry optimization did not complete.")
-
-                except Exception as e:
-                    job.status = slurm_status.failed
-                    logger.warning(f"Job {job.base_name} failed with unhandled exception: {e}")
-
-                else:  # no exceptions were thrown, but still the job is incomplete
-                    job.status = slurm_status.incomplete
-                    logger.warning(f"Job {job.base_name} incomplete.")
+            else:  # no exceptions were thrown, but still the job is incomplete
+                job.status = slurm_status.incomplete
+                logger.warning(f"Job {job.base_name} incomplete.")
 
         except FileNotFoundError:
             job.status = slurm_status.failed
@@ -369,20 +369,25 @@ class slurm_manager(object):
 
         for done_can in done_cans:
             (keys, jobs) = zip(*self.get_jobs(can=done_can).items())
-            rdmol, energies = rdmol_from_slurm_jobs(jobs, postDFT=True)
-            keep = prune_rmsds(rdmol, RMSD_threshold)
-            logger.info(f"Molecule {done_can} has {len(keys) - len(keep)} / {len(keys)} duplicate conformers.")
+            rdmol, energies, labels_ok = rdmol_from_slurm_jobs(jobs, postDFT=True)
+            if labels_ok:
+                keep = prune_rmsds(rdmol, RMSD_threshold)
+                logger.info(f"Molecule {done_can} has {len(keys) - len(keep)} / {len(keys)} duplicate conformers.")
 
-            # remove duplicate jobs
-            can_keys_to_remove = [key for i, key in enumerate(keys) if i not in keep]
-            to_remove_jobs = {name: job for name, job in self.jobs.items() if name in can_keys_to_remove}
-            logger.info(
-                f"Removing {len(keys) - len(keep)} / {len(keys)} jobs and log files that contain duplicate conformers.")
-            self.remove_jobs(to_remove_jobs)
+                # remove duplicate jobs
+                can_keys_to_remove = [key for i, key in enumerate(keys) if i not in keep]
+                to_remove_jobs = {name: job for name, job in self.jobs.items() if name in can_keys_to_remove}
+                logger.info(
+                    f"Removing {len(keys) - len(keep)} / {len(keys)} jobs and log files that contain duplicate conformers.")
+                self.remove_jobs(to_remove_jobs)
 
-            # upload non-duplicate jobs
-            can_keys_to_keep = [key for i, key in enumerate(keys) if i in keep]
-            self._upload_can_to_db(can_keys_to_keep, tags)
+                # upload non-duplicate jobs
+                can_keys_to_keep = [key for i, key in enumerate(keys) if i in keep]
+                self._upload_can_to_db(can_keys_to_keep, tags)
+            else:
+                for key in keys:
+                    self.jobs[key].status = slurm_status.inspect
+                self._cache()
 
     def _upload_can_to_db(self, keys, tags) -> None:
         """Uploading single molecule conformers to database.
