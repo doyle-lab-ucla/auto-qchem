@@ -200,7 +200,8 @@ class sge_manager(object):
 
         # retrieve job ids that are running and waiting on the server
         ret = self.connection.run(f"qstat -u {self.user}", hide=True)
-        user_running_ids = [re.search(".* (\d{7}) .*", l).group(1) for l  in ret.stdout.splitlines()[2:]] # looking for exactly 7 digit number
+        user_running_ids = [l.split()[0] for l in ret.stdout.splitlines()[2:]]
+        #user_running_ids = [re.search(".* (\d{7}) .*", l).group(1) for l  in ret.stdout.splitlines()[2:]] # looking for exactly 7 digit number (problematic)
         running_ids = [id for id in user_running_ids if id in ids_to_check]
         finished_ids = [id for id in ids_to_check if id not in running_ids]
 
@@ -528,8 +529,9 @@ class sge_manager(object):
         self.connect()
         if summary:
             ret = self.connection.run(f"qstat -u {self.user}", hide=True)
+            user_running_ids = [l.split()[0] for l in ret.stdout.splitlines()[2:]]
             #user_running_ids = [l.split()[0] for l in ret.stdout.readlines()[2:]]
-            user_running_ids = [re.search(".* (\d{7}) .*", l).group(1) for l  in ret.stdout.splitlines()[2:]] # looking for exactly 7 digit number
+            #user_running_ids = [re.search(".* (\d{7}) .*", l).group(1) for l  in ret.stdout.splitlines()[2:]] # looking for exactly 7 digit number; problematic if queue changes
             running, queued = 0, 0
             for jobid in user_running_ids:
                 try:
