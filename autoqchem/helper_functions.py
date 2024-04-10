@@ -78,10 +78,10 @@ def ssh_connect_pem(host, user, pem_path) -> fabric.Connection:
 
     try:
         if pem_path:
-		client.connect(host,username=user,key_filename=pem_path)
-	else:
-		client.connect(host,username=user)
-    		client.get_transport().auth_password(username=user,password=getpass.getpass(f"{user}@{host}'s password:"))
+            client.connect(host,username=user,key_filename=pem_path)
+        else:
+            client.connect(host,username=user)
+            client.get_transport().auth_password(username=user,password=getpass.getpass(f"{user}@{host}'s password:"))
     except paramiko.ssh_exception.SSHException:
         pass
 
