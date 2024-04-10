@@ -64,6 +64,34 @@ def ssh_connect_password(host, user) -> fabric.Connection:
     return c
 
 
+def ssh_connect_pem(host, user, pem_path) -> fabric.Connection:
+    """Create ssh connection using fabric and paramiko, tries rsa key in .pem file, otherwise asks for password (without DUO authentication).
+
+    :param host: remote host
+    :param user: username to authenticate on remote host
+    :param pem_path: private rsa key - full path to .pem file (optional)
+    :return: fabric.Connection
+    """
+
+    client = paramiko.SSHClient()
+    client.load_system_host_keys()
+
+    try:
+        if pem_path:
+		client.connect(host,username=user,key_filename=pem_path)
+	else:
+		client.connect(host,username=user)
+    		client.get_transport().auth_password(username=user,password=getpass.getpass(f"{user}@{host}'s password:"))
+    except paramiko.ssh_exception.SSHException:
+        pass
+
+    c = fabric.Connection(host)
+    c.client = client
+    c.transport = client.get_transport()
+
+    return c
+
+
 def cleanup_directory_files(dir_path, types=()) -> None:
     """Remove files with specific extension(s) from a directory.
 

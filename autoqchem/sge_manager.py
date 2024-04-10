@@ -16,12 +16,14 @@ logger = logging.getLogger(__name__)
 class sge_manager(object):
     """SGE manager class."""
 
-    def __init__(self, user, host):
+    def __init__(self, user, host, pem_path=None):
         """Initialize sge manager and load the cache file.
 
         :param user: username at remote host
         :type user: str
         :param host: remote host name
+        :type host: str
+        :param pem_path: private rsa key - full path to .pem file (optional)
         :type host: str
         """
 
@@ -39,6 +41,7 @@ class sge_manager(object):
 
         self.host = host
         self.user = user
+        self.pem_path = pem_path
         self.remote_dir = f"/u/scratch/{self.user[0]}/{self.user}/gaussian"
         self.connection = None
 
@@ -58,7 +61,7 @@ class sge_manager(object):
             logger.info(f"Creating connection to {self.host} as {self.user}")
             create_new_connection = True
         if create_new_connection:
-            self.connection = ssh_connect_password(self.host, self.user)    # hoffman2 requires connecting with password (no DUO)
+            self.connection = ssh_connect_pem(self.host, self.user, self.pem_path)    # hoffman2 requires connecting with password or rsa key (no DUO)
             self.connection.run(f"mkdir -p {self.remote_dir}")
             logger.info(f"Connected to {self.host} as {self.user}.")
 
