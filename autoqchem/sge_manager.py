@@ -604,16 +604,16 @@ class sge_manager(object):
         output += f"# set job environment and GAUSS_SCRDIR variable\n" \
                   f". /u/local/Modules/default/init/modules.sh\n" \
                   f"module load gaussian/g16_sse4\n" \
+                  f"# another compiled version: gaussian/16_avx\n" \
                   f"export GAUSS_SCRDIR=$TMPDIR\n\n"
 
         output += f"# echo current module used to joblog\n" \
                   f"module li\n" \
                   f'echo "GAUSS_SCRDIR=$GAUSS_SCRDIR"\n' \
-                  f"# another compiled version: $g16root/16_avx/g16\n" \
-                  f"echo '/usr/bin/time -v $g16root/16_sse4/g16 < {base_name}.gjf > {base_name}.log'\n\n" \
+                  f"echo '/usr/bin/time -v $g16root/g16 < {base_name}.gjf > {base_name}.log'\n\n" \
                   f"cd {self.remote_dir}\n" \
                   f"# run command\n" \
-                  f"/usr/bin/time -v $g16root/16_sse4/g16 < {base_name}.gjf > {base_name}.log\n\n" 
+                  f"/usr/bin/time -v $g16root/g16 < {base_name}.gjf > {base_name}.log\n\n" 
 
         output += f"# echo job info to joblog\n" \
                   f"echo 'Job $JOB_ID ended on:   '' `hostname -s`\n" \
