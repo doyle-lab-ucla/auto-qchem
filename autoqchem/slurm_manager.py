@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 class slurm_manager(object):
     """Slurm manager class."""
 
-    def __init__(self, user, host):
+    def __init__(self, user, host, remote_dir=None):
         """Initialize slurm manager and load the cache file.
 
         :param user: username at remote host
@@ -39,7 +39,10 @@ class slurm_manager(object):
 
         self.host = host
         self.user = user
-        self.remote_dir = f"/scratch/{'gpfs' if 'della' in host else 'network'}/{self.user}/gaussian"
+        if remote_dir:
+            self.remote_dir = remote_dir
+        else:
+            self.remote_dir = f"/scratch/{'gpfs' if 'della' in host else 'network'}/{self.user}/gaussian"
         self.connection = None
 
     def connect(self) -> None:
@@ -58,7 +61,7 @@ class slurm_manager(object):
             logger.info(f"Creating connection to {self.host} as {self.user}")
             create_new_connection = True
         if create_new_connection:
-            self.connection = ssh_connect(self.host, self.user)
+            self.connection = ssh_connect_password(self.host, self.user)
             self.connection.run(f"mkdir -p {self.remote_dir}")
             logger.info(f"Connected to {self.host} as {self.user}.")
 
