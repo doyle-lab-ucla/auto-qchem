@@ -1,6 +1,7 @@
 import hashlib
 import pickle
 from contextlib import suppress
+from tqdm import tqdm
 
 import appdirs
 
@@ -176,7 +177,7 @@ class sge_manager(object):
             self.connect()
 
             # check if jobs are in status created or failed
-            for name, job in jobs.items():
+            for name, job in tqdm(jobs.items()):
                 # copy .sh and .gjf file to remote_dir
                 self.connection.put(f"{job.directory}/{job.base_name}.sh", self.remote_dir)
                 self.connection.put(f"{job.directory}/{job.base_name}.gjf", self.remote_dir)
@@ -216,7 +217,7 @@ class sge_manager(object):
 
         if finished_jobs:
             logger.info(f"Retrieving log files of finished jobs.")
-            for job in finished_jobs.values():
+            for job in tqdm(finished_jobs.values()):
                 status = self._retrieve_single_job(job)
                 if status.value == sge_status.done.value:
                     done_jobs += 1
@@ -315,7 +316,7 @@ class sge_manager(object):
                                          file_string, re.DOTALL).group(0)
 
             # new coords block
-            coords = le.geom[list('XYZ')].applymap(lambda x: f"{x:.6f}")
+            coords = le.geom[list('XYZ')].map(lambda x: f"{x:.6f}")
             coords.insert(0, 'Atom', le.labels)
             coords_block = "\n".join(map(" ".join, coords.values)) + "\n\n"
 
