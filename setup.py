@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='auto-qchem',
-    version='1.3.3',
+    version='1.3.11',
     packages=['autoqchem'],
     data_files=['config.yml'],
     url='https://github.com/doyle-lab-ucla/auto-qchem',
@@ -26,6 +26,7 @@ setup(
                       'xlrd>=2.0',
                       'openpyxl>=3.0',
                       'rdkit',
+                      'tqdm',
                       'matplotlib>=3.5'
                       ],
     python_requires='>=3.8'

@@ -572,10 +572,15 @@ class slurm_manager(object):
 
         output = ""
         output += f"#!/bin/bash\n"
-        output += f"#SBATCH -N 1\n" \
-                  f"#SBATCH --ntasks-per-node={n_processors}\n" \
-                  f"#SBATCH -t {wall_time}\n" \
-                  f"#SBATCH --constraint={constraint}\n\n"
+        if host == "bridges2":
+            output += f"#SBATCH -N 1\n" \
+                      f"#SBATCH --ntasks-per-node={n_processors}\n" \
+                      f"#SBATCH -t {wall_time}\n\n"
+        else:
+            output += f"#SBATCH -N 1\n" \
+                      f"#SBATCH --ntasks-per-node={n_processors}\n" \
+                      f"#SBATCH -t {wall_time}\n" \
+                      f"#SBATCH --constraint={constraint}\n\n"
         if host == "adroit":
             output += f"module load gaussian/g16\n\n"
         output += f"input={base_name}\n\n"
