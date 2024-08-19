@@ -568,7 +568,9 @@ class slurm_manager(object):
         host = self.host.split(".")[0]
 
         n_processors = re.search("nprocshared=(.*?)\n", file_string).group(1)
-        constraint = {'della': '\"haswell|skylake\"', 'adroit': '\"skylake\"'}[host]
+
+        if host in {'della', 'adroit'}:
+            constraint = {'della': '\"haswell|skylake\"', 'adroit': '\"skylake\"'}[host]
 
         output = ""
         output += f"#!/bin/bash\n"
