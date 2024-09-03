@@ -2,6 +2,9 @@
   <img src="https://github.com/beef-broccoli/misc-files/blob/9332ec68f7f798a3c2819dad9a0d2280769985ee/autoqchem.png" alt="logo" width="600">
 </p>
 
+---
+# 09/03/24: Autoqchem website is temporarily down 
+
 ## Quick links
 
 [Installation instructions](https://github.com/doyle-lab-ucla/auto-qchem/blob/master/INSTALL.md)
