@@ -3,7 +3,6 @@
 </p>
 
 ---
-# 09/03/24: Autoqchem website is temporarily down 
 
 ## Quick links
 
