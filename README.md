@@ -12,7 +12,7 @@
 
 [Code base documentation](https://doyle-lab-ucla.github.io/auto-qchem)
 
-[Detailed explanations of descriptor names](https://github.com/doyle-lab-ucla/auto-qchem/blob/master/DESCRIPTOR.md)
+[What exactly are all the descriptors?](https://github.com/doyle-lab-ucla/auto-qchem/blob/master/DESCRIPTOR.md)
 
 ---
 [Repo with example jupyter notebooks](https://github.com/doyle-lab-ucla/auto-qchem-notebook-examples)
