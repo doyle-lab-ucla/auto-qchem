@@ -579,6 +579,7 @@ def get_all_conformer_data(tags=None, out_folder=''):
 
     """
 
+    # select data by tags
     df = db_select_molecules(tags=tags)
     df = df[['can', 'molecule_id', '_ids', 'weights', 'num_conformers']]
 
@@ -593,11 +594,11 @@ def get_all_conformer_data(tags=None, out_folder=''):
     # int_key-smiles dictionary
     int_key_dict = dict(zip(df['can'], df['int_keys']))
 
-    # if no out_folder specified, default folder is created as "data"
+    # create out folder name if not specified
     if out_folder:
         fp_prefix = pathlib.Path(out_folder)
     else:
-        fp_prefix = pathlib.Path.cwd() / 'data'
+        fp_prefix = pathlib.Path.cwd() / f'data'
 
     # loop through molecules with can_smiles
     for c in tqdm(mol_cans):
@@ -613,7 +614,6 @@ def get_all_conformer_data(tags=None, out_folder=''):
             m = mols_coll.find_one({'can': c, '_id': {"$in": mol_ids}})
         else:
             m = mols_coll.find_one({'can': c})
-
         if m is None:
             logger.warning(f"Molecule {c} not found.")
             return None, None
@@ -621,10 +621,8 @@ def get_all_conformer_data(tags=None, out_folder=''):
         # find all features for this mol
         feats_coll = db_connect("qchem_descriptors")
         feats = feats_coll.find({'molecule_id': m['_id']},
-                                {'_id': 0, 'descriptors.G': 1, 'labels': 1, 'atom_descriptors': 1,})
+                                {'_id': 0, 'descriptors': 1, 'labels': 1, 'atom_descriptors': 1,})
         feats = list(feats)
-
-        #TODO: find molecular features
 
         # generate argsort with energies, and sort energies
         energies = np.array([f['descriptors']['G'] * Hartree_in_kcal_per_mol for f in feats])
@@ -634,6 +632,10 @@ def get_all_conformer_data(tags=None, out_folder=''):
         # fetch atom descriptors and sort with energies
         atom_descriptors = np.array([np.array([f['atom_descriptors']]).T for f in feats])
         atom_descriptors = atom_descriptors[order, :]
+
+        # fetch molecular-level descriptors and sort with energies
+        mol_descriptors = np.array([np.array([f['descriptors']]).T for f in feats])
+        mol_descriptors = mol_descriptors[order, :]
 
         # for each conformer of this molecule, save .xyz files and conformer features
         num_conf = atom_descriptors.shape[0]
@@ -653,16 +655,27 @@ def get_all_conformer_data(tags=None, out_folder=''):
             # save other data
             data.to_csv(fp / f'conf{ii}.csv')
 
-        # save energies
+        # save molecular level descriptors
+        new_descriptors = [d[0] for d in mol_descriptors]
+        mol_descriptors = pd.DataFrame.from_records(new_descriptors)
+        mol_descriptors['conf_id'] = [f'conf{i}' for i in range(len(mol_descriptors))]
+        mol_descriptors.to_csv(fp / 'molecular_level_features.csv')
+
+        # save energies (legacy feature)
         with open(fp / 'conformer_energies.npy', 'wb') as f:
             np.save(f, energies)
 
-    # add energies for the
+    # add energies to the mols.csv table, clean up some columns
     df['energies'] = np.nan
     keys = list(df['int_keys'])
     for key in keys:
         energies = np.load(fp_prefix / f'mol{key}' / 'conformer_energies.npy')
         df.loc[df['int_keys'] == key, 'energies'] = str(list(energies))
+    df = df.rename(columns={'molecule_id': 'autoqchem_molecule_id',
+                            'can': 'canonical_smiles',
+                            'weights': 'Boltzmann_weights'})
+    df = df.drop(['_ids'], axis=1)
+    df['molecule_id'] = [f'mol{d}' for d in df['int_keys']]
     df.to_csv(fp_prefix / 'mols.csv')
 
 
