@@ -68,7 +68,7 @@ class slurm_manager(object):
     def create_jobs_for_molecule(self,
                                  molecule,
                                  workflow_type="equilibrium",
-                                 theory="APFD",
+                                 theory="B3LYP",
                                  solvent="None",
                                  light_basis_set="6-31G*",
                                  heavy_basis_set="LANL2DZ",

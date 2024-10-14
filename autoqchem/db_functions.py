@@ -1,11 +1,13 @@
 import logging
 import re
-
+import pathlib
+from tqdm import tqdm
+import json
 import pandas as pd
 import numpy as np
 import pymongo
 from bson.objectid import ObjectId
-from rdkit import Chem
+from rdkit import Chem, Geometry
 from rdkit.Chem import rdFMCS
 
 from autoqchem.helper_classes import config, Hartree_in_kcal_per_mol
@@ -13,6 +15,8 @@ from autoqchem.helper_functions import add_numbers_to_repeated_items
 from autoqchem.rdkit_utils import get_rdkit_mol
 
 logger = logging.getLogger(__name__)
+
+Hartree_in_kcal_per_mol = 627.5
 
 desc_presets = ['global', 'min_max', 'substructure', 'core', 'transitions']
 desc_presets_long = ['Global', 'Min Max Atomic', 'Substructure Atomic', 'Common Core Atomic',
@@ -569,6 +573,112 @@ def descriptors_from_mol_df(mol_df, conf_option='max') -> dict:
     return record_df.groupby('can').apply(reweigh_desc)
 
 
+def get_all_conformer_data(tags=None, out_folder=''):
+    """
+    For a dataset, fetch all the individual conformer data with xyz files
+
+    """
+
+    # select data by tags
+    df = db_select_molecules(tags=tags)
+    df = df[['can', 'molecule_id', '_ids', 'weights', 'num_conformers']]
+
+    # export molecules with metadata first
+    df['weights'] = df['weights'].apply(lambda x: str(sorted(x, reverse=True)))  # reverse sort weights: lowest energy = highest weight
+    df['int_keys'] = np.arange(len(df.index))  # integer key for each molecule
+
+    mol_cans = df['can'].to_list()
+    mols_coll = db_connect('molecules')
+    tags_coll = db_connect('tags')
+
+    # int_key-smiles dictionary
+    int_key_dict = dict(zip(df['can'], df['int_keys']))
+
+    # create out folder name if not specified
+    if out_folder:
+        fp_prefix = pathlib.Path(out_folder)
+    else:
+        fp_prefix = pathlib.Path.cwd() / f'data'
+
+    # loop through molecules with can_smiles
+    for c in tqdm(mol_cans):
+
+        # in case interrupted query, check if this has been downloaded. If yes, skip
+        fp = fp_prefix / f'mol{int_key_dict[c]}'
+        if fp.exists():
+            continue
+
+        if tags:  # recommended; prefilter molecules that belong to a specific tag
+            mol_ids = [record['molecule_id'] for record in tags_coll.find({'tag': {'$in': tags}},
+                                                                          {'molecule_id': 1, '_id': 0})]
+            m = mols_coll.find_one({'can': c, '_id': {"$in": mol_ids}})
+        else:
+            m = mols_coll.find_one({'can': c})
+        if m is None:
+            logger.warning(f"Molecule {c} not found.")
+            return None, None
+
+        # find all features for this mol
+        feats_coll = db_connect("qchem_descriptors")
+        feats = feats_coll.find({'molecule_id': m['_id']},
+                                {'_id': 0, 'descriptors': 1, 'labels': 1, 'atom_descriptors': 1,})
+        feats = list(feats)
+
+        # generate argsort with energies, and sort energies
+        energies = np.array([f['descriptors']['G'] * Hartree_in_kcal_per_mol for f in feats])
+        order = energies.argsort()
+        energies = energies[order]
+
+        # fetch atom descriptors and sort with energies
+        atom_descriptors = np.array([np.array([f['atom_descriptors']]).T for f in feats])
+        atom_descriptors = atom_descriptors[order, :]
+
+        # fetch molecular-level descriptors and sort with energies
+        mol_descriptors = np.array([np.array([f['descriptors']]).T for f in feats])
+        mol_descriptors = mol_descriptors[order, :]
+
+        # for each conformer of this molecule, save .xyz files and conformer features
+        num_conf = atom_descriptors.shape[0]
+        for ii in range(num_conf):
+
+            data = pd.DataFrame.from_dict(atom_descriptors[ii][0])
+            data.index = feats[order[ii]]['labels']
+            xyzs = data[['X', 'Y', 'Z']]
+            fp.mkdir(parents=True, exist_ok=True)
+
+            # save .xyz files
+            with open(fp / f'conf{ii}.xyz', 'w') as f:
+                f.write(f'{len(data)}\n')
+                f.write('\n')
+            xyzs.to_csv(fp / f'conf{ii}.xyz', sep=' ', header=False, mode='a')
+
+            # save other data
+            data.to_csv(fp / f'conf{ii}.csv')
+
+        # save molecular level descriptors
+        new_descriptors = [d[0] for d in mol_descriptors]
+        mol_descriptors = pd.DataFrame.from_records(new_descriptors)
+        mol_descriptors['conf_id'] = [f'conf{i}' for i in range(len(mol_descriptors))]
+        mol_descriptors.to_csv(fp / 'molecular_level_features.csv')
+
+        # save energies (legacy feature)
+        with open(fp / 'conformer_energies.npy', 'wb') as f:
+            np.save(f, energies)
+
+    # add energies to the mols.csv table, clean up some columns
+    df['energies'] = np.nan
+    keys = list(df['int_keys'])
+    for key in keys:
+        energies = np.load(fp_prefix / f'mol{key}' / 'conformer_energies.npy')
+        df.loc[df['int_keys'] == key, 'energies'] = str(list(energies))
+    df = df.rename(columns={'molecule_id': 'autoqchem_molecule_id',
+                            'can': 'canonical_smiles',
+                            'weights': 'Boltzmann_weights'})
+    df = df.drop(['_ids'], axis=1)
+    df['molecule_id'] = [f'mol{d}' for d in df['int_keys']]
+    df.to_csv(fp_prefix / 'mols.csv')
+
+
 def _pandatize_record(record) -> dict:
     """Convert json structures to pandas structures for an individual
     db record of a single conformation.
@@ -600,3 +710,7 @@ def _pandatize_record(record) -> dict:
 class InconsistentLabelsException(Exception):
     """Raised when a set of molecules is inconsistently labeled"""
     pass
+
+
+if __name__ == '__main__':
+    get_all_conformer_data(tags=['test_WCG'])
