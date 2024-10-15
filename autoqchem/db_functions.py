@@ -217,8 +217,8 @@ def db_select_molecules(tags=[], substructure="", smiles="", solvent="ALL",
     df['metadata_str'] = df['metadata'].map(repr)
     grouped = df.groupby(['can', 'metadata_str'])
     # groupby tags
-    df = pd.concat([grouped['metadata', 'molecule_id', 'name'].first(),
-                    grouped['tag'].apply(list)], axis=1).reset_index().drop('metadata_str', axis=1)
+    df = pd.concat([grouped[['metadata', 'molecule_id', 'name']].first(),
+                    grouped[['tag']].apply(list)], axis=1).reset_index().drop('metadata_str', axis=1)
 
     # fetch ids and weights
     feats_cur = feats_coll.find({'molecule_id': {'$in': df.molecule_id.tolist()}},
@@ -436,6 +436,7 @@ def descriptors(tags, presets, conf_option, solvent, functional, basis_set, subs
             for c, row in tmp_df.iterrows():
                 atom_descs = row['descs']['atom_descriptors']
                 atom_descs['labels'] = row['descs']['labels']
+                atom_descs = atom_descs[~atom_descs['labels'].str.startswith("H")]
                 to_concat.append(atom_descs.iloc[row['matches'][i]])
             data[label] = pd.concat(to_concat, axis=1, sort=True)
             data[label].columns = descs_df.index
