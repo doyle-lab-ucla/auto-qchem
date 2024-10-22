@@ -712,6 +712,3 @@ class InconsistentLabelsException(Exception):
     """Raised when a set of molecules is inconsistently labeled"""
     pass
 
-
-if __name__ == '__main__':
-    get_all_conformer_data(tags=['test_WCG'])
