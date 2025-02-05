@@ -4,6 +4,11 @@ from contextlib import suppress
 
 import appdirs
 
+import os
+import glob
+import pandas as pd
+import logging
+
 from autoqchem.db_functions import *
 from autoqchem.gaussian_input_generator import *
 from autoqchem.gaussian_log_extractor import *
@@ -16,7 +21,7 @@ logger = logging.getLogger(__name__)
 class slurm_manager(object):
     """Slurm manager class."""
 
-    def __init__(self, user, host, remote_dir=None):
+    def __init__(self, gw_host , gw_user, host, user):
         """Initialize slurm manager and load the cache file.
 
         :param user: username at remote host
@@ -37,33 +42,21 @@ class slurm_manager(object):
             with open(self.cache_file, 'rb') as cf:
                 self.jobs = pickle.load(cf)
 
+        self.gw_host = gw_host
+        self.gw_user = gw_user
         self.host = host
         self.user = user
-        if remote_dir:
-            self.remote_dir = remote_dir
-        else:
-            self.remote_dir = f"/scratch/{'gpfs' if 'della' in host else 'network'}/{self.user}/gaussian"
+        self.remote_base_dir = f"/data/{user}/autoqchem/"
         self.connection = None
 
     def connect(self) -> None:
-        """Connect to remote host."""
 
-        create_new_connection = False
-        # check if connection already exists
-        if self.connection is not None:
-            # check if it went stale
-            if not self.connection.is_connected:
-                logger.info(f"Connection got disconnected, reconnecting.")
-                self.connection.close()
-                self.connection = None
-                create_new_connection = True
-        else:
-            logger.info(f"Creating connection to {self.host} as {self.user}")
-            create_new_connection = True
-        if create_new_connection:
-            self.connection = ssh_connect_password(self.host, self.user)
-            self.connection.run(f"mkdir -p {self.remote_dir}")
-            logger.info(f"Connected to {self.host} as {self.user}.")
+        """Connect to remote host."""
+        if not self.connection or not self.connection.is_connected:
+            logger.info(f"Connecting to {self.host} as {self.user}.")
+            self.connection = shh_connect(self.gw_host, self.gw_user, self.host, self.user)
+            self.connection.run(f"mkdir -p {self.remote_base_dir}")
+            logger.info(f"Connection established.")
 
     def create_jobs_for_molecule(self,
                                  molecule,
@@ -71,10 +64,13 @@ class slurm_manager(object):
                                  theory="B3LYP",
                                  solvent="None",
                                  light_basis_set="6-31G*",
-                                 heavy_basis_set="LANL2DZ",
+                                 heavy_basis_set="3-21G",
                                  generic_basis_set="genecp",
                                  max_light_atomic_number=36,
-                                 wall_time='23:59:00') -> None:
+                                 partition='qAVX1',
+                                 cpus_per_task=10,
+                                 wall_time='23:59:00',
+                                 custom_prefix="None") -> None:
         """Generate slurm jobs for a molecule. Gaussian input files are also generated.
 
         :param molecule: molecule object
@@ -98,31 +94,31 @@ class slurm_manager(object):
         """
 
         # create gaussian files
-        molecule_workdir = os.path.join(self.workdir, molecule.inchikey)
-        gig = gaussian_input_generator(molecule, workflow_type, molecule_workdir, theory, solvent, light_basis_set,
-                                       heavy_basis_set, generic_basis_set, max_light_atomic_number)
+        prefix = custom_prefix if custom_prefix else molecule.inchikey
+        local_dir = os.path.join(self.workdir, prefix)
+        os.makedirs(local_dir, exist_ok=True)
+        remote_dir = os.path.join(self.remote_base_dir, prefix)
+        self.connect()
+        self.connection.run(f"mkdir -p {remote_dir}")
+       
+        gig = gaussian_input_generator(molecule, workflow_type, local_dir, theory, solvent, light_basis_set,
+                                       heavy_basis_set, generic_basis_set, max_light_atomic_number, custom_prefix=prefix)
         gaussian_config = {'theory': theory,
                            'solvent': solvent,
                            'light_basis_set': light_basis_set,
                            'heavy_basis_set': heavy_basis_set,
                            'generic_basis_set': generic_basis_set,
                            'max_light_atomic_number': max_light_atomic_number}
-
-        # DB check if the same molecule with the same gaussian configuration already exists
-        exists, tags = db_check_exists(molecule.inchi, gaussian_config,
-                                       molecule.max_num_conformers, molecule.conformer_engine)
-        if exists:
-            logger.warning(f"Molecule {molecule.inchi} already exists with the same Gaussian config with tags {tags}."
-                           f" Not creating jobs.")
-            return
-
         gig.create_gaussian_files()
 
         # create slurm files
-        for gjf_file in glob.glob(f"{molecule_workdir}/*.gjf"):
+        for gjf_file in glob.glob(f"{local_dir}/*.gjf"):
 
-            base_name = os.path.basename(os.path.splitext(gjf_file)[0])
-            self._create_slurm_file_from_gaussian_file(base_name, molecule_workdir, wall_time)
+            base_name = os.path.splitext(os.path.basename(gjf_file))[0]
+            self._create_slurm_file_from_gaussian_file(base_name, local_dir, partition, cpus_per_task, wall_time, remote_dir, remote_base_dir=self.remote_base_dir)
+            self.connection.put(gjf_file, remote_dir)
+            self.connection.put(f"{local_dir}/{base_name}.sh", remote_dir)
+            
             # create job structure
             job = slurm_job(can=molecule.can,
                             inchi=molecule.inchi,
@@ -146,22 +142,56 @@ class slurm_manager(object):
             key = hashlib.md5((job.can + str(job.conformation) +
                                str(job.max_num_conformers) + ','.join(map(str, job.tasks))).encode()).hexdigest()
 
-            # check if a job like that already exists
-            if key in self.jobs:  # a job like that is already present:
-                logger.warning(f"A job with exactly the same parameters, molecule {job.can}, conformation "
-                               f"{job.conformation}, workflow {job.tasks} already exists. "
-                               f"Not creating a duplicate")
-                continue
-
             self.jobs[key] = job  # add job to bag
         self._cache()
 
+
+    def _check_job_status(self, job):
+        """Check if a job has completed successfully."""
+        # Skip jobs that are already done or failed
+        if job.status in [slurm_status.done, slurm_status.failed]:
+            logger.info(f"Skipping job {job.job_id} as it is already marked as {job.status}.")
+            return True  # or return False based on your logic
+
+        try:
+            # Check job status using scontrol
+            job_status = self.connection.run(f"scontrol show job {job.job_id}", hide=True).stdout
+            if "JobState=COMPLETED" in job_status:
+                logger.info(f"Job {job.job_id} completed successfully.")
+                job.status = slurm_status.done  # Update status to 'done'
+                return True
+            elif "JobState=FAILED" in job_status:
+                logger.error(f"Job {job.job_id} failed.")
+                job.status = slurm_status.failed  # Mark the job as failed
+                return False
+            elif "JobState=PENDING" in job_status:
+                logger.info(f"Job {job.job_id} is pending.")
+                return False
+            elif "JobState=RUNNING" in job_status:
+                logger.info(f"Job {job.job_id} is currently running.")
+                return False
+            elif "JobState=TIMEOUT" in job_status:
+                logger.error(f"Job {job.job_id} timed out.")
+                job.status = slurm_status.failed  # Mark the job as failed due to timeout
+                return False
+            else:
+                logger.info(f"Job {job.job_id} is in an unknown state.")
+                return False
+        except Exception as e:
+            logger.error(f"Error checking job status for {job.job_id}: {e}")
+            job.status = slurm_status.failed
+            return False
+
     def submit_jobs(self) -> None:
         """Submit jobs that have status 'created' to remote host."""
-
+        # Get jobs that are in the 'created' state and not done or failed
         jobs = self.get_jobs(slurm_status.created)
+        # Optionally filter out jobs that are already done or failed
+        jobs = {name: job for name, job in jobs.items() if job.status not in [slurm_status.done, slurm_status.failed]}
+    
         logger.info(f"Submitting {len(jobs)} jobs.")
         self.submit_jobs_from_jobs_dict(jobs)
+
 
     def submit_jobs_from_jobs_dict(self, jobs) -> None:
         """Submit jobs to remote host.
@@ -169,26 +199,31 @@ class slurm_manager(object):
         :param jobs: dictionary of jobs to submit
         :type jobs: dict
         """
-
+        
         # check if there are any jobs to be submitted
         if jobs:
             # get or create connection
             self.connect()
+         
 
             # check if jobs are in status created or failed
             for name, job in jobs.items():
-                # copy .sh and .gjf file to remote_dir
-                self.connection.put(f"{job.directory}/{job.base_name}.sh", self.remote_dir)
-                self.connection.put(f"{job.directory}/{job.base_name}.gjf", self.remote_dir)
+                remote_molecule_dir = os.path.join(self.remote_base_dir, job.base_name.split("_conf_")[0])
+                #self.connection.put(remote_molecule_dir)
 
-                with self.connection.cd(self.remote_dir):
-                    ret = self.connection.run(f"sbatch {self.remote_dir}/{job.base_name}.sh", hide=True)
+                # copy .sh and .gjf file to remote_dir
+                self.connection.put(f"{job.directory}/{job.base_name}.sh", remote_molecule_dir)
+                self.connection.put(f"{job.directory}/{job.base_name}.gjf", remote_molecule_dir)
+
+                with self.connection.cd(remote_molecule_dir):
+                    ret = self.connection.run(f"sbatch {job.base_name}.sh", hide=True)
                     job.job_id = re.search("job\s*(\d+)\n", ret.stdout).group(1)
                     job.status = slurm_status.submitted
                     job.n_submissions = job.n_submissions + 1
                     logger.info(f"Submitted job {name}, job_id: {job.job_id}.")
 
             self._cache()
+    
 
     def retrieve_jobs(self) -> None:
         """Retrieve finished jobs from remote host and check which finished successfully and which failed."""
@@ -201,6 +236,10 @@ class slurm_manager(object):
         # get or create connection
         self.connect()
 
+        # Define custom_prefix and remote_dir (Must match how they were set in create_jobs_for_molecule)
+        #self.custom_prefix = self.custom_prefix if hasattr(self, 'custom_prefix') else "default_prefix"
+        #self.remote_dir = os.path.join(self.remote_base_dir, self.custom_prefix)
+     
         # retrieve job ids that are running on the server
         ret = self.connection.run(f"squeue -u {self.user} -o %A,%T", hide=True)
         user_running_ids = [s.split(',')[0] for s in ret.stdout.splitlines()[1:]]
@@ -230,9 +269,11 @@ class slurm_manager(object):
         :param job: job
         :return: :py:meth:`~helper_classes.helper_classes.slurm_status`, resulting status
         """
+        remote_molecule_dir = os.path.join(self.remote_base_dir, job.base_name.split("_conf_")[0])
+       
 
         try:  # try to fetch the file
-            log_file = self.connection.get(f"{self.remote_dir}/{job.base_name}.log",
+            log_file = self.connection.get(f"{remote_molecule_dir}/{job.base_name}.log",
                                            local=f"{job.directory}/{job.base_name}.log")
 
             # initialize the log extractor, it will try to read basic info from the file
@@ -261,6 +302,12 @@ class slurm_manager(object):
 
             if len(job.tasks) == le.n_tasks:
                 job.status = slurm_status.done
+                logger.info(f"Job {job.base_name} completed successfully.")
+                 # Submit ELF job if WFN file exists
+                #if "Output=WFN" in ",".join(job.tasks):
+                 #   logger.info(f"Submitting ELF job for {job.base_name}.")
+                  #  self.submit_elf_job(job)
+
             else:  # no exceptions were thrown, but still the job is incomplete
                 job.status = slurm_status.incomplete
                 logger.warning(f"Job {job.base_name} incomplete.")
@@ -372,6 +419,10 @@ class slurm_manager(object):
 
         for done_can in done_cans:
             (keys, jobs) = zip(*self.get_jobs(can=done_can).items())
+            jobs = [j for j in jobs if os.path.exists(f"{j.directory}/{j.base_name}.log")] #added
+            if not jobs:
+                logger.warning(f"No log files found for completed jobs for molecule:{done_can}")
+                continue
             rdmol, energies, labels_ok = rdmol_from_slurm_jobs(jobs, postDFT=True)
             if labels_ok:
                 keep = prune_rmsds(rdmol, RMSD_threshold)
@@ -503,7 +554,7 @@ class slurm_manager(object):
         :param jobs: dictionary of jobs to remove
         :type jobs: dict
         """
-
+        
         self.connect()
         for name, job in jobs.items():
             logger.debug(f"Removing job {name}.")
@@ -516,8 +567,8 @@ class slurm_manager(object):
             if os.path.exists(f"{job.directory}/{job.base_name}.log"):
                 os.remove(f"{job.directory}/{job.base_name}.log")  # log file
             # remove remote files
-            self.connection.run(f"rm -f {self.remote_dir}/slurm-{job.job_id}.out")
-            self.connection.run(f"rm -f {self.remote_dir}/{job.base_name}*")
+            self.connection.run(f"rm -f {self.remote_base_dir}/slurm-{job.job_id}.out")
+            self.connection.run(f"rm -f {self.remote_base_dir}/{job.base_name}*")
             del self.jobs[name]
         self._cache()
 
@@ -553,7 +604,7 @@ class slurm_manager(object):
 
         cleanup_empty_dirs(self.workdir)
 
-    def _create_slurm_file_from_gaussian_file(self, base_name, directory, wall_time) -> None:
+    def _create_slurm_file_from_gaussian_file(self, base_name, directory, partition, cpus_per_task, wall_time, remote_dir, remote_base_dir) -> None:
         """Generate a single slurm submission file based on the Gaussian input file.
 
         :param base_name: base name of the Gaussian file
@@ -565,30 +616,32 @@ class slurm_manager(object):
         with open(f"{directory}/{base_name}.gjf") as f:
             file_string = f.read()
 
-        host = self.host.split(".")[0]
-
         n_processors = re.search("nprocshared=(.*?)\n", file_string).group(1)
 
-        if host in {'della', 'adroit'}:
-            constraint = {'della': '\"haswell|skylake\"', 'adroit': '\"skylake\"'}[host]
-
-        output = ""
-        output += f"#!/bin/bash\n"
-        if host == "bridges2":
-            output += f"#SBATCH -N 1\n" \
-                      f"#SBATCH --ntasks-per-node={n_processors}\n" \
-                      f"#SBATCH -t {wall_time}\n\n"
-        else:
-            output += f"#SBATCH -N 1\n" \
-                      f"#SBATCH --ntasks-per-node={n_processors}\n" \
-                      f"#SBATCH -t {wall_time}\n" \
-                      f"#SBATCH --constraint={constraint}\n\n"
-        if host == "adroit":
-            output += f"module load gaussian/g16\n\n"
-        output += f"input={base_name}\n\n"
-        output += f"# run the code \n" \
-                  f"cd {self.remote_dir}\n" \
-                  f"g16 ${{input}}.gjf\n\n"
+        output = (f"#!/bin/bash\n"
+                  f"#SBATCH -N 1\n"
+                  f"#SBATCH --export=ALL,MODULEHOME=''\n"
+                  f"#SBATCH --partition={partition}\n"
+                  f"#SBATCH --ntasks-per-node={n_processors}\n"
+                  f"#SBATCH --cpus-per-task={cpus_per_task}\n"
+                  f"#SBATCH -t {wall_time}\n\n"
+                  f"\n"
+                  f"export MODULEPATH=\n"
+                  f". /etc/profile.d/modules.sh\n"
+                  f"\n"
+                  f"module load gaussian/g09\n"
+                  f"ulimit -s unlimited\n"
+                  f"export PATH=$PATH:/data/skennedy/autoqchem/INSTALL_TOPCHEM64/OBJECTS\n"
+                  f"\n"
+                  f"cd {remote_dir}\n"
+                  f"g09 {base_name}.gjf\n"
+                  f"\n"
+                  f"if [ -f {base_name}.wfn ];then\n"
+                  f"    topchem2 wfn:{remote_dir}/{base_name}.wfn function:elf cp:y refine:y vmd output:{remote_dir}/{base_name}_topchem.out\n"
+                  f"else\n"
+                  f"    echo 'Gaussian job not complete'\n"
+                  f"fi\n"
+                  f"\n")
 
         sh_file_path = f"{directory}/{base_name}.sh"
         with open(sh_file_path, "w") as f:
