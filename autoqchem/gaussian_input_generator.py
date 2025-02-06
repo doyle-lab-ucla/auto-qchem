@@ -55,18 +55,18 @@ class gaussian_input_generator(object):
 
         if workflow_type == "equilibrium":
             self.tasks = (
-                f"opt=CalcFc {theory}/{basis_set} {solvent_input}scf=xqc ",
+                f"opt=CalcFc {theory}/{basis_set} {solvent_input}scf=xqc Output=WFN", # to skip geometry optmization use: "{theory}/{basis_set} {solvent_input}scf=xqc Output=WFN"
                 f"freq {theory}/{basis_set} {solvent_input}volume NMR pop=NPA density=current Geom=AllCheck Guess=Read",
                 f"TD(NStates=10, Root=1) {theory}/{basis_set} {solvent_input}volume pop=NPA density=current Geom=AllCheck Guess=Read"
             )
         elif workflow_type == "transition_state":
             self.tasks = (
-                f"opt=(calcfc,ts,noeigentest) scf=xqc {theory}/{basis_set} {solvent_input}",
+                f"opt=(calcfc,ts,noeigentest) scf=xqc {theory}/{basis_set} {solvent_input} Output=WFN", # to skip geometry optmization use: "scf=xqc {theory}/{basis_set} {solvent_input} Output=WFN"
                 f"freq {theory}/{basis_set} {solvent_input}volume NMR pop=NPA density=current Geom=AllCheck Guess=Read"
             )
         elif workflow_type == "test":
             self.tasks = (
-                f"Opt B3LYP/6-31G** SCRF=(Solvent=TetraHydroFuran) EmpiricalDispersion=GD3",
+                f"Opt B3LYP/6-31G** SCRF=(Solvent=TetraHydroFuran) EmpiricalDispersion=GD3 Output=WFN", # to skip geometry optmization use: "SCRF=(Solvent=TetraHydroFuran) EmpiricalDispersion=GD3 Output=WFN"
                 f"Freq B3LYP/6-31G** volume NMR pop=NPA density=current Geom=AllCheck Guess=Read "
                 f"SCRF=(Solvent=TetraHydroFuran) EmpiricalDispersion=GD3"
             )
