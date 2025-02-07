@@ -54,7 +54,7 @@ class slurm_manager(object):
         """Connect to remote host."""
         if not self.connection or not self.connection.is_connected:
             logger.info(f"Connecting to {self.host} as {self.user}.")
-            self.connection = shh_connect(self.gw_host, self.gw_user, self.host, self.user)
+            self.connection = ssh_connect(self.gw_host, self.gw_user, self.host, self.user)
             self.connection.run(f"mkdir -p {self.remote_base_dir}")
             logger.info(f"Connection established.")
 
