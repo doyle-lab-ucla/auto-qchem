@@ -6,6 +6,7 @@ import json
 import pandas as pd
 import numpy as np
 import pymongo
+from pymongo.collection import Collection
 from bson.objectid import ObjectId
 from rdkit import Chem, Geometry
 from rdkit.Chem import rdFMCS
