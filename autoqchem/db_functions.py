@@ -27,7 +27,7 @@ conf_options_long = ['Boltzman Average', 'Lowest Energy Conformer', 'Highest Ene
                      'Standard Deviation', 'Random']
 
 
-def db_connect(collection=None) -> pymongo.collection.Collection:
+def db_connect(collection=None) -> Collection:
     """Create a connection to the database and return the table (Collection).
 
     :param collection: database collection name (optional)
