@@ -316,7 +316,7 @@ class sge_manager(object):
                                          file_string, re.DOTALL).group(0)
 
             # new coords block
-            coords = le.geom[list('XYZ')].map(lambda x: f"{x:.6f}")
+            coords = le.geom[list('XYZ')].applymap(lambda x: f"{x:.6f}")
             coords.insert(0, 'Atom', le.labels)
             coords_block = "\n".join(map(" ".join, coords.values)) + "\n\n"
 
