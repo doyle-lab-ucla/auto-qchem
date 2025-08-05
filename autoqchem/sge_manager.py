@@ -246,20 +246,24 @@ class sge_manager(object):
             except NoGeometryException:
                 job.status = sge_status.failed
                 logger.warning(
-                    f"Job {job.base_name} failed - the log file does not contain geometry. Cannot resubmit.")
+                    f"Job {job.base_name} failed - the log file does not contain geometry. Resubmit job.")
+                return job.status
 
             except NegativeFrequencyException:
                 job.status = sge_status.incomplete
                 logger.warning(
                     f"Job {job.base_name} incomplete - log file contains negative frequencies. Resubmit job.")
+                return job.status
 
             except OptimizationIncompleteException:
                 job.status = sge_status.incomplete
                 logger.warning(f"Job {job.base_name} incomplete - geometry optimization did not complete.")
+                return job.status
 
             except Exception as e:
                 job.status = sge_status.failed
                 logger.warning(f"Job {job.base_name} failed with unhandled exception: {e}")
+                return job.status
 
             if len(job.tasks) == le.n_tasks:
                 job.status = sge_status.done
@@ -269,7 +273,7 @@ class sge_manager(object):
 
         except FileNotFoundError:
             job.status = sge_status.failed
-            logger.warning(f"Job {job.base_name} failed  - could not retrieve log file. Cannot resubmit.")
+            logger.warning(f"Job {job.base_name} failed  - could not retrieve log file.")
 
         # clean up files on the remote site - do not cleanup anything, the /scratch/network cleans
         # up files that are older than 15 days
@@ -287,11 +291,26 @@ class sge_manager(object):
         :param wall_time: wall time of the job in HH:MM:SS format
         """
 
+        # resubmit failed jobs via fresh submission
+        failed_jobs = self.get_jobs(sge_status.failed)
+        if failed_jobs:
+            logger.info("Resubmitting failed jobs:")
+        # put a limit on resubmissions
+        for key, job in failed_jobs.items():
+            if job.n_submissions >= 3:
+                logger.warning(f"Job {job.base_name} has been already failed 3 times, not submitting again.")
+                continue 
+        self.submit_jobs_from_jobs_dict(failed_jobs)
+
+
+        # resubmit using last geometry in case of incomplete jobs
         incomplete_jobs = self.get_jobs(sge_status.incomplete)
         incomplete_jobs_to_resubmit = {}
 
         if not incomplete_jobs:
             logger.info("There are no incomplete jobs to resubmit.")
+        else:
+            logger.info("Resubmitting incomplete jobs:")
 
         for key, job in incomplete_jobs.items():
 
@@ -316,7 +335,7 @@ class sge_manager(object):
                                          file_string, re.DOTALL).group(0)
 
             # new coords block
-            coords = le.geom[list('XYZ')].map(lambda x: f"{x:.6f}")
+            coords = le.geom[list('XYZ')].applymap(lambda x: f"{x:.6f}")
             coords.insert(0, 'Atom', le.labels)
             coords_block = "\n".join(map(" ".join, coords.values)) + "\n\n"
 
@@ -342,6 +361,7 @@ class sge_manager(object):
             incomplete_jobs_to_resubmit[key] = job
 
         self.submit_jobs_from_jobs_dict(incomplete_jobs_to_resubmit)
+
 
     def upload_done_molecules_to_db(self, tags, RMSD_threshold=0.35) -> None:
 

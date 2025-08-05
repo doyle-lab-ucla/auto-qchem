@@ -382,20 +382,20 @@ def descriptors(tags, presets, conf_option, solvent, functional, basis_set, subs
 
     mol_df = db_select_molecules(tags=tags, substructure=substructure, solvent=solvent, functional=functional,
                                  basis_set=basis_set, smiles=smiles)
-    descs_df = descriptors_from_mol_df(mol_df, conf_option)  # this is the heavy query from DB
+    descs_series = descriptors_from_mol_df(mol_df, conf_option)  # this is the heavy query from DB
 
     data = {}
 
     if 'global' in presets:
-        dg = pd.concat([d['descriptors'] for can, d in descs_df.iteritems()], axis=1, sort=True)
-        dg.columns = descs_df.index
+        dg = pd.concat([d['descriptors'] for d in descs_series.values], axis=1, sort=True)
+        dg.columns = descs_series.index
         data['global'] = dg.T
 
     if 'min_max' in presets:
-        dmin = pd.concat([d['atom_descriptors'].min() for can, d in descs_df.iteritems()], axis=1, sort=True)
-        dmax = pd.concat([d['atom_descriptors'].max() for can, d in descs_df.iteritems()], axis=1, sort=True)
-        dmin.columns = descs_df.index
-        dmax.columns = descs_df.index
+        dmin = pd.concat([d['atom_descriptors'].min() for d in descs_series.values], axis=1, sort=True)
+        dmax = pd.concat([d['atom_descriptors'].max() for d in descs_series.values], axis=1, sort=True)
+        dmin.columns = descs_series.index
+        dmax.columns = descs_series.index
         data['min'] = dmin.T
         data['max'] = dmax.T
 
@@ -404,9 +404,9 @@ def descriptors(tags, presets, conf_option, solvent, functional, basis_set, subs
         try:
             ts = pd.concat([d['transitions'].sort_values("ES_osc_strength",
                                                          ascending=False).head(10).reset_index(drop=True).unstack()
-                            for can, d in descs_df.iteritems()], axis=1, sort=True)
+                            for d in descs_series.values], axis=1, sort=True)
             ts.index = ts.index.map(lambda i: "_".join(map(str, i)))
-            ts.columns = descs_df.index
+            ts.columns = descs_series.index
             data['transitions'] = ts.T
         except KeyError:
             pass
@@ -426,7 +426,7 @@ def descriptors(tags, presets, conf_option, solvent, functional, basis_set, subs
 
         # create a frame with descriptors large structure in one column, and substructure match
         # indices in the second column
-        tmp_df = descs_df.to_frame('descs')
+        tmp_df = descs_series.to_frame('descs')
         tmp_df['matches'] = matches
 
         # fetch atom labels for this smarts using the first molecule
@@ -434,24 +434,24 @@ def descriptors(tags, presets, conf_option, solvent, functional, basis_set, subs
 
         for i, label in enumerate(sub_labels):
             to_concat = []
-            for c, row in tmp_df.iterrows():
+            for can,row in tmp_df.iterrows():
                 atom_descs = row['descs']['atom_descriptors']
                 atom_descs['labels'] = row['descs']['labels']
                 atom_descs = atom_descs[~atom_descs['labels'].str.startswith("H")]
                 to_concat.append(atom_descs.iloc[row['matches'][i]])
             data[label] = pd.concat(to_concat, axis=1, sort=True)
-            data[label].columns = descs_df.index
+            data[label].columns = descs_series.index
             data[label] = data[label].T
 
     if 'core' in presets:
         # run MCS if there is more than 1 molecule
         if len(rd_mols) > 1:
             try:
-                core_smarts = rdFMCS.FindMCS(list(rd_mols.values())).smartsString
+                core_smarts = rdFMCS.FindMCS(list(rd_mols.values)).smartsString
             except ValueError:
                 core_smarts = ''
         else:  # otherwise use the entire smiles as smarts string
-            core_smarts = Chem.MolToSmarts(list(rd_mols.values())[0])
+            core_smarts = Chem.MolToSmarts(list(rd_mols.values)[0])
 
         if core_smarts:
             # create an rdkit smarts
@@ -463,7 +463,7 @@ def descriptors(tags, presets, conf_option, solvent, functional, basis_set, subs
 
             # create a frame with descriptors large structure in one column, and substructure match
             # indices in the second column
-            tmp_df = descs_df.to_frame('descs')
+            tmp_df = descs_series.to_frame('descs')
             tmp_df['matches'] = matches
 
             # fetch atom labels for this smarts using the first molecule
@@ -475,13 +475,13 @@ def descriptors(tags, presets, conf_option, solvent, functional, basis_set, subs
 
             for i, label in enumerate(sub_labels):
                 to_concat = []
-                for c, row in tmp_df.iterrows():
+                for can, row in tmp_df.iterrows():
                     atom_descs = row['descs']['atom_descriptors']
                     atom_descs['labels'] = row['descs']['labels']
                     atom_descs = atom_descs[~atom_descs['labels'].str.startswith("H")]  # need to remove hydrogens
                     to_concat.append(atom_descs.iloc[row['matches'][i]])
                 data[label] = pd.concat(to_concat, axis=1, sort=True)
-                data[label].columns = descs_df.index
+                data[label].columns = descs_series.index
                 data[label] = data[label].T
     return data
 
@@ -713,3 +713,6 @@ class InconsistentLabelsException(Exception):
     """Raised when a set of molecules is inconsistently labeled"""
     pass
 
+
+if __name__ == '__main__':
+    get_all_conformer_data(tags=['test_WCG'])
