@@ -1,7 +1,7 @@
 import hashlib
 import pickle
 from contextlib import suppress
-
+from tqdm import tqdm     
 import appdirs
 
 from autoqchem.db_functions import *
@@ -28,7 +28,7 @@ class slurm_manager(object):
         # set workdir and cache file
         self.workdir = appdirs.user_data_dir(appauthor="autoqchem", appname=host.split('.')[0])
         self.cache_file = os.path.join(self.workdir, "slurm_manager.pkl")
-        os.makedirs(self.workdir, exist_ok=True)
+        os.makedirs(f"{self.workdir}", exist_ok=True)
 
         self.jobs = {}  # jobs under management
 
@@ -98,7 +98,7 @@ class slurm_manager(object):
         """
 
         # create gaussian files
-        molecule_workdir = os.path.join(self.workdir, molecule.inchikey)
+        molecule_workdir = os.path.join(f"{self.workdir}", molecule.inchikey)
         gig = gaussian_input_generator(molecule, workflow_type, molecule_workdir, theory, solvent, light_basis_set,
                                        heavy_basis_set, generic_basis_set, max_light_atomic_number)
         gaussian_config = {'theory': theory,
@@ -176,7 +176,7 @@ class slurm_manager(object):
             self.connect()
 
             # check if jobs are in status created or failed
-            for name, job in jobs.items():
+            for name, job in tqdm(jobs.items()):
                 # copy .sh and .gjf file to remote_dir
                 self.connection.put(f"{job.directory}/{job.base_name}.sh", self.remote_dir)
                 self.connection.put(f"{job.directory}/{job.base_name}.gjf", self.remote_dir)
@@ -215,7 +215,7 @@ class slurm_manager(object):
 
         if finished_jobs:
             logger.info(f"Retrieving log files of finished jobs.")
-            for job in finished_jobs.values():
+            for job in tqdm(finished_jobs.values()):
                 status = self._retrieve_single_job(job)
                 if status.value == slurm_status.done.value:
                     done_jobs += 1
@@ -244,20 +244,24 @@ class slurm_manager(object):
             except NoGeometryException:
                 job.status = slurm_status.failed
                 logger.warning(
-                    f"Job {job.base_name} failed - the log file does not contain geometry. Cannot resubmit.")
+                    f"Job {job.base_name} failed - the log file does not contain geometry. Resubmit.")
+                return job.status
 
             except NegativeFrequencyException:
                 job.status = slurm_status.incomplete
                 logger.warning(
                     f"Job {job.base_name} incomplete - log file contains negative frequencies. Resubmit job.")
+                return job.status
 
             except OptimizationIncompleteException:
                 job.status = slurm_status.incomplete
                 logger.warning(f"Job {job.base_name} incomplete - geometry optimization did not complete.")
+                return job.status
 
             except Exception as e:
                 job.status = slurm_status.failed
                 logger.warning(f"Job {job.base_name} failed with unhandled exception: {e}")
+                return job.status
 
             if len(job.tasks) == le.n_tasks:
                 job.status = slurm_status.done
@@ -267,14 +271,14 @@ class slurm_manager(object):
 
         except FileNotFoundError:
             job.status = slurm_status.failed
-            logger.warning(f"Job {job.base_name} failed  - could not retrieve log file. Cannot resubmit.")
+            logger.warning(f"Job {job.base_name} failed  - could not retrieve log file.")
 
         # clean up files on the remote site - do not cleanup anything, the /scratch/network cleans
         # up files that are older than 15 days
 
         return job.status
 
-    def resubmit_incomplete_jobs(self, wall_time="24:59:00") -> None:
+    def resubmit_incomplete_jobs(self, wall_time="23:59:00") -> None:
         """Resubmit jobs that are incomplete. If the job has failed because the optimization has not completed \
         and a log file has been retrieved, then \
         the last geometry will be used for the next submission. For failed jobs \
@@ -285,11 +289,26 @@ class slurm_manager(object):
         :param wall_time: wall time of the job in HH:MM:SS format
         """
 
+        # resubmit failed jobs via fresh submission
+        failed_jobs = self.get_jobs(slurm_status.failed)
+        if failed_jobs:
+            logger.info("Resubmitting failed jobs:")
+        # put a limit on resubmissions
+        for key, job in failed_jobs.items():
+            if job.n_submissions >= 3:
+                logger.warning(f"Job {job.base_name} has been already failed 3 times, not submitting again.")
+                continue 
+        self.submit_jobs_from_jobs_dict(failed_jobs)
+
+
+        # resubmit using last geometry in case of incomplete jobs
         incomplete_jobs = self.get_jobs(slurm_status.incomplete)
         incomplete_jobs_to_resubmit = {}
 
         if not incomplete_jobs:
             logger.info("There are no incomplete jobs to resubmit.")
+        else:
+            logger.info("Resubmitting incomplete jobs:")
 
         for key, job in incomplete_jobs.items():
 
@@ -341,6 +360,7 @@ class slurm_manager(object):
 
         self.submit_jobs_from_jobs_dict(incomplete_jobs_to_resubmit)
 
+
     def upload_done_molecules_to_db(self, tags, RMSD_threshold=0.35) -> None:
 
         """Upload done molecules to db. Molecules are considered done when all jobs for a given \
@@ -355,7 +375,7 @@ class slurm_manager(object):
 
         done_jobs = self.get_jobs(slurm_status.done)
         if not done_jobs:
-            logger.info("There are no jobs in done status. Exitting.")
+            logger.info("There are no jobs in done status. Exiting.")
             return
 
         # check if there are molecules with all jobs done
@@ -364,7 +384,7 @@ class slurm_manager(object):
         done_cans = dfj_done.index.tolist()
 
         if not done_cans:
-            logger.info("There are no molecules with all jobs done. Exitting.")
+            logger.info("There are no molecules with all jobs done. Exiting.")
             return
 
         logger.info(f"There are {len(done_cans)} finished molecules {done_cans}.")
@@ -551,7 +571,7 @@ class slurm_manager(object):
         with open(self.cache_file, 'wb') as cf:
             pickle.dump(self.jobs, cf)
 
-        cleanup_empty_dirs(self.workdir)
+        cleanup_empty_dirs(f"{self.workdir}")
 
     def _create_slurm_file_from_gaussian_file(self, base_name, directory, wall_time) -> None:
         """Generate a single slurm submission file based on the Gaussian input file.
