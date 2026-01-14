@@ -616,7 +616,7 @@ class sge_manager(object):
         output += f"#$ -j y\n"      
         output += f"#$ -l h_data={mem}g,h_rt={wall_time},arch=intel*\n"   # specifies list of resources for job
         #output += f"#$ -l h_data={mem}g,h_rt={wall_time},arch=intel*,highp\n"   # specifies list of resources for job (highp to run only on group resources)
-        output += f"#$ -pe dc* {n_processors}\n\n"      # What about specifying n_processors? dc* means allocates computing cores on any node on cluster
+        output += f"#$ -pe shared {n_processors}\n\n"      # What about specifying n_processors? dc* means allocates computing cores on any node on cluster
         
         output += f"# echo job info to joblog\n" \
                   f"echo 'Job {base_name} started on:   ' `hostname -s`\n" \
